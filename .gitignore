@@ -33,3 +33,6 @@ bin/
 /server/src/main/resources/chatter.jks
 /chatter.crt
 /geolocation.log
+/linguistic.log
+server/lib/
+server/src/test/
