@@ -1,0 +1,314 @@
+body {
+  /*background-color: rgb(37, 170, 225);*/
+  /*rgb(225, 90, 94)*/
+  background-color: #f5f8fa;
+  margin-left: auto;
+  margin-right: auto;
+  font-family: Lato, Helvetic, sans-serif;
+  color: white
+}
+
+.input-group {
+  padding-left: 15px;
+}
+
+.account-image {
+  height: 50px;
+  padding: 5px 0;
+  margin-left: 10px;
+  vertical-align: top;
+}
+
+.img-circle {
+    border-radius: 50%;
+}
+
+#search-nav {
+    margin-top: 10px;
+    color: white;
+    background-color: #bbbbbb;
+    border-color: #080808;
+}
+
+.navbar {
+  margin-top: 10px;
+  color: white;
+  background-color: #ee5d5c;
+  border-color: #080808;
+}
+
+.navbar-brand {
+  font-size: 13px;
+}
+
+.navbar-default .navbar-brand {
+  color: #fff;
+}
+
+.navbar-default .navbar-nav > li > a {
+   color: #fff;
+}
+
+.signin {
+  max-width: 35%;
+  padding: 15px;
+  margin: 0 auto;
+  font-size: 12px;
+}
+
+.signin input[type="text"] , .form-signin input[type="password"] {
+  margin-bottom: 2px;
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: #ee5d5c;
+  border-color: #080808;
+}
+
+.btn-lg {
+  font-size: 14px;
+}
+
+.greeting {
+  color: #080808;
+}
+
+#outs {
+  color: black;
+  font-size: 10px;
+}
+
+/*app.css*/
+
+.navbar-brand {
+  cursor: pointer;
+}
+
+.navbar li {
+  list-style-type: none;
+  cursor: pointer;
+}
+
+pre {
+  overflow-x: auto;
+}
+pre code {
+  overflow-wrap: normal;
+  white-space: pre;
+}
+
+.container {
+  margin-left: 15px;
+  margin-right: 15px;
+  width: 1300px;
+}
+
+.example-enter {
+  opacity: 0.01;
+  transition: opacity .5s ease-in;
+}
+
+.example-enter.example-enter-active {
+  opacity: 1;
+}
+.example-leave {
+    opacity: 1;
+    transition: opacity .5s ease-in;
+}
+
+.example-leave.example-leave-active {
+    opacity: 0.01;
+}
+
+div.picture{
+    display: inline-block;
+    margin: 5px;
+    cursor:pointer;
+    position: relative;
+}
+
+div.picture.favorite:after{
+    content: '❤';
+    position: absolute;
+    font-size: 80px;
+    line-height: 200px;
+    color: #FF224D;
+    width: 100%;
+    text-align: center;
+    left: 0;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+    font-weight: bold;
+}
+
+.pictures, .favorites{
+    white-space: nowrap;
+    overflow-y: auto;
+    margin-bottom: 20px;
+    height: 230px;
+    background-color: #F3F3F3;
+}
+
+.pictures p, .favorites p {
+    padding-top: 100px;
+    font-size: 13px;
+}
+
+section.demo {
+  padding-bottom: 0.5em;
+}
+
+
+
+/*default.css*/
+
+/*
+
+.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 0.5em;
+  background: #f0f0f0;
+  -webkit-text-size-adjust: none;
+}
+
+.hljs,
+.hljs-subst,
+.hljs-tag .hljs-title,
+.nginx .hljs-title {
+  color: black;
+}
+
+.hljs-string,
+.hljs-title,
+.hljs-constant,
+.hljs-parent,
+.hljs-tag .hljs-value,
+.hljs-rules .hljs-value,
+.hljs-preprocessor,
+.hljs-pragma,
+.haml .hljs-symbol,
+.ruby .hljs-symbol,
+.ruby .hljs-symbol .hljs-string,
+.hljs-template_tag,
+.django .hljs-variable,
+.smalltalk .hljs-class,
+.hljs-addition,
+.hljs-flow,
+.hljs-stream,
+.bash .hljs-variable,
+.apache .hljs-tag,
+.apache .hljs-cbracket,
+.tex .hljs-command,
+.tex .hljs-special,
+.erlang_repl .hljs-function_or_atom,
+.asciidoc .hljs-header,
+.markdown .hljs-header,
+.coffeescript .hljs-attribute {
+  color: #800;
+}
+
+.smartquote,
+.hljs-comment,
+.hljs-annotation,
+.hljs-template_comment,
+.diff .hljs-header,
+.hljs-chunk,
+.asciidoc .hljs-blockquote,
+.markdown .hljs-blockquote {
+  color: #888;
+}
+
+.hljs-number,
+.hljs-date,
+.hljs-regexp,
+.hljs-literal,
+.hljs-hexcolor,
+.smalltalk .hljs-symbol,
+.smalltalk .hljs-char,
+.go .hljs-constant,
+.hljs-change,
+.lasso .hljs-variable,
+.makefile .hljs-variable,
+.asciidoc .hljs-bullet,
+.markdown .hljs-bullet,
+.asciidoc .hljs-link_url,
+.markdown .hljs-link_url {
+  color: #080;
+}
+
+.hljs-label,
+.hljs-javadoc,
+.ruby .hljs-string,
+.hljs-decorator,
+.hljs-filter .hljs-argument,
+.hljs-localvars,
+.hljs-array,
+.hljs-attr_selector,
+.hljs-important,
+.hljs-pseudo,
+.hljs-pi,
+.haml .hljs-bullet,
+.hljs-doctype,
+.hljs-deletion,
+.hljs-envvar,
+.hljs-shebang,
+.apache .hljs-sqbracket,
+.nginx .hljs-built_in,
+.tex .hljs-formula,
+.erlang_repl .hljs-reserved,
+.hljs-prompt,
+.asciidoc .hljs-link_label,
+.markdown .hljs-link_label,
+.vhdl .hljs-attribute,
+.clojure .hljs-attribute,
+.asciidoc .hljs-attribute,
+.lasso .hljs-attribute,
+.coffeescript .hljs-property,
+.hljs-phony {
+  color: #88f;
+}
+
+.hljs-keyword,
+.hljs-id,
+.hljs-title,
+.hljs-built_in,
+.css .hljs-tag,
+.hljs-javadoctag,
+.hljs-phpdoc,
+.hljs-dartdoc,
+.hljs-yardoctag,
+.smalltalk .hljs-class,
+.hljs-winutils,
+.bash .hljs-variable,
+.apache .hljs-tag,
+.hljs-type,
+.hljs-typename,
+.tex .hljs-command,
+.asciidoc .hljs-strong,
+.markdown .hljs-strong,
+.hljs-request,
+.hljs-status {
+  font-weight: bold;
+}
+
+.asciidoc .hljs-emphasis,
+.markdown .hljs-emphasis {
+  font-style: italic;
+}
+
+.nginx .hljs-built_in {
+  font-weight: normal;
+}
+
+.coffeescript .javascript,
+.javascript .xml,
+.lasso .markup,
+.tex .hljs-formula,
+.xml .javascript,
+.xml .vbscript,
+.xml .css,
+.xml .hljs-cdata {
+  opacity: 0.5;
+}
+*/
