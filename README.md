@@ -1,4 +1,4 @@
-# Chatter
+# Linguistic
 
 
 ## Run the application
@@ -16,12 +16,6 @@ Links
     https://medium.com/@ianjuma/deploying-scala-on-docker-e8d98aa39bcf#.oonxy2zi8
     https://www.digitalocean.com/community/tutorials/how-to-provision-and-manage-remote-docker-hosts-with-docker-machine-on-ubuntu-16-04
 
-Modify hosts
-====
-
-  /etc/hosts
-  127.0.0.1    chatter.com www.chatter.com
-
 Generate SSL
 ====
     
@@ -36,7 +30,6 @@ Generate SSL
        -ext KeyUsage:critical="keyCertSign" \
        -ext BasicConstraints:critical="ca:true" \
        -validity 365
-
 
 Export the public certificate as certificate.crt
 ====
@@ -68,13 +61,13 @@ Run docker container
 
   To run with `--net=host` is necessary because you are passing `` env val
 
-  `docker run --net=host -it -p 2551:2551 -e HOSTNAME=192.168.0.146 -e PORT=2551 -e JMX_PORT=1089 -e TZ="Europe/Moscow" haghard/geolocation:0.1`
+  `docker run --net=host -it -p 2551:2551 -e HOSTNAME=192.168.0.146 -e PORT=2551 -e JMX_PORT=1089 -e TZ="Europe/Moscow" haghard/linguistic:0.1`
   
-  `docker run --net=host -it -p 2552:2552 -e HOSTNAME=192.168.0.147 -e PORT=2552 -e JMX_PORT=1089 -e TZ="UTC" haghard/geolocation:0.1`
+  `docker run --net=host -it -p 2552:2552 -e HOSTNAME=192.168.0.147 -e PORT=2552 -e JMX_PORT=1089 -e TZ="UTC" haghard/linguistic:0.1`
 
   or if you want pass SECRET 
   
-  `docker run --net=host -it -p 2551:2551 -e HOSTNAME=192.168.0.146 -e PORT=2551 -e JMX_PORT=1089 -e SERVER_SECRET=... haghard/geolocation:0.1`
+  `docker run --net=host -it -p 2551:2551 -e HOSTNAME=192.168.0.146 -e PORT=2551 -e JMX_PORT=1089 -e SERVER_SECRET=... haghard/linguistic:0.1`
 
 Time zone options 
 
