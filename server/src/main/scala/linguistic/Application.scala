@@ -21,11 +21,8 @@ object Application extends App with AppSupport with SslSupport {
   val opts: Map[String, String] = argsToOpts(args.toList)
   applySystemProperties(opts)
 
-  //Properties.envOrElse("PORT", config.getString("port") ).toInt
-
   val port = System.getProperty("akka.remote.netty.tcp.port")
   val httpPort = System.getProperty("akka.http.port")
-  println(port + "  - " + httpPort)
 
   val httpConf =
     s"""
@@ -42,10 +39,7 @@ object Application extends App with AppSupport with SslSupport {
     """.stripMargin
 
   val httpConf1 = httpConf.replaceAll("%port%", port).replaceAll("%httpP%", httpPort)
-  println(httpConf1)
-
   val confDir = new File(sys.env.getOrElse("CONFIG", "."))
-  println(confDir)
 
   //for re~start
   //val env = sys.env.getOrElse("ENV", throw new Exception("ENV is expected"))
@@ -55,9 +49,7 @@ object Application extends App with AppSupport with SslSupport {
   val configFile = new File(s"${confDir.getAbsolutePath}/" + env + ".conf")
   println("Config file: " + configFile.getAbsolutePath)
 
-  val config: Config = ConfigFactory.parseString(httpConf1)
-    .withFallback(ConfigFactory.parseFile(configFile).resolve())
-    //.withFallback(ConfigFactory.load()) //force to load env vars
+  val config: Config = ConfigFactory.parseString(httpConf1).withFallback(ConfigFactory.parseFile(configFile).resolve())
 
   implicit val system = ActorSystem("linguistics", config)
   implicit val ex = system.dispatchers.lookup("shard-dispatcher")
@@ -75,8 +67,6 @@ object Application extends App with AppSupport with SslSupport {
   val routes = new api.SearchApi(sm).route ~ new api.Nvd3Api().route ~
     new api.UsersApi(users).route ~ new api.ClusterApi(sm).route
 
-  //Http().bindAndHandle(routes, interface, httpP)
-  //ssh
   Http().bindAndHandle(routes, interface, httpP, connectionContext =
     https(config.getString("akka.http.ssl.keypass"), config.getString("akka.http.ssl.storepass")))
 
@@ -88,7 +78,6 @@ object Application extends App with AppSupport with SslSupport {
     val upTime = stop.getEpochSecond - start.getEpochSecond
     system.log.info(s"★ ★ ★  Stopping application at ${clock.instant} after being up for ${upTime} sec. ★ ★ ★ ")
   }
-
 
   val tz = TimeZone.getDefault.getID
   val greeting = new StringBuilder()

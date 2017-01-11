@@ -3,6 +3,8 @@ import sbt._
 import com.typesafe.sbt.packager.docker.Dockerfile
 import sbtdocker.ImageName
 
+import scala.util.Try
+
 val scalaV = "2.11.8"
 val akkaVersion = "2.4.16"
 val version = "0.1"
@@ -99,9 +101,10 @@ lazy val server = (project in file("server")).settings(
   */
 
   dockerfile in docker := {
-
-    val appEnv = sys.props.getOrElse("env", "production")
-    val appConfig = sys.props.getOrElse("config", "/app/conf")
+    val appEnv = Try(System.getenv("env")).getOrElse("production")
+    //sys.props.getOrElse("env", "production")
+    val appConfig = "/app/conf"
+    //sys.props.getOrElse("config", "/app/conf")
 
     val baseDir = baseDirectory.value
     val artifact: File = assembly.value
@@ -110,9 +113,12 @@ lazy val server = (project in file("server")).settings(
     val configDir = "conf"
     val artifactTargetPath = s"$imageAppBaseDir/${artifact.name}"
     val artifactTargetPath_ln = s"$imageAppBaseDir/${appEnv}-${name.value}.jar"
+    val jksTargetPath = s"${imageAppBaseDir}/linguistic.jks"
 
     val dockerResourcesDir = baseDir / "docker-resources"
     val dockerResourcesTargetPath = s"$imageAppBaseDir/"
+
+    val jks = baseDir / "src" / "main" / "resources" / "linguistic.jks"
 
     //val prodConfigSrc = baseDir / "src" / "main" / "resources" / "production.conf"
 
@@ -141,6 +147,7 @@ lazy val server = (project in file("server")).settings(
 
       copy(artifact, artifactTargetPath)
       copy(dockerResourcesDir, dockerResourcesTargetPath)
+      copy(jks, jksTargetPath)
 
       if(prodConfigSrc.exists)
         copy(prodConfigSrc, appProdConfTarget) //Copy the prod config
