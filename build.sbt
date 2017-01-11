@@ -113,7 +113,7 @@ lazy val server = (project in file("server")).settings(
     val configDir = "conf"
     val artifactTargetPath = s"$imageAppBaseDir/${artifact.name}"
     val artifactTargetPath_ln = s"$imageAppBaseDir/${appEnv}-${name.value}.jar"
-    val jksTargetPath = s"${imageAppBaseDir}/linguistic.jks"
+    val jksTargetPath = s"$imageAppBaseDir/linguistic.jks"
 
     val dockerResourcesDir = baseDir / "docker-resources"
     val dockerResourcesTargetPath = s"$imageAppBaseDir/"
