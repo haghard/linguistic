@@ -119,7 +119,7 @@ lazy val server = (project in file("server")).settings(
     val prodConfigSrc = baseDir / "conf" / "production.conf"
     val devConfigSrc =  baseDir / "conf" / "development.conf"
 
-    val curEnv = System.getenv("ENV") //development | production
+    //val curEnv = System.getenv("ENV") //development | production
 
     val appProdConfTarget = s"$imageAppBaseDir/$configDir/production.conf"
     val appDevConfTarget = s"$imageAppBaseDir/$configDir/development.conf"
@@ -132,7 +132,7 @@ lazy val server = (project in file("server")).settings(
       env("APP_BASE", imageAppBaseDir)
       env("CONFIG", s"$imageAppBaseDir/$configDir")
 
-      env("ENV", curEnv)
+      env("ENV", appEnv)
 
       //workDir(imageAppBaseDir)
       //run("mkdir", configDir)
@@ -153,7 +153,6 @@ lazy val server = (project in file("server")).settings(
 
       runRaw(s"cd $configDir && ls -la && cd ..")
       runRaw("ls -la")
-
 
       //Symlink the service jar to a non version specific name
       run("ln", "-sf", s"$artifactTargetPath", s"$artifactTargetPath_ln")
