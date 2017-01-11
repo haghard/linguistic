@@ -15,6 +15,7 @@ import scala.collection.JavaConverters._
 
 class UsersRepo()(implicit system: ActorSystem, ex: ExecutionContext) {
   import linguistic._
+
   //val localDC = system.settings.config.getString("cassandra.dc")
   val cassandraPort = system.settings.config.getInt("cassandra.port")
   val keySpace = system.settings.config.getString("cassandra.keyspace")
@@ -35,9 +36,9 @@ class UsersRepo()(implicit system: ActorSystem, ex: ExecutionContext) {
   val insertUsers = "INSERT INTO users(login, password, photo, created_at) VALUES (?, ?, ?, ?) IF NOT EXISTS"
   val selectUser = "SELECT login, password, photo FROM users where login = ?"
 
-  session.execute("CREATE TABLE IF NOT EXISTS users(login text, created_at timestamp, password text, photo text, PRIMARY KEY (login))").one
+  session.execute(s"CREATE TABLE IF NOT EXISTS ${keySpace}.users(login text, created_at timestamp, password text, photo text, PRIMARY KEY (login))")
 
-  private val insertStmt = session prepare insertUsers
+  private val insertStmt = session.prepare(insertUsers)
 
   //for 1 dc
   insertStmt.setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL)
@@ -45,9 +46,13 @@ class UsersRepo()(implicit system: ActorSystem, ex: ExecutionContext) {
 
   private val selectStmt = session prepare selectUser
   selectStmt.setConsistencyLevel(ConsistencyLevel.SERIAL)
+  selectStmt.enableTracing
 
   def signIn(login: String, password: String): Future[Either[String, SignInResponse]] = {
     session.executeAsync(selectStmt.bind(login)).asScala.map { r =>
+     val queryTrace = r.getExecutionInfo.getQueryTrace
+     println("Trace id: %s\n", queryTrace.getTraceId)
+
       val row = r.one
       if (row eq null) Left("Couldn't find user " + login)
       else if (BCrypt.checkpw(password, row.getString("password"))) {

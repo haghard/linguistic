@@ -6,23 +6,34 @@
 $ sbt
 > ~re-start
 
+Cluster info
+===
+  http GET :9000/cluster/wordslist/shards
+  http GET :9000/cluster/wordslist/shards2
+  http GET :9000/cluster/wordslist/regions
+  
+  http GET :9000/cluster/homophones/shards
+  http GET :9000/cluster/homophones/shards2
+  http GET :9000/cluster/homophones/regions
+
 Links
 ====
-
+    https://github.com/softwaremill/akka-http-session
     http://www.cakesolutions.net/teamblogs/composing-microservices-with-docker-part1
     http://www.cakesolutions.net/teamblogs/composing-microservices-with-docker-part2
     https://www.javacodegeeks.com/2016/11/developing-modern-applications-scala-web-apis-akka-http.html
-    https://github.com/softwaremill/akka-http-session
     https://medium.com/@ianjuma/deploying-scala-on-docker-e8d98aa39bcf#.oonxy2zi8
     https://www.digitalocean.com/community/tutorials/how-to-provision-and-manage-remote-docker-hosts-with-docker-machine-on-ubuntu-16-04
 
-Generate SSL
+Generating self-signed certificates
+
+The first step is to create a certificate authority that will sign the linguistic.com certificate. The root CA certificate has a couple of additional attributes (ca:true, keyCertSign) that mark it explicitly as a CA certificate, and will be kept in a trust store.
 ====
-    
+
     keytool -genkeypair -v \
-       -alias chatter.com \
-       -dname "CN=chatter.com, O=Chatter Company, L=Spb, ST=Spb, C=RU" \
-       -keystore server/src/main/resources/chatter.jks  \
+       -alias linguistic.com \
+       -dname "CN=linguistic.com, O=Chatter Company, L=Spb, ST=Spb, C=RU" \
+       -keystore server/src/main/resources/linguistic.jks  \
        -keypass avmiejtq  \
        -storepass akdfopjb \
        -keyalg RSA \
@@ -31,15 +42,16 @@ Generate SSL
        -ext BasicConstraints:critical="ca:true" \
        -validity 365
 
-Export the public certificate as certificate.crt
+
+Export the linguistic public certificate as linguistic.crt so that it can be used in trust stores.
 ====
 
 	keytool -export -v \
-	  -alias chatter.com \
-	  -file chatter.crt \
+	  -alias linguistic.com \
+	  -file linguistic.crt \
 	  -keypass avmiejtq \
 	  -storepass akdfopjb \
-	  -keystore server/src/main/resources/chatter.jks \
+	  -keystore server/src/main/resources/linguistic.jks \
 	  -rfc
 
 Checking the status of ssh :
@@ -50,13 +62,8 @@ Checking the status of ssh :
     
   And then run SSLyze against the application:
       
-      python /Volumes/Data/Setup/sslyze-0_8-osx64/sslyze.py --regular chatter.com:9443
-
-  Example how to access timeline using curl and https 
+      python /Volumes/Data/Setup/sslyze-0_8-osx64/sslyze.py --regular linguistic.com:9443
   
-      curl --cacert chatter.crt "https://chatter.com:58083/timeline?name=hangout&timeuuid=424f1d40-aa9c-11e6-ac47-6d2c86545d91" -H Client-Auth-Token:"FA7D90B1C7D1812E30581BD5D69E534F3414A39A-1479478029671-xhaghard%40gmail.com"
-
-
 Run docker container
 
   To run with `--net=host` is necessary because you are passing `` env val
@@ -124,10 +131,9 @@ ScalaJs
     http://www.scala-js.org/tutorial/basic/
     https://github.com/japgolly/scalajs-react/blob/master/doc/USAGE.md
     https://github.com/chandu0101/scalajs-react-components
-    https://japgolly.github.io/scalajs-react/#examples/todo
-    
-Geo Location
+    https://japgolly.github.io/scalajs-react/#examples/todo        
+
+SSL
 ===
-    http://www.baeldung.com/geolocation-by-ip-with-maxmind
-    
+    http://typesafehub.github.io/ssl-config/CertificateGeneration.html
  

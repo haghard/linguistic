@@ -7,27 +7,23 @@ import akka.http.scaladsl.{ConnectionContext, HttpsConnectionContext}
 
 trait SslSupport {
 
-  def https(keypass: String, storepass: String): HttpsConnectionContext = {
+  def https(keyPass: String, storePass: String): HttpsConnectionContext = {
+    resource.managed(getClass.getResourceAsStream("/linguistic.jks")).map { in =>
+      val algorithm = "SunX509"
 
-    resource.managed(getClass.getResourceAsStream("/chatter.jks"))
-      .map { in =>
-        val algorithm = "SunX509"
-        //PKCS12
+      val keyStore = KeyStore.getInstance("JKS")
+      keyStore.load(in, storePass.toCharArray)
 
-        val keyStore = KeyStore.getInstance("JKS")
-        keyStore.load(in, storepass.toCharArray)
+      val keyManagerFactory = KeyManagerFactory.getInstance(algorithm)
+      keyManagerFactory.init(keyStore, keyPass.toCharArray)
 
+      val tmf = TrustManagerFactory.getInstance(algorithm)
+      (tmf init keyStore)
 
-        val keyManagerFactory = KeyManagerFactory.getInstance(algorithm)
-        keyManagerFactory.init(keyStore, keypass.toCharArray)
+      val sslContext = SSLContext.getInstance("TLS")
+      sslContext.init(keyManagerFactory.getKeyManagers, tmf.getTrustManagers, new SecureRandom)
 
-        val tmf = TrustManagerFactory.getInstance(algorithm)
-        (tmf init keyStore)
-
-        val sslContext = SSLContext.getInstance("TLS")
-        sslContext.init(keyManagerFactory.getKeyManagers, tmf.getTrustManagers, new SecureRandom)
-
-        (ConnectionContext https sslContext)
-      }.opt.get
+      (ConnectionContext https sslContext)
+    }.opt.get
   }
 }

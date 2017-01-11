@@ -27,6 +27,8 @@ object WordsListSubTreeShardEntity {
     case x: SearchWord => (x.keyword.toLowerCase(Locale.ROOT).take(1), x)
   }
 
+  val Name = "wordslist"
+
   def props(mat: ActorMaterializer): Props =
     Props(new WordsListSubTreeShardEntity("./wordsEn.txt")(mat)).withDispatcher("shard-dispatcher")
 }
@@ -42,15 +44,16 @@ object WordsListSubTreeShardEntity {
 class WordsListSubTreeShardEntity(path: String)(implicit val mat: ActorMaterializer) extends PersistentActor
   with ActorLogging with Indexing[Unit] with Stash with Passivation {
 
-  val entityKey = self.path.name
+  override val startingLetter = self.path.name
+
+  //self.path.name
   val passivationTimeout = 15.minutes
   context.setReceiveTimeout(passivationTimeout)
 
-  override def persistenceId = entityKey
+  override def persistenceId = Name + "-" + self.path.parent.name + "-" + self.path.name
 
   override def preStart() = {
-    val file = new File(path)
-    log.info("Started Entity Actor for key [{}] from the file {}", entityKey, file.getAbsolutePath)
+    log.info("Started Entity Actor for key [{}] from the file {}", startingLetter, new File(path).getAbsolutePath)
   }
 
   override def postStop() = log.info("{} has been stopped", self)
@@ -62,22 +65,22 @@ class WordsListSubTreeShardEntity(path: String)(implicit val mat: ActorMateriali
       context.become(indexing(index merge RadixTree[String, Unit](word ->())))
 
     case IndexingCompleted =>
-      log.info("IndexingCompleted for key [{}] (entries: {}), create snapshot now...", entityKey, index.count)
+      log.info("IndexingCompleted for key [{}] (entries: {}), create snapshot now...", startingLetter, index.count)
       val indSeq = index.keys.to[collection.immutable.Seq]
       saveSnapshot(indSeq)
       unstashAll()
       (context become passivate(active(index)))
 
     case m: RestoredIndex[Unit]@unchecked =>
-      if (m.index.count == 0) buildIndex(entityKey, path)
+      if (m.index.count == 0) buildIndex(startingLetter, path)
       else {
         unstashAll()
-        log.info("Index has been recovered from snapshot with size {} for key [{}]", index.count, entityKey)
-        (context become passivate(active(index)))
+        log.info("Index has been recovered from snapshot with size {} for key [{}]", m.index.count, startingLetter)
+        (context become passivate(active(m.index)))
       }
 
     case SearchWord(prefix, _) =>
-      log.info("ShardEntity [{}] is indexing right now. Stashing request for key [{}]", entityKey, prefix)
+      log.info("ShardEntity [{}] is indexing right now. Stashing request for key [{}]", startingLetter, prefix)
       stash()
   }
 
@@ -92,9 +95,9 @@ class WordsListSubTreeShardEntity(path: String)(implicit val mat: ActorMateriali
     case SnapshotOffer(meta, seq: collection.immutable.Seq[String]@unchecked) =>
       recoveredIndex = RadixTree(seq.map(name => name -> (())): _*)
       //val mb = GraphLayout.parseInstance(recoveredIndex).totalSize.toFloat / mbDivider
-      log.info("SnapshotOffer{}: count:{}" /*"size: {} mb"*/ , meta.sequenceNr, recoveredIndex.count /*, mb*/)
+      log.info("SnapshotOffer {}: count:{}" /*"size: {} mb"*/ , meta, recoveredIndex.count /*, mb*/)
     case RecoveryCompleted =>
-      log.info("RecoveryCompleted count:{} for key: {}", recoveredIndex.count, entityKey)
+      log.info("RecoveryCompleted count:{} for key: {}", recoveredIndex.count, startingLetter)
       self ! RestoredIndex(recoveredIndex)
       recoveredIndex = RadixTree.empty[String, Unit]
   }

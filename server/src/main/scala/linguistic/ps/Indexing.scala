@@ -24,6 +24,8 @@ trait Indexing[T] {
 
   val encoding = "utf-8"
 
+  def startingLetter: String
+
   def keywordsSource(path: String): Source[ByteString, Future[IOResult]] =
     fromInputStream(() => new FileInputStream(new File(path)))
       .via(Framing.delimiter(ByteString("\n"), Int.MaxValue))

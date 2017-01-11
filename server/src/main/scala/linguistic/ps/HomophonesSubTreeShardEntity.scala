@@ -27,6 +27,8 @@ object HomophonesSubTreeShardEntity {
     case x: SearchHomophones => (x.keyword.toLowerCase(Locale.ROOT).take(1), x)
   }
 
+  val Name = "homophones"
+
   def props(mat: ActorMaterializer): Props =
     Props(new HomophonesSubTreeShardEntity("./homophones103.txt")(mat)).withDispatcher("shard-dispatcher")
 }
@@ -35,15 +37,15 @@ object HomophonesSubTreeShardEntity {
 class HomophonesSubTreeShardEntity(path: String)(implicit val mat: ActorMaterializer) extends PersistentActor
   with ActorLogging with Indexing[Array[String]] with Stash with Passivation {
 
-  val entityKey = self.path.name
+  override val startingLetter = self.path.name
+    //self.path.name
   val passivationTimeout = 15.minutes
   context.setReceiveTimeout(passivationTimeout)
 
-  override def persistenceId = entityKey
+  override def persistenceId = HomophonesSubTreeShardEntity.Name + "-" + self.path.parent.name + "-" + self.path.name
 
   override def preStart() = {
-    val file = new File(path)
-    log.info("Started Homophones Entity Actor for key [{}] from the file {}", entityKey, file.getAbsolutePath)
+    log.info("Started Homophones Entity Actor for key [{}] from the file {}", startingLetter, new File(path).getAbsolutePath)
   }
 
   override def postStop() = log.info("{} has been stopped", self)
@@ -54,7 +56,7 @@ class HomophonesSubTreeShardEntity(path: String)(implicit val mat: ActorMaterial
       recoveredIndex = RadixTree(hs.map(x => x.key -> x.homophones): _*)
       log.info("SnapshotOffer {}: count: {}", meta.sequenceNr, recoveredIndex.count)
     case RecoveryCompleted =>
-      log.info("RecoveryCompleted count:{} for key: {}", recoveredIndex.count, entityKey)
+      log.info("RecoveryCompleted count:{} for key: {}", recoveredIndex.count, startingLetter)
       self ! RestoredIndex(recoveredIndex)
       recoveredIndex = RadixTree.empty[String, Array[String]]
   }
@@ -78,7 +80,7 @@ class HomophonesSubTreeShardEntity(path: String)(implicit val mat: ActorMaterial
       (context become indexing(index.merge(RadixTree[String, Array[String]](word -> other))))
 
     case IndexingCompleted =>
-      log.info("IndexingCompleted for key [{}] (entries: {}), create snapshot now...", entityKey, index.count)
+      log.info("IndexingCompleted for key [{}] (entries: {}), create snapshot now...", startingLetter, index.count)
       val homophones = index.entries
         .map { case (k, others) => Homophones(k, others) }
         .to[collection.immutable.Seq]
@@ -88,15 +90,15 @@ class HomophonesSubTreeShardEntity(path: String)(implicit val mat: ActorMaterial
       (context become passivate(active(index)))
 
     case m: RestoredIndex[Array[String]]@unchecked =>
-      if (m.index.count == 0) buildIndex(entityKey, path)
+      if (m.index.count == 0) buildIndex(startingLetter, path)
       else {
         unstashAll()
-        log.info("Index has been recovered from snapshot with size {} for key [{}]", m.index.count, entityKey)
+        log.info("Index has been recovered from snapshot with size {} for key [{}]", m.index.count, startingLetter)
         (context become passivate(active(m.index)))
       }
 
     case SearchWord(prefix, _) =>
-      log.info("ShardEntity [{}] is indexing right now. Stashing request for key [{}]", entityKey, prefix)
+      log.info("ShardEntity [{}] is indexing right now. Stashing request for key [{}]", startingLetter, prefix)
       stash()
   }
 

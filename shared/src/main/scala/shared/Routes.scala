@@ -14,7 +14,7 @@ object Routes {
 
   val searchHomophonesPath = "homophones"
 
-  val searchWordsPath = "words"
+  val searchWordsPath = "wordslist"
 
   val clientSignIn = s"$pref/$v1/$signIn"
 
