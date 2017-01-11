@@ -4,26 +4,25 @@ import java.io.File
 import java.time.{Clock, LocalDateTime}
 import java.util.TimeZone
 
-import akka.actor.ActorSystem
+import akka.actor.{PoisonPill, ActorSystem}
+import akka.cluster.Cluster
+import akka.cluster.singleton.{ClusterSingletonProxySettings, ClusterSingletonProxy, ClusterSingletonManagerSettings, ClusterSingletonManager}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.RouteConcatenation._
-import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
+import akka.stream.ActorMaterializerSettings
 import com.typesafe.config.{Config, ConfigFactory}
 import linguistic.dao.UsersRepo
 import scala.collection._
-import scala.util.Try
 
 object Application extends App with AppSupport with SslSupport {
   //-Duser.timezone=UTC
   //TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
 
   val HttpDispatcher = "akka.http.dispatcher"
-
-  //
   val opts: Map[String, String] = argsToOpts(args.toList)
   applySystemProperties(opts)
 
-  val port = System.getProperty("akka.remote.netty.tcp.port")
+  val tcpPort = System.getProperty("akka.remote.netty.tcp.port")
   val httpPort = System.getProperty("akka.http.port")
   val hostName = System.getProperty("HOSTNAME")
   val confPath = System.getProperty("CONFIG")
@@ -44,7 +43,7 @@ object Application extends App with AppSupport with SslSupport {
       |
     """.stripMargin
 
-  val httpConf1 = httpConf.replaceAll("%port%", port).replaceAll("%httpP%", httpPort)
+  val httpConf1 = httpConf.replaceAll("%port%", tcpPort).replaceAll("%httpP%", httpPort)
     .replaceAll("%hostName%", hostName).replaceAll("%interface%", hostName)
 
   val confDir = new File(confPath) /*sys.env.getOrElse("CONFIG", ".")*/
@@ -68,41 +67,63 @@ object Application extends App with AppSupport with SslSupport {
 
   val httpP = config.getInt("akka.http.port")
   val interface = config.getString("akka.http.interface")
-  val host0 = config.getString("akka.remote.netty.tcp.hostname")
-  println(host0)
-
-  val sm = system.actorOf(SearchMaster.props(mat), "search-master")
-  val users = new UsersRepo()
-
-  val routes = new api.SearchApi(sm).route ~ new api.Nvd3Api().route ~
-    new api.UsersApi(users).route ~ new api.ClusterApi(sm).route
-
-  Http().bindAndHandle(routes, interface, httpP, connectionContext =
-    https(config.getString("akka.http.ssl.keypass"), config.getString("akka.http.ssl.storepass")))
 
 
-  val clock = Clock.systemDefaultZone
-  val start = clock.instant
-  sys.addShutdownHook {
-    val stop = clock.instant
-    val upTime = stop.getEpochSecond - start.getEpochSecond
-    system.log.info(s"★ ★ ★  Stopping application at ${clock.instant} after being up for ${upTime} sec. ★ ★ ★ ")
+  Cluster(system).registerOnMemberUp {
+
+    system.actorOf(
+      ClusterSingletonManager.props(
+        singletonProps = SearchMaster.props(mat),
+        terminationMessage = PoisonPill,
+        settings = ClusterSingletonManagerSettings(system)
+          .withRole("linguistic-engine")
+          .withSingletonName("search-master-singleton")
+      ),
+      name = "search-master"
+    )
+
+    val sm = system.actorOf(
+      ClusterSingletonProxy.props(
+        singletonManagerPath = "/user/search-master",
+        settings = ClusterSingletonProxySettings(system)
+          .withRole("linguistic-engine")
+          .withSingletonName("search-master-singleton")
+      ),
+      name = "search-master-proxy")
+
+    //val sm = system.actorOf(SearchMaster.props(mat), "search-master")
+    val users = new UsersRepo()
+
+    val routes = new api.SearchApi(sm).route ~ new api.Nvd3Api().route ~
+      new api.UsersApi(users).route ~ new api.ClusterApi(sm).route
+
+    Http().bindAndHandle(routes, interface, httpP, connectionContext =
+      https(config.getString("akka.http.ssl.keypass"), config.getString("akka.http.ssl.storepass")))
+
+
+    val clock = Clock.systemDefaultZone
+    val start = clock.instant
+    sys.addShutdownHook {
+      val stop = clock.instant
+      val upTime = stop.getEpochSecond - start.getEpochSecond
+      system.log.info(s"★ ★ ★  Stopping application at ${clock.instant} after being up for ${upTime} sec. ★ ★ ★ ")
+    }
+
+    val tz = TimeZone.getDefault.getID
+    val greeting = new StringBuilder()
+      .append('\n')
+      .append("=================================================================================================")
+      .append('\n')
+      .append(s"★ ★ ★ Akka cluster: ${config.getInt("akka.remote.netty.tcp.port")} ★ ★ ★")
+      .append('\n')
+      .append(s"★ ★ ★ Environment: ${env} Config: ${configFile.getAbsolutePath} TimeZone: $tz Started at ${LocalDateTime.now} ★ ★ ★")
+      .append('\n')
+      .append(s"★ ★ ★ Cassandra entry points: ${config.getString("cassandra.hosts")}  ★ ★ ★")
+      .append('\n')
+      .append(s"★ ★ ★ Server online at https://$interface:$httpP  ★ ★ ★ ")
+      .append('\n')
+      .append("=================================================================================================")
+
+    system.log.info(greeting.toString)
   }
-
-  val tz = TimeZone.getDefault.getID
-  val greeting = new StringBuilder()
-    .append('\n')
-    .append("=================================================================================================")
-    .append('\n')
-    .append(s"★ ★ ★ Akka cluster: ${config.getInt("akka.remote.netty.tcp.port")} ★ ★ ★")
-    .append('\n')
-    .append(s"★ ★ ★ Environment: ${env} Config: ${configFile.getAbsolutePath} TimeZone: $tz Started at ${LocalDateTime.now} ★ ★ ★")
-    .append('\n')
-    .append(s"★ ★ ★ Cassandra entry points: ${config.getString("cassandra.hosts")}  ★ ★ ★")
-    .append('\n')
-    .append(s"★ ★ ★ Server online at https://$interface:$httpP  ★ ★ ★ ")
-    .append('\n')
-    .append("=================================================================================================")
-
-  system.log.info(greeting.toString)
 }

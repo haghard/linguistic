@@ -42,6 +42,10 @@ class SearchMaster(mat: ActorMaterializer) extends Actor with ActorLogging {
     allocationStrategy = new LeastShardAllocationStrategy(10, 3),
     handOffStopMessage = Stop)
 
+  override def preStart = {
+    log.info("************************** {}", self)
+  }
+
   override def receive: Receive = {
     case search: SearchWord => (wordslist ? search).pipeTo(sender())
     case search: SearchHomophones => (homophones ? search).pipeTo(sender())

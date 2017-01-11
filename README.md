@@ -8,13 +8,23 @@ $ sbt
 
 Cluster info
 ===
-  http GET :9000/cluster/wordslist/shards
-  http GET :9000/cluster/wordslist/shards2
-  http GET :9000/cluster/wordslist/regions
+  http GET 192.168.0.62:9000/cluster/wordslist/shards  
+  http --verify=no https://192.168.0.62:9443/cluster/wordslist/shards
   
-  http GET :9000/cluster/homophones/shards
-  http GET :9000/cluster/homophones/shards2
-  http GET :9000/cluster/homophones/regions
+  http GET 192.168.0.62:9000/cluster/wordslist/shards2
+  http --verify=no https://192.168.0.62:9443/cluster/wordslist/shards2
+  
+  http GET 192.168.0.62:9000/cluster/wordslist/regions
+  http --verify=no https://192.168.0.62:9443/cluster/wordslist/regions
+  
+  http GET 192.168.0.62:9000/cluster/homophones/shards
+  http --verify=no https://192.168.0.62:9443/cluster/homophones/shards
+  
+  http GET 192.168.0.62:9000/cluster/homophones/shards2
+  http --verify=no https://192.168.0.62:9443/cluster/homophones/shards2
+  
+  http GET 192.168.0.62:9000/cluster/homophones/regions
+  http --verify=no https://192.168.0.62:9443/cluster/homophones/regions
 
 Links
 ====
@@ -63,19 +73,8 @@ Checking the status of ssh :
   And then run SSLyze against the application:
       
       python /Volumes/Data/Setup/sslyze-0_8-osx64/sslyze.py --regular linguistic.com:9443
+      python /Volumes/Data/Setup/sslyze-0_8-osx64/sslyze.py --regular 192.168.0.62:9443
   
-Run docker container
-
-  To run with `--net=host` is necessary because you are passing `` env val
-
-  `docker run --net=host -it -p 2551:2551 -e HOSTNAME=192.168.0.146 -e PORT=2551 -e JMX_PORT=1089 -e TZ="Europe/Moscow" haghard/linguistic:0.1`
-  
-  `docker run --net=host -it -p 2552:2552 -e HOSTNAME=192.168.0.147 -e PORT=2552 -e JMX_PORT=1089 -e TZ="UTC" haghard/linguistic:0.1`
-
-  or if you want pass SECRET 
-  
-  `docker run --net=host -it -p 2551:2551 -e HOSTNAME=192.168.0.146 -e PORT=2551 -e JMX_PORT=1089 -e SERVER_SECRET=... haghard/linguistic:0.1`
-
 Time zone options 
 
   TZ="UTC+5" - America/New_York 
@@ -138,10 +137,13 @@ SSL
     http://typesafehub.github.io/ssl-config/CertificateGeneration.html
 
 
-export env=production 
-or
-export env=development
+Run docker container
 
-`sbt docker`
+  To run with `--net=host` is necessary because you are passing env val   
 
-`docker run --net=host -it -p 2551:2551 -e HOSTNAME=192.168.0.146 -e AKKA_PORT=2551 -e HTTP_PORT=9443 -e JMX_PORT=1089 -e TZ="Europe/Moscow" haghard/linguistic:0.1`
+  
+  `docker run --net=host -it -p 2551:2551 -e HOSTNAME=192.168.0.146 -e AKKA_PORT=2551 -e HTTP_PORT=9443 -e JMX_PORT=1089 -e TZ="Europe/Moscow" haghard/linguistic:0.1`
+
+  if you want pass SECRET 
+  
+  `docker run --net=host -it -p 2551:2551 -e HOSTNAME=192.168.0.146 -e PORT=2551 -e JMX_PORT=1089 -e SERVER_SECRET=... haghard/linguistic:0.1`
