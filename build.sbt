@@ -101,7 +101,10 @@ lazy val server = (project in file("server")).settings(
   */
 
   dockerfile in docker := {
-    val appEnv = try { System.getenv("env") } catch { case e: Throwable => "production" }
+    //!!!!!! cource of NPE, you can't build without setting this varuable
+    //development | production
+    val appEnv = System.getenv("env")
+
     //sys.props.getOrElse("env", "production")
     val appConfig = "/app/conf"
     //sys.props.getOrElse("config", "/app/conf")
@@ -125,7 +128,7 @@ lazy val server = (project in file("server")).settings(
     val prodConfigSrc = baseDir / "conf" / "production.conf"
     val devConfigSrc =  baseDir / "conf" / "development.conf"
 
-    //val curEnv = System.getenv("ENV") //development | production
+    //val curEnv = System.getenv("ENV")
 
     val appProdConfTarget = s"$imageAppBaseDir/$configDir/production.conf"
     val appDevConfTarget = s"$imageAppBaseDir/$configDir/development.conf"
