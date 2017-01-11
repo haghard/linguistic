@@ -1,6 +1,6 @@
 package linguistic
 
-import java.io.{FileInputStream, FileReader, File}
+import java.io.{InputStream, FileInputStream, FileReader, File}
 import java.security._
 import javax.net.ssl.{KeyManagerFactory, SSLContext, TrustManagerFactory}
 
@@ -10,42 +10,31 @@ trait SslSupport {
 
   val algorithm = "SunX509"
 
+
+  def create(in: InputStream, keyPass: String, storePass: String) = {
+    val keyStore = KeyStore.getInstance("JKS")
+    keyStore.load(in, storePass.toCharArray)
+
+    val keyManagerFactory = KeyManagerFactory.getInstance(algorithm)
+    keyManagerFactory.init(keyStore, keyPass.toCharArray)
+
+    val tmf = TrustManagerFactory.getInstance(algorithm)
+    (tmf init keyStore)
+
+    val sslContext = SSLContext.getInstance("TLS")
+    sslContext.init(keyManagerFactory.getKeyManagers, tmf.getTrustManagers, new SecureRandom)
+
+    (ConnectionContext https sslContext)
+  }
+
   def https(keyPass: String, storePass: String): HttpsConnectionContext = {
-
-    //new FileReader(new File("./linguistic.jks"))
-    val f = new File("./linguistic.jks")
-    if(f.exists()) {
-      val in = new FileInputStream(new File("./linguistic.jks"))
-      val keyStore = KeyStore.getInstance("JKS")
-      keyStore.load(in, storePass.toCharArray)
-
-      val keyManagerFactory = KeyManagerFactory.getInstance(algorithm)
-      keyManagerFactory.init(keyStore, keyPass.toCharArray)
-
-      val tmf = TrustManagerFactory.getInstance(algorithm)
-      (tmf init keyStore)
-
-      val sslContext = SSLContext.getInstance("TLS")
-      sslContext.init(keyManagerFactory.getKeyManagers, tmf.getTrustManagers, new SecureRandom)
-
-      (ConnectionContext https sslContext)
+    val file = new File("./linguistic.jks")
+    if(file.exists) {
+      create(new FileInputStream(file), keyPass, storePass)
     } else {
       resource.managed(getClass.getResourceAsStream("/linguistic.jks")).map { in =>
-
-        val keyStore = KeyStore.getInstance("JKS")
-        keyStore.load(in, storePass.toCharArray)
-
-        val keyManagerFactory = KeyManagerFactory.getInstance(algorithm)
-        keyManagerFactory.init(keyStore, keyPass.toCharArray)
-
-        val tmf = TrustManagerFactory.getInstance(algorithm)
-        (tmf init keyStore)
-
-        val sslContext = SSLContext.getInstance("TLS")
-        sslContext.init(keyManagerFactory.getKeyManagers, tmf.getTrustManagers, new SecureRandom)
-
-        (ConnectionContext https sslContext)
-      }.opt.get
+        create(in, keyPass, storePass)
+      }.opt.fold(throw new Exception("jks hasn't been found"))(identity)
     }
   }
 }
