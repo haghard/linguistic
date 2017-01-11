@@ -49,7 +49,6 @@ object Application extends App with AppSupport with SslSupport {
   //for alias
   val env = Option(System.getProperty("ENV")).getOrElse(throw new Exception("ENV is expected"))
   val configFile = new File(s"${confDir.getAbsolutePath}/" + env + ".conf")
-  println("Config file: " + configFile.getAbsolutePath)
 
   val config: Config = ConfigFactory.parseString(httpConf1).withFallback(ConfigFactory.parseFile(configFile).resolve())
 

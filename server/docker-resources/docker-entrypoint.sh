@@ -21,6 +21,6 @@ APP_OPTS="-d64 \
           -Djava.rmi.server.hostname=${HOSTHAME} \
           -DENV="${ENV}
 
-#staging, production, development
+#production, development
 
 java ${APP_OPTS} -cp ${APP_BASE}/conf -jar ${APP_BASE}/linguistic-${VERSION}.jar

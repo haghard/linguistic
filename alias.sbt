@@ -8,20 +8,35 @@ export CONFIG=./server/conf
 
 */
 
-addCommandAlias("engine-0", "runMain linguistic.Application " +
+addCommandAlias(
+  "engine-0",
+  "runMain linguistic.Application " +
   "-DENV=development " +
   "-Dakka.remote.netty.tcp.port=2551 " +
   "-Dakka.http.port=9443 " +
-  "-Dakka.cluster.roles.0=linguistic-engine ")
+  "-Dakka.cluster.roles.0=linguistic-engine " +
+  "-Dakka.cluster.seed-nodes.0=akka.tcp://linguistics@192.168.0.62:2551 " +
+  "-Dakka.cluster.seed-nodes.1=akka.tcp://linguistics@192.168.0.146:2551 "
+)
 
-addCommandAlias("engine-1", "runMain linguistic.Application " +
-  "-Dakka.remote.netty.tcp.port=2552 " +
-  "-Dakka.http.port=9001 " +
+addCommandAlias(
+  "engine-1",
+  "runMain linguistic.Application " +
   "-DENV=development " +
-  "-Dakka.cluster.roles.0=linguistic-engine ")
+  "-Dakka.remote.netty.tcp.port=2551 " +
+  "-Dakka.http.port=9443 " +
+  "-Dakka.cluster.roles.0=linguistic-engine " +
+  "-Dakka.cluster.seed-nodes.0=akka.tcp://linguistics@192.168.0.62:2551 " +
+  "-Dakka.cluster.seed-nodes.1=akka.tcp://linguistics@192.168.0.146:2551 "
+)
 
-addCommandAlias("engine-2", "runMain linguistic.Application " +
+addCommandAlias(
+  "engine-2",
+  "runMain linguistic.Application " +
   "-Dakka.remote.netty.tcp.port=2553 " +
   "-Dakka.http.port=9002 " +
   "-DENV=development " +
-  "-Dakka.cluster.roles.0=linguistic-engine ")
+  "-Dakka.cluster.roles.0=linguistic-engine " +
+  "-Dakka.cluster.seed-nodes.0=akka.tcp://linguistics@127.0.0.1:2551 " +
+  "-Dakka.cluster.seed-nodes.1=akka.tcp://linguistics@127.0.0.1:2552 "
+)
