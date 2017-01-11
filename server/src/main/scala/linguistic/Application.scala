@@ -27,6 +27,7 @@ object Application extends App with AppSupport with SslSupport {
   val httpPort = System.getProperty("akka.http.port")
   val hostName = System.getProperty("HOSTNAME")
 
+  val confPath = System.getProperty("CONFIG")
 
   val httpConf =
     s"""
@@ -47,7 +48,7 @@ object Application extends App with AppSupport with SslSupport {
   val httpConf1 = httpConf.replaceAll("%port%", port).replaceAll("%httpP%", httpPort)
     .replaceAll("%hostName%", hostName).replaceAll("%interface%", hostName)
 
-  val confDir = new File(sys.env.getOrElse("CONFIG", "."))
+  val confDir = new File(confPath) /*sys.env.getOrElse("CONFIG", ".")*/
 
   //for re~start
   //val env = sys.env.getOrElse("ENV", throw new Exception("ENV is expected"))

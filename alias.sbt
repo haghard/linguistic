@@ -12,6 +12,7 @@ addCommandAlias(
   "engine-0",
   "runMain linguistic.Application " +
   "-DENV=development " +
+  "-DCONFIG=./server/conf " +
   "-Dakka.remote.netty.tcp.port=2551 " +
   "-Dakka.http.port=9443 " +
   "-DHOSTNAME=192.168.0.62 " +
@@ -24,6 +25,7 @@ addCommandAlias(
   "engine-1",
   "runMain linguistic.Application " +
   "-DENV=development " +
+  "-DCONFIG=./server/conf " +
   "-Dakka.remote.netty.tcp.port=2551 " +
   "-Dakka.http.port=9443 " +
   "-DHOSTNAME=192.168.0.146 " +
