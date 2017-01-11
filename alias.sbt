@@ -9,8 +9,8 @@ export CONFIG=./server/conf
 */
 
 addCommandAlias("engine-0", "runMain linguistic.Application " +
-  "-Dakka.remote.netty.tcp.port=2551 " +
   "-DENV=development " +
+  "-Dakka.remote.netty.tcp.port=2551 " +
   "-Dakka.http.port=9443 " +
   "-Dakka.cluster.roles.0=linguistic-engine ")
 

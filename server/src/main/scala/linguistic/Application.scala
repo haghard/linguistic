@@ -11,6 +11,7 @@ import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import com.typesafe.config.{Config, ConfigFactory}
 import linguistic.dao.UsersRepo
 import scala.collection._
+import scala.util.Try
 
 object Application extends App with AppSupport with SslSupport {
   //-Duser.timezone=UTC
@@ -18,6 +19,7 @@ object Application extends App with AppSupport with SslSupport {
 
   val HttpDispatcher = "akka.http.dispatcher"
 
+  //
   val opts: Map[String, String] = argsToOpts(args.toList)
   applySystemProperties(opts)
 

@@ -101,14 +101,13 @@ lazy val server = (project in file("server")).settings(
   */
 
   dockerfile in docker := {
-    //!!!!!! cource of NPE, you can't build without setting this varuable
+
     //development | production
-    val appEnv = System.getenv("env")
+    val appEnv = Option(System.getenv("env")).getOrElse("production")
 
     //sys.props.getOrElse("env", "production")
-    val appConfig = "/app/conf"
-    //sys.props.getOrElse("config", "/app/conf")
 
+    val appConfig = "/app/conf"
     val baseDir = baseDirectory.value
     val artifact: File = assembly.value
 

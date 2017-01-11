@@ -1,7 +1,7 @@
 package linguistic
 
-import java.io.{InputStream, FileInputStream, FileReader, File}
 import java.security._
+import java.io.{InputStream, FileInputStream, File}
 import javax.net.ssl.{KeyManagerFactory, SSLContext, TrustManagerFactory}
 
 import akka.http.scaladsl.{ConnectionContext, HttpsConnectionContext}
@@ -9,7 +9,6 @@ import akka.http.scaladsl.{ConnectionContext, HttpsConnectionContext}
 trait SslSupport {
 
   val algorithm = "SunX509"
-
 
   def create(in: InputStream, keyPass: String, storePass: String) = {
     val keyStore = KeyStore.getInstance("JKS")
