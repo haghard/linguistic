@@ -101,7 +101,7 @@ lazy val server = (project in file("server")).settings(
   */
 
   dockerfile in docker := {
-    val appEnv = Try(System.getenv("env")).getOrElse("production")
+    val appEnv = try { System.getenv("env") } catch { case e: Throwable => "production" }
     //sys.props.getOrElse("env", "production")
     val appConfig = "/app/conf"
     //sys.props.getOrElse("config", "/app/conf")
