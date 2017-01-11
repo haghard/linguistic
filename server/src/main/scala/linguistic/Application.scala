@@ -25,11 +25,14 @@ object Application extends App with AppSupport with SslSupport {
 
   val port = System.getProperty("akka.remote.netty.tcp.port")
   val httpPort = System.getProperty("akka.http.port")
+  val hostName = System.getProperty("HOSTNAME")
+
 
   val httpConf =
     s"""
       |akka.remote.netty.tcp.port=%port%
       |akka.http.port=%httpP%
+      |akka.remote.netty.tcp.hostname=%hostName%
       |
       |akka.http.session {
       |  header {
@@ -40,7 +43,7 @@ object Application extends App with AppSupport with SslSupport {
       |
     """.stripMargin
 
-  val httpConf1 = httpConf.replaceAll("%port%", port).replaceAll("%httpP%", httpPort)
+  val httpConf1 = httpConf.replaceAll("%port%", port).replaceAll("%httpP%", httpPort).replaceAll("%hostName%", hostName)
   val confDir = new File(sys.env.getOrElse("CONFIG", "."))
 
   //for re~start
@@ -50,7 +53,8 @@ object Application extends App with AppSupport with SslSupport {
   val env = Option(System.getProperty("ENV")).getOrElse(throw new Exception("ENV is expected"))
   val configFile = new File(s"${confDir.getAbsolutePath}/" + env + ".conf")
 
-  val config: Config = ConfigFactory.parseString(httpConf1).withFallback(ConfigFactory.parseFile(configFile).resolve())
+  val config: Config = ConfigFactory.parseString(httpConf1)
+    .withFallback(ConfigFactory.parseFile(configFile).resolve())
 
   implicit val system = ActorSystem("linguistics", config)
   implicit val ex = system.dispatchers.lookup("shard-dispatcher")
@@ -61,6 +65,8 @@ object Application extends App with AppSupport with SslSupport {
 
   val httpP = config.getInt("akka.http.port")
   val interface = config.getString("akka.http.interface")
+  val host0 = config.getString("akka.remote.netty.tcp.hostname")
+  println(host0)
 
   val sm = system.actorOf(SearchMaster.props(mat), "search-master")
   val users = new UsersRepo()
