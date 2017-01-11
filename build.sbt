@@ -151,7 +151,9 @@ lazy val server = (project in file("server")).settings(
       runRaw(s"ls $appProdConfTarget")
       runRaw(s"ls $appDevConfTarget")
 
+      runRaw(s"cd $configDir && ls -la && cd ..")
       runRaw("ls -la")
+
 
       //Symlink the service jar to a non version specific name
       run("ln", "-sf", s"$artifactTargetPath", s"$artifactTargetPath_ln")
