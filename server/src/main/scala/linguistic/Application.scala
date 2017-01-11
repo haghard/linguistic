@@ -26,7 +26,6 @@ object Application extends App with AppSupport with SslSupport {
   val port = System.getProperty("akka.remote.netty.tcp.port")
   val httpPort = System.getProperty("akka.http.port")
   val hostName = System.getProperty("HOSTNAME")
-
   val confPath = System.getProperty("CONFIG")
 
   val httpConf =
