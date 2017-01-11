@@ -137,8 +137,11 @@ SSL
 ===
     http://typesafehub.github.io/ssl-config/CertificateGeneration.html
 
+
 export env=production 
 or
 export env=development
+
+`sbt docker`
 
 `docker run --net=host -it -p 2551:2551 -e HOSTNAME=192.168.0.146 -e AKKA_PORT=2551 -e HTTP_PORT=9443 -e JMX_PORT=1089 -e TZ="Europe/Moscow" haghard/linguistic:0.1`
