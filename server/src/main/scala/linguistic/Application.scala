@@ -30,7 +30,8 @@ object Application extends App with AppSupport with SslSupport {
   val httpConf ="akka.http.port=%http%"
 
   val dConf =
-    s"""akka.remote.netty.tcp.port=%port%
+    s"""
+      |akka.remote.netty.tcp.port=%port%
       |akka.http.port=%httpP%
       |
       |akka.http.session {
@@ -50,6 +51,7 @@ object Application extends App with AppSupport with SslSupport {
   //for alias
   val env = Option(System.getProperty("ENV")).getOrElse(throw new Exception("ENV is expected"))
   val configFile = new File(s"${confDir.getAbsolutePath}/" + env + ".conf")
+  println("Config file: " + configFile.getAbsolutePath)
 
   val config: Config = ConfigFactory.parseString(dConf.replaceAll("%port%", port).replaceAll("%httpP%", httpPort))
     .withFallback(ConfigFactory.parseFile(configFile).resolve())
