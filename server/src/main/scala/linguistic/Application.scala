@@ -33,6 +33,7 @@ object Application extends App with AppSupport with SslSupport {
       |akka.remote.netty.tcp.port=%port%
       |akka.http.port=%httpP%
       |akka.remote.netty.tcp.hostname=%hostName%
+      |akka.http.interface=%interface%
       |
       |akka.http.session {
       |  header {
@@ -43,7 +44,9 @@ object Application extends App with AppSupport with SslSupport {
       |
     """.stripMargin
 
-  val httpConf1 = httpConf.replaceAll("%port%", port).replaceAll("%httpP%", httpPort).replaceAll("%hostName%", hostName)
+  val httpConf1 = httpConf.replaceAll("%port%", port).replaceAll("%httpP%", httpPort)
+    .replaceAll("%hostName%", hostName).replaceAll("%interface%", hostName)
+
   val confDir = new File(sys.env.getOrElse("CONFIG", "."))
 
   //for re~start
