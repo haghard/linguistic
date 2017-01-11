@@ -119,7 +119,7 @@ lazy val server = (project in file("server")).settings(
     val prodConfigSrc = baseDir / "conf" / "production.conf"
     val devConfigSrc =  baseDir / "conf" / "development.conf"
 
-    val curEnv = "development"
+    val curEnv = System.getenv("ENV") //development | production
 
     val appProdConfTarget = s"$imageAppBaseDir/$configDir/production.conf"
     val appDevConfTarget = s"$imageAppBaseDir/$configDir/development.conf"
