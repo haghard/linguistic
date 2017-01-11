@@ -118,7 +118,7 @@ lazy val server = (project in file("server")).settings(
     val dockerResourcesDir = baseDir / "docker-resources"
     val dockerResourcesTargetPath = s"$imageAppBaseDir/"
 
-    val jks = baseDir / "src" / "main" / "resources" / "linguistic.jks"
+    val jks = baseDir / "ser" / "linguistic.jks"
 
     //val prodConfigSrc = baseDir / "src" / "main" / "resources" / "production.conf"
 
