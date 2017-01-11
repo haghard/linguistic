@@ -21,4 +21,4 @@ APP_OPTS="-d64 \
 
 #staging, production, development
 
-java ${APP_OPTS} -cp ${APP_BASE}/conf -jar ${APP_BASE}/geolocation-${VERSION}.jar
+java ${APP_OPTS} -cp ${APP_BASE}/conf -jar ${APP_BASE}/linguistic-${VERSION}.jar
