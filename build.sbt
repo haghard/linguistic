@@ -105,7 +105,7 @@ lazy val server = (project in file("server")).settings(
     val appEnv = sys.props.getOrElse("env", "production")
     //Option(System.getenv("env")).getOrElse("production")
 
-    val appConfig = "/app/conf"
+    //val appConfig = "/app/conf"
     val baseDir = baseDirectory.value
     val artifact: File = assembly.value
 
