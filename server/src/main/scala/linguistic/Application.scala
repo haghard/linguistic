@@ -25,11 +25,12 @@ object Application extends App with AppSupport with SslSupport {
 
   val port = System.getProperty("akka.remote.netty.tcp.port")
   val httpPort = System.getProperty("akka.http.port")
+  println(port + "  - " + httpPort)
 
-  val portConf = "akka.remote.netty.tcp.port=%port%"
-  val httpConf ="akka.http.port=%http%"
+  //val portConf = "akka.remote.netty.tcp.port=%port%"
+  //val httpConf ="akka.http.port=%http%"
 
-  val dConf =
+  val httpConf =
     s"""
       |akka.remote.netty.tcp.port=%port%
       |akka.http.port=%httpP%
@@ -43,7 +44,11 @@ object Application extends App with AppSupport with SslSupport {
       |
     """.stripMargin
 
+  val httpConf1 = httpConf.replaceAll("%port%", port).replaceAll("%httpP%", httpPort)
+  println(httpConf1)
+
   val confDir = new File(sys.env.getOrElse("CONFIG", "."))
+  println(confDir)
 
   //for re~start
   //val env = sys.env.getOrElse("ENV", throw new Exception("ENV is expected"))
@@ -53,7 +58,7 @@ object Application extends App with AppSupport with SslSupport {
   val configFile = new File(s"${confDir.getAbsolutePath}/" + env + ".conf")
   println("Config file: " + configFile.getAbsolutePath)
 
-  val config: Config = ConfigFactory.parseString(dConf.replaceAll("%port%", port).replaceAll("%httpP%", httpPort))
+  val config: Config = ConfigFactory.parseString(httpConf1)
     .withFallback(ConfigFactory.parseFile(configFile).resolve())
     //.withFallback(ConfigFactory.load()) //force to load env vars
 
