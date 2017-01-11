@@ -12,7 +12,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import linguistic.dao.UsersRepo
 import scala.collection._
 
-object Application extends App with AppSupport {
+object Application extends App with AppSupport with SslSupport {
   //-Duser.timezone=UTC
   //TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
 
@@ -65,20 +65,16 @@ object Application extends App with AppSupport {
   val httpP = config.getInt("akka.http.port")
   val interface = config.getString("akka.http.interface")
 
-  //Http().bind(interface, hPort).runForeach { con => (con handleWith bfFlow) }
-
   val sm = system.actorOf(SearchMaster.props(mat), "search-master")
   val users = new UsersRepo()
 
   val routes = new api.SearchApi(sm).route ~ new api.Nvd3Api().route ~
     new api.UsersApi(users).route ~ new api.ClusterApi(sm).route
 
-  Http().bindAndHandle(routes, interface, httpP)
-
-  /* ssh
-    Http().bindAndHandle(routes, interface, port, connectionContext =
+  //Http().bindAndHandle(routes, interface, httpP)
+  //ssh
+  Http().bindAndHandle(routes, interface, httpP, connectionContext =
     https(config.getString("akka.http.ssl.keypass"), config.getString("akka.http.ssl.storepass")))
-  */
 
 
   val clock = Clock.systemDefaultZone
