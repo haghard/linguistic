@@ -17,6 +17,8 @@ final class SearchApi(search: ActorRef)(implicit val system: ActorSystem) extend
   implicit val ec = system.dispatchers.lookup("akka.http.dispatcher")
 
   //withRequestTimeout(usersTimeout) {
+
+  //http --verify=no https://192.168.0.62:9443/api/v1.0/wordslist/search"?q=aa"
   val route =
     extractMaterializer { implicit mat =>
       //extractExecutionContext { implicit ec =>

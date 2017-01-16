@@ -25,7 +25,8 @@ Cluster info
   
   http GET 192.168.0.62:9000/cluster/homophones/regions
   http --verify=no https://192.168.0.62:9443/cluster/homophones/regions
-
+  
+  http --verify=no https://192.168.0.62:9443/cluster/stop
 Links
 ====
     https://github.com/softwaremill/akka-http-session

@@ -10,11 +10,11 @@ import akka.persistence.{PersistentActor, RecoveryCompleted, SnapshotOffer}
 import akka.stream.ActorMaterializer
 import com.rklaehn.radixtree.RadixTree
 import linguistic.WordsSearchProtocol.{IndexingCompleted, SearchResults, SearchWord}
-import linguistic.ps.WordsListSubTreeShardEntity._
+import linguistic.ps.WordShardEntity._
 
 import scala.concurrent.duration._
 
-object WordsListSubTreeShardEntity {
+object WordShardEntity {
   val mbDivider = (1024 * 1024).toFloat
 
   case class RestoredIndex[T](index: RadixTree[String, T])
@@ -30,7 +30,7 @@ object WordsListSubTreeShardEntity {
   val Name = "wordslist"
 
   def props(mat: ActorMaterializer): Props =
-    Props(new WordsListSubTreeShardEntity("./wordsEn.txt")(mat)).withDispatcher("shard-dispatcher")
+    Props(new WordShardEntity("./wordsEn.txt")(mat)).withDispatcher("shard-dispatcher")
 }
 
 /**
@@ -41,19 +41,19 @@ object WordsListSubTreeShardEntity {
   * Filtering by prefix will also benefit a lot from structural sharing.
   *
   */
-class WordsListSubTreeShardEntity(path: String)(implicit val mat: ActorMaterializer) extends PersistentActor
+class WordShardEntity(path: String)(implicit val mat: ActorMaterializer) extends PersistentActor
   with ActorLogging with Indexing[Unit] with Stash with Passivation {
 
-  override val startingLetter = self.path.name
+  override val key = self.path.name
 
   //self.path.name
   val passivationTimeout = 15.minutes
   context.setReceiveTimeout(passivationTimeout)
 
-  override def persistenceId = Name + "-" + self.path.parent.name + "-" + self.path.name
+  override def persistenceId = key
 
   override def preStart() = {
-    log.info("Started Entity Actor for key [{}] from the file {}", startingLetter, new File(path).getAbsolutePath)
+    log.info("Started Entity Actor for key [{}]", key)
   }
 
   override def postStop() = log.info("{} has been stopped", self)
@@ -65,22 +65,22 @@ class WordsListSubTreeShardEntity(path: String)(implicit val mat: ActorMateriali
       context.become(indexing(index merge RadixTree[String, Unit](word ->())))
 
     case IndexingCompleted =>
-      log.info("IndexingCompleted for key [{}] (entries: {}), create snapshot now...", startingLetter, index.count)
+      log.info("IndexingCompleted for key [{}] (entries: {}), create snapshot now...", key, index.count)
       val indSeq = index.keys.to[collection.immutable.Seq]
       saveSnapshot(indSeq)
       unstashAll()
       (context become passivate(active(index)))
 
     case m: RestoredIndex[Unit]@unchecked =>
-      if (m.index.count == 0) buildIndex(startingLetter, path)
+      if (m.index.count == 0) buildIndex(key, path)
       else {
         unstashAll()
-        log.info("Index has been recovered from snapshot with size {} for key [{}]", m.index.count, startingLetter)
+        log.info("Index has been recovered from snapshot with size {} for key [{}]", m.index.count, key)
         (context become passivate(active(m.index)))
       }
 
     case SearchWord(prefix, _) =>
-      log.info("ShardEntity [{}] is indexing right now. Stashing request for key [{}]", startingLetter, prefix)
+      log.info("ShardEntity [{}] is indexing right now. Stashing request for key [{}]", key, prefix)
       stash()
   }
 
@@ -95,9 +95,9 @@ class WordsListSubTreeShardEntity(path: String)(implicit val mat: ActorMateriali
     case SnapshotOffer(meta, seq: collection.immutable.Seq[String]@unchecked) =>
       recoveredIndex = RadixTree(seq.map(name => name -> (())): _*)
       //val mb = GraphLayout.parseInstance(recoveredIndex).totalSize.toFloat / mbDivider
-      log.info("SnapshotOffer {}: count:{}" /*"size: {} mb"*/ , meta, recoveredIndex.count /*, mb*/)
+      //log.info("SnapshotOffer {}: count:{}", meta, recoveredIndex.count)
     case RecoveryCompleted =>
-      log.info("RecoveryCompleted count:{} for key: {}", recoveredIndex.count, startingLetter)
+      log.info("Recovered key: {} count:{}", key, recoveredIndex.count)
       self ! RestoredIndex(recoveredIndex)
       recoveredIndex = RadixTree.empty[String, Unit]
   }

@@ -10,7 +10,7 @@ trait SslSupport {
 
   val algorithm = "SunX509"
 
-  def create(in: InputStream, keyPass: String, storePass: String) = {
+  private def create(in: InputStream, keyPass: String, storePass: String) = {
     val keyStore = KeyStore.getInstance("JKS")
     keyStore.load(in, storePass.toCharArray)
 

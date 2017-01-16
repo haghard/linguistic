@@ -5,13 +5,14 @@ import akka.cluster.sharding.ShardRegion
 import akka.cluster.sharding.ShardRegion.{ClusterShardingStats, CurrentRegions, CurrentShardRegionState}
 import akka.http.scaladsl.model.HttpResponse
 import akka.pattern._
-import linguistic.ps.{WordsListSubTreeShardEntity, HomophonesSubTreeShardEntity}
+import linguistic.ps
+import linguistic.ps.{WordShardEntity$, HomophonesSubTreeShardEntity}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-class ClusterApi(searchMaster: ActorRef)(implicit ex: ExecutionContext) extends BaseApi {
-  implicit val timeout = akka.util.Timeout(5 seconds)
+class ClusterApi(searchMaster: ActorRef, shutdownHook: ActorRef)(implicit ex: ExecutionContext) extends BaseApi {
+  implicit val timeout = akka.util.Timeout(10 seconds)
 
   val route = pathPrefix("cluster") {
     (get & path(Segment / "regions")) { seq =>
@@ -31,6 +32,11 @@ class ClusterApi(searchMaster: ActorRef)(implicit ex: ExecutionContext) extends 
         (searchMaster ? (seq, ShardRegion.GetClusterShardingStats(5 seconds))).mapTo[ClusterShardingStats].map { r =>
           HttpResponse(entity = r.regions.mkString(","))
         }
+      }
+    } ~ (get & path("stop")) {
+      complete {
+        shutdownHook ! ps.GracefulShutdownRegion.LeaveAndShutdownNode
+        "Stopping ..."
       }
     }
   }
