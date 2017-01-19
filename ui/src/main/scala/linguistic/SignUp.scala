@@ -25,15 +25,16 @@ object SignUp {
       e.preventDefaultCB >>
         Callback {
           val (h, v) = linguistic.gateaway.signUpHeader(login, password, photo)
-          linguistic.gateaway.httpSignUp(shared.Routes.clientSignUp, Map((h, v))).map { r =>
-            val token = r.getResponseHeader(shared.Headers.fromServer)
-            scope.modState(_.copy(token = Option(token))).runNow()
-          }.recover {
-            case e: org.scalajs.dom.ext.AjaxException =>
-              //org.scalajs.dom.console.log(msg)
-              val msg = s"Error: Login $login isn't unique !!! Try another one."
-              scope.modState(_.copy(error = Option(msg))).runNow()
-          }
+          linguistic.gateaway.httpSignUp(shared.Routes.clientSignUp, Map((h, v)))
+            .map { response =>
+              val token = response.getResponseHeader(shared.Headers.fromServer)
+              scope.modState(_.copy(token = Option(token))).runNow()
+            }.recover {
+              case e: org.scalajs.dom.ext.AjaxException =>
+                //org.scalajs.dom.console.log(msg)
+                val msg = s"Error: Login $login isn't unique !!! Try another one."
+                scope.modState(_.copy(error = Option(msg))).runNow()
+            }
         }
       //Callback.log(s"$login $password $photo")  >> CallbackTo { scope.modState(s =>s.copy(login=Option(login))).runNow() }
     }
@@ -116,12 +117,12 @@ object SignUp {
 
   def signUpComponent(s: UiSession, b: AppSessionBackend, oauthProviders: Map[String, String]) =
     ReactComponentB[Unit]("SignUpComponent")
-    .initialState(SignUpSession())
-    .backend(new SignUpBackend(_))
-    .renderPS { (scope, props, state) =>
-      scope.backend.render(state, b, oauthProviders, s)
-    }.build
-  
+      .initialState(SignUpSession())
+      .backend(new SignUpBackend(_))
+      .renderPS { (scope, props, state) =>
+        scope.backend.render(state, b, oauthProviders, s)
+      }.build
+
 
   //https://192.168.0.62:9443/signup
   def apply() = {

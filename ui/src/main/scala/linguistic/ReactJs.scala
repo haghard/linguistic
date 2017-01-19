@@ -32,9 +32,10 @@ object ReactJs {
           val password = dom.document.querySelector(passwordSelector).asInstanceOf[dom.html.Input].value
           val (h, v) = linguistic.gateaway.signInHeader(login, password)
           linguistic.gateaway.httpSignIp[shared.protocol.SignInResponse](shared.Routes.clientSignIn, Map((h, v)))
-            .onSuccess {
-              case Right(r) => scope.setState(UiSession(user = Option(r._1), token = Option(r._2))).runNow()
-              case Left(ex) => scope.modState(s => s.copy(error = Option("Error: " + ex))).runNow()
+            .map(r => scope.setState(UiSession(user = Option(r._1), token = Option(r._2))).runNow)
+            .recover {
+              case ex: Exception  =>
+                scope.modState(s => s.copy(error = Option(s"Error: $ex"))).runNow()
             }
         }
     }
