@@ -23,4 +23,6 @@ object Routes {
   private def search0(q: String, n: Int) = s"search?q=$q&n=$n"
 
   def search(searchType: String, q: String, n: Int) = s"${pref}/${v1}/${searchType}/${search0(q, n)}"
+
+  val Separator = "&"
 }

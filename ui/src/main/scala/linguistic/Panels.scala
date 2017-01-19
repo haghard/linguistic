@@ -1,37 +1,36 @@
 package linguistic
 
-import linguistic.ui.UiSession
-import japgolly.scalajs.react._
+import linguistic.gateaway.UiSession
+import japgolly.scalajs.react.{ReactEventI, _}
 import japgolly.scalajs.react.vdom.prefix_<^._
 import shared.protocol.SignInResponse
 
 object Panels {
 
-  private[this] def signUp(e: ReactEventI): CallbackTo[Unit] = {
-    import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
-    e.preventDefaultCB >>
-    Callback {
-      val (h,v) = linguistic.ui.signUpHeader("haghard84@gmail.com", "suBai3sa", "https://avatars.githubusercontent.com/u/1887034?v=3")
-      linguistic.ui.httpSignUp(shared.Routes.clientSignUp, Map((h, v))).onSuccess {
-        case Right(token) => Callback.log("sign-up success")
-        case Left(ex) => Callback.log(s"sign-up error: $ex")
-      }
-    }
+/*
+  private def signUp(e: ReactEventI): CallbackTo[Unit] = {
+    e.preventDefaultCB >> Callback.log("")
+    //ReactDOM.render(SignUp.SignUpComp, )
   }
+*/
 
-  val TopPanelLeftArea = ReactComponentB[Option[SignInResponse]]("LeftSidePanel")
+  def topPanelLeftArea(signUp: (ReactEventI => CallbackTo[Unit])) =
+    ReactComponentB[Option[SignInResponse]]("LeftSidePanel")
     .stateless
     .render_P { props =>
       props.fold(
         <.div(
           ^.cls := "navbar-header",
-          <.a("Sign up", ^.cls := "navbar-brand", ^.onClick ==> signUp
-             /*href := "#"*/)
+          <.a("Sign up",
+            ^.cls := "navbar-brand",
+            ^.onClick ==> signUp
+            //^.href := "/signup"
+        )
         )
       ) { _ =>
-        <.div(^.cls := "navbar-header",
-          <.a("Sign out", ^.cls := "navbar-brand", ^.href := "#")
-        )
+        <.div(
+          ^.cls := "navbar-header",
+          <.a("Sign out", ^.cls := "navbar-brand", ^.href := "/"))
       }
     }.build
 
@@ -61,15 +60,16 @@ object Panels {
         }
       }.build
 
-  def topPanelComponent(s: UiSession, oauthProviders: Map[String, String]) = ReactComponentB[Unit]("TopPanel")
+  def topPanelComponent(s: UiSession, oauthProviders: Map[String, String], signUp: (ReactEventI => CallbackTo[Unit])) =
+    ReactComponentB[Unit]("TopPanel")
     .stateless
     .render { _ =>
       <.nav(
         ^.cls := "navbar navbar-default",
         <.div(
           ^.cls := "container-fluid",
-          TopPanelLeftArea(s.entry),
-          topPanelRightArea(oauthProviders)(s.entry)
+          topPanelLeftArea(signUp)(s.user),
+          topPanelRightArea(oauthProviders)(s.user)
         )
       )
     }.build

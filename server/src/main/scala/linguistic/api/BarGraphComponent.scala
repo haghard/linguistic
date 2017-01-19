@@ -19,7 +19,7 @@ object BarGraphComponent {
         script(`type` := "text/javascript", src := "/assets/ui-launcher.js"),
 
         div(id := where, cls := "center"),
-        script(s"geolocation.d3.BarGraph().main('#${where}')")
+        script(s"linguistic.d3.BarGraph().main('#${where}')")
       )
     )
   }

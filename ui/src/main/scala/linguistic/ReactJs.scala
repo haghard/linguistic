@@ -1,74 +1,69 @@
 package linguistic
 
-import linguistic.Panels._
-import linguistic.Search._
-import linguistic.Sign._
-import linguistic.ui.UiSession
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
+import linguistic.Panels._
+import linguistic.Search._
+import linguistic.SignIn._
+import linguistic.SignUp._
+import linguistic.gateaway.{SignInMode, SignUpMode, UiSession}
 import org.scalajs.dom
+import shared.protocol.SignInResponse
 
 object ReactJs {
+  val loginSelector = "#login"
+  val passwordSelector = "#password"
+  val photoSelector = "#photo"
 
   class AppSessionBackend(scope: BackendScope[Map[String, String], UiSession]) {
-    val loginS = "#login"
-    val passwordS = "#password"
+
+    def signUp(e: ReactEventI): CallbackTo[Unit] = {
+      e.preventDefaultCB >> scope.modState(s => s.copy(mode = SignUpMode))
+    }
 
     def signIn(e: ReactEventI): CallbackTo[Unit] = {
       import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
       e.preventDefaultCB >>
         CallbackTo {
-          val login = dom.document.querySelector(loginS).asInstanceOf[dom.html.Input].value
-          val password = dom.document.querySelector(passwordS).asInstanceOf[dom.html.Input].value
-
-          val (h, v) = linguistic.ui.signInHeader(login, password)
-          linguistic.ui.httpSignIp[shared.protocol.SignInResponse](shared.Routes.clientSignIn, Map((h, v))).onSuccess {
-            case Right(r) => scope.setState(UiSession(Option(r._1), token = Option(r._2))).runNow()
-            case Left(ex) => scope.modState(s => s.copy(error = Option("Error: " + ex))).runNow()
-          }
+          val login = dom.document.querySelector(loginSelector).asInstanceOf[dom.html.Input].value
+          val password = dom.document.querySelector(passwordSelector).asInstanceOf[dom.html.Input].value
+          val (h, v) = linguistic.gateaway.signInHeader(login, password)
+          linguistic.gateaway.httpSignIp[shared.protocol.SignInResponse](shared.Routes.clientSignIn, Map((h, v)))
+            .onSuccess {
+              case Right(r) => scope.setState(UiSession(user = Option(r._1), token = Option(r._2))).runNow()
+              case Left(ex) => scope.modState(s => s.copy(error = Option("Error: " + ex))).runNow()
+            }
         }
     }
 
-    //
-    def render(session: UiSession, oauthProviders: Map[String, String]) = {
-      session.entry match {
-        case None =>
+    def render(session: UiSession, oauthProviders: Map[String, String], b: AppSessionBackend): ReactElement = {
+      session match {
+        case UiSession(None, _, SignUpMode, _) =>
+          <.div(signUpComponent(session, b, oauthProviders)())
+
+        case UiSession(None, _, SignInMode, _) =>
           <.div(
-            topPanelComponent(session, oauthProviders)(),
-            SignFormArea(signIn),
+            topPanelComponent(session, oauthProviders, signUp)(),
+            SignInFormArea(signIn),
             ErrorSignInFormArea(session.error)
           )
 
-        case Some(auth) =>
-          val SearchComponent = ReactComponentB[UiSession]("SearchComponent")
-            .initialState(SearchWordsState())
-            .backend(new SearchWordsBackend(_))
-            .renderPS { ($, session, searchState) =>
-              <.div(
-                ^.cls := "container-fluid",
-                <.div(
-                  topPanelComponent(session, oauthProviders)(),
-                  SearchBoxesComponent((searchState, $.backend, session.token.get)),
-                  searchResultsComponent(searchState)()
-                )
-              )
-            }.build
-
-          <.div(SearchComponent(session))
+        case UiSession(Some(_), _, SignInMode, _) =>
+          <.div(searchComponent(oauthProviders, signUp)(session))
       }
     }
   }
 
-  def apply(domElement: dom.Element) = {
-    val app = ReactComponentB[Map[String, String]]("ReactJsAppComponent")
-      .initialState(UiSession(None, None))
-      //.renderBackend[ApplicationSessionBackend]
-      .backend(new AppSessionBackend(_))
-      .renderPS { (scope, props, state) =>
-        scope.backend.render(state, props)
-      }.build
+  val signInComponent = ReactComponentB[Map[String, String]]("ReactJsAppComponent")
+    .initialState(UiSession(user = None, token = None))
+    .backend(new AppSessionBackend(_))
+    .renderPS { (scope, props, state) =>
+      scope.backend.render(state, props, scope.backend)
+    }.build
 
-    val props = shared.HttpSettings.oauthProviders
-    ReactDOM.render(app(props), domElement)
+  def apply(domElement: dom.Element) = {
+    //settings
+    val providers = shared.HttpSettings.oauthProviders
+    ReactDOM.render(signInComponent(providers), domElement)
   }
 }

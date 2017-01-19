@@ -5,7 +5,11 @@ import java.time.{Clock, LocalDateTime}
 import java.util.TimeZone
 import akka.actor.{Props, ActorSystem}
 import akka.cluster.Cluster
+import akka.cluster.sharding.ClusterSharding
 import com.typesafe.config.{Config, ConfigFactory}
+import linguistic.ps.{HomophonesSubTreeShardEntity, WordShardEntity}
+import linguistic.utils.ShutdownCoordinator
+import ShutdownCoordinator.NodeShutdownOpts
 import scala.collection._
 
 
@@ -56,13 +60,12 @@ object Application extends App with AppSupport {
 
   val coreSystem: ActorSystem = ActorSystem("linguistics", config)
 
-  coreSystem.actorOf(
-    Props(new HttpServer(
-        httpPort.toInt, config.getString("akka.http.interface"),
-        config.getString("akka.http.ssl.keypass"), config.getString("akka.http.ssl.storepass"))
-    ), "http-server"
-  )
+  coreSystem.actorOf(Props(new HttpServer(
+    httpPort.toInt, config.getString("akka.http.interface"),
+    config.getString("akka.http.ssl.keypass"), config.getString("akka.http.ssl.storepass"))), "http-server")
 
+  //Auto-downing (DO NOT USE)
+  /*
   val clock = Clock.systemDefaultZone
   val start = clock.instant
 
@@ -70,7 +73,7 @@ object Application extends App with AppSupport {
     val stop = clock.instant
     val upTime = stop.getEpochSecond - start.getEpochSecond
     coreSystem.log.info(s"★ ★ ★ Stopping application at ${clock.instant} after being up for ${upTime} sec. ★ ★ ★ ")
-  }
+  }*/
 
   val tz = TimeZone.getDefault.getID
   val greeting = new StringBuilder()

@@ -1,17 +1,20 @@
 package linguistic.api
 
-import akka.actor.ActorRef
+import akka.actor.{ActorSystem, ActorRef}
 import akka.cluster.sharding.ShardRegion
 import akka.cluster.sharding.ShardRegion.{ClusterShardingStats, CurrentRegions, CurrentShardRegionState}
 import akka.http.scaladsl.model.HttpResponse
 import akka.pattern._
-import linguistic.ps
+import linguistic.utils.ShutdownCoordinator
+import linguistic.{HttpServer, ps}
+import ShutdownCoordinator.NodeShutdownOpts
 import linguistic.ps.{WordShardEntity$, HomophonesSubTreeShardEntity}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{Future, ExecutionContext}
 import scala.concurrent.duration._
 
-class ClusterApi(searchMaster: ActorRef, shutdownHook: ActorRef)(implicit ex: ExecutionContext) extends BaseApi {
+class ClusterApi(http: ActorRef, searchMaster: ActorRef, regions: Set[ActorRef])
+  (implicit ex: ExecutionContext, sys: ActorSystem) extends BaseApi {
   implicit val timeout = akka.util.Timeout(10 seconds)
 
   val route = pathPrefix("cluster") {
@@ -33,11 +36,16 @@ class ClusterApi(searchMaster: ActorRef, shutdownHook: ActorRef)(implicit ex: Ex
           HttpResponse(entity = r.regions.mkString(","))
         }
       }
-    } ~ (get & path("stop")) {
+    }/* ~ (get & path("stop")) {
       complete {
-        shutdownHook ! ps.GracefulShutdownRegion.LeaveAndShutdownNode
-        "Stopping ..."
+        http ! HttpServer.Stop
+
+        Future {
+          ShutdownCoordinator.shutdown(NodeShutdownOpts(5 seconds, 20 seconds), regions)(sys)
+        }(scala.concurrent.ExecutionContext.global)
+
+        "Shutdown ..."
       }
-    }
+    }*/
   }
 }

@@ -15,11 +15,11 @@ import upickle.default._
 
 //val photo = "https://avatars.githubusercontent.com/u/1887034?v=3"
 class UsersApi(users: UsersRepo)(implicit val system: ActorSystem) extends BaseApi with AuthTokenSupport {
-  val Separator = "&"
   val Ch = StandardCharsets.UTF_8
 
-  private def respondWithUserError(error: String) =
+  private def respondWithUserError(error: String) = {
     complete(HttpResponse(InternalServerError, entity = s"""{ "error": "${error}" }"""))
+  }
 
   val route = extractMaterializer { implicit mat =>
     extractExecutionContext { implicit ec =>
@@ -30,18 +30,18 @@ class UsersApi(users: UsersRepo)(implicit val system: ActorSystem) extends BaseA
               headerValueByName(shared.Headers.SignUpHeader) { credentials =>
                 extractHost { host =>
                   val decoded = new String(Base64.getDecoder.decode(credentials.stripPrefix(shared.HttpSettings.salt)), Ch)
-                  val profile = decoded.split(Separator)
+                  val profile = decoded.split(shared.Routes.Separator)
                   if (profile.length == 3) {
                     val login = profile(0)
                     val pas = profile(1)
                     val photo = profile(2)
-                    log.info(s"sign-up request from: $host login: $login")
+                    log.info(s"signup request from: $host login: $login")
                     onSuccess(users.signUp(login, pas, photo)) {
                       case Right(true) =>
                         setSession(oneOff, usingHeaders, ServerSession(login)) {
                           complete(HttpResponse(StatusCodes.OK))
                         }
-                      case Right(false) => respondWithUserError(s"Login name ${login} isn't unique")
+                      case Right(false) => respondWithUserError(s"Login ${login} isn't unique")
                       case Left(errorMsg) => respondWithUserError(errorMsg)
                     }
                   } else respondWithUserError("Expected login, password and photo")
@@ -53,7 +53,7 @@ class UsersApi(users: UsersRepo)(implicit val system: ActorSystem) extends BaseA
               headerValueByName(shared.Headers.SignInHeader) { credentials =>
                 extractHost { host =>
                   val decoded = new String(Base64.getDecoder.decode(credentials.stripPrefix(shared.HttpSettings.salt)), Ch)
-                  val loginPassword = decoded.split(Separator)
+                  val loginPassword = decoded.split(shared.Routes.Separator)
                   if (loginPassword.length == 2) {
                     log.info(s"sign-in request from: $host login: ${loginPassword(0)} ")
                     onSuccess(users.signIn(loginPassword(0), loginPassword(1))) {
@@ -73,14 +73,3 @@ class UsersApi(users: UsersRepo)(implicit val system: ActorSystem) extends BaseA
     }
   }
 }
-
-/*
-parameters('login.as[String], 'password.as[String]) { (login, password) =>
-    if(password == "123456") {
-      val photo = "https://avatars.githubusercontent.com/u/1887034?v=3"
-      complete(s""" { "login":"$login", "token":"qwef2q345132fwsf2", "photo":"$photo" } """)
-    } else {
-      complete(StatusCodes.NotFound)
-    }
-  }
-*/

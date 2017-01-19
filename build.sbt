@@ -35,19 +35,30 @@ lazy val server = (project in file("server")).settings(
   fork in runMain := true,
 
   libraryDependencies ++= Seq(
-    ("com.softwaremill.akka-http-session" %% "core" % "0.3.0").exclude("com.typesafe.akka", "akka-http"),
-    "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
-    "net.ceedubs"       %% "ficus"                      % "1.1.2",
-    "ch.qos.logback" % "logback-classic" % "1.1.2",
-    "org.mindrot" % "jbcrypt" % "0.3m",
-    "com.vmunier" %% "scalajs-scripts" % "1.1.0", //Twirl templates to link Scala.js output scripts into a HTML page.
-    "com.lihaoyi" %% "scalatags"  % "0.6.2",
-    "org.webjars" % "bootstrap" % "3.3.6",
+    "net.ceedubs"     %%  "ficus"           % "1.1.2",
+    "ch.qos.logback"  %   "logback-classic" % "1.1.2",
+    "org.mindrot"     %   "jbcrypt"         % "0.3m",
+
+    "com.vmunier"     %%  "scalajs-scripts" % "1.1.0", //Twirl templates to link Scala.js output scripts into a HTML page.
+
+    "com.lihaoyi"     %%  "scalatags"       % "0.6.2",
+    "org.webjars"     %   "bootstrap"       % "3.3.6",
+
     "com.datastax.cassandra" % "cassandra-driver-extras" % "3.1.0",
-    "com.jsuereth"           %% "scala-arm"              % "1.4",
-    "org.openjdk.jol"        %  "jol-core"               % "0.6",
-    "com.rklaehn"            %% "radixtree"              % "0.4.0", //blocker for scala 2.12
-    "org.scalatest"          %% "scalatest"              % "3.0.1" % "test"
+
+    "com.jsuereth"     %% "scala-arm"       % "1.4",
+    "org.openjdk.jol"  %  "jol-core"        % "0.6",
+    "com.rklaehn"      %% "radixtree"       % "0.4.0", //blocker for scala 2.12
+
+    "org.scalatest"    %% "scalatest"       % "3.0.1" % "test"
+  ) ++ Seq(
+    "com.softwaremill.akka-http-session" %% "core" % "0.3.0",
+    //).exclude("com.typesafe.akka", "akka-http")
+    "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
+    "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
+    "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
+    "com.typesafe.akka" %% "akka-persistence-cassandra" % "0.22",
+    "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion
   ),
 
   //javaOptions in runMain += "-DENV=prod",
@@ -217,11 +228,8 @@ lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared")).
   settings(
     scalaVersion := scalaV,
     libraryDependencies ++= Seq(
-      "com.lihaoyi"   %%% "upickle" % "0.4.3",
-      "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
-      "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
-      "com.typesafe.akka" %% "akka-persistence-cassandra" % "0.22",
-      "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion
+      "com.lihaoyi"  %%% "upickle" % "0.4.3"
+      //"org.scala-js" %%% "scalajs-dom"    % "0.9.1"
     )
   ).jsConfigure(_ enablePlugins ScalaJSWeb)
 

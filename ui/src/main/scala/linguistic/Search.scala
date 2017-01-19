@@ -3,6 +3,8 @@ package linguistic
 import japgolly.scalajs.react.Addons.ReactCssTransitionGroup
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
+import linguistic.Panels.topPanelComponent
+import linguistic.gateaway.UiSession
 import org.scalajs.dom.ext.Ajax
 
 import scala.util.{Failure, Success}
@@ -11,32 +13,33 @@ object Search {
 
   val alignContent = "align-content".reactAttr
 
-  case class SearchWordsState(query: String = "", limit: Int = 10,
-                              words: Seq[String] = Seq.empty[String])
+  case class SearchWordsState(query: String = "", limit: Int = 20,
+    words: Seq[String] = Seq.empty[String])
 
   class SearchWordsBackend(scope: BackendScope[_, SearchWordsState]) {
     import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 
     def onChange(searchType: String, token: String)(e: ReactEventI) = {
-      //Callback.log(e.target.value) >>
       Callback {
+        //Callback(e.target.value = "")
+
         val q = e.target.value
-        Ajax.get(shared.Routes.search(searchType, q, 50),
-          //s"${shared.Routes.pref}/${shared.Routes.v1}/${searchType}/${shared.Routes.search(q, 50)}",
-          headers = Map((shared.Headers.fromClient -> token))).onComplete {
+        Ajax.get(
+          shared.Routes.search(searchType, q, 50),
+          headers = Map(shared.Headers.fromClient -> token)
+        ).onComplete {
           case Success(r) =>
-            val resp = r.responseText.split(",")
-            //dom.console.log("Http OK", resp.size)
-            scope.modState { s => s.copy(query = q, words = resp) }.runNow()
+            val wordsResp = r.responseText.split(",")
+            scope.modState(_.copy(query = q, words = wordsResp)).runNow()
           case Failure(ex) =>
-            //dom.console.log("Http Error: " + ex.getMessage)
             scope.modState { s => s.copy(query = q) }.runNow()
         }
       }
     }
   }
 
-  val SearchBoxesComponent = ReactComponentB[(SearchWordsState, SearchWordsBackend, String)]("SearchBoxComp")
+  val SearchComponent =
+    ReactComponentB[(SearchWordsState, SearchWordsBackend, String)]("SearchBoxComp")
     .stateless
     .render_P { case (state, backend, token) =>
       <.div(
@@ -55,9 +58,7 @@ object Search {
                     ^.color.black
                     //^.cls := "container-fluid"
                   ),
-                  <.span(
-                    ^.cls := "glyphicon glyphicon-search"
-                  )
+                  <.span(^.cls := "glyphicon glyphicon-search")
                 ),
                 <.div(
                   <.input(
@@ -117,28 +118,38 @@ object Search {
         ^.cls := "container-fluid",
         <.div(
           ReactCssTransitionGroup("search-output", component = "h5") {
-            state.words.map { word =>
-              <.div(^.key := word, word)
-            }
-            /*
-            state.out.zipWithIndex.map { case (word, i) =>
-                <.div(
-                  ^.key := word,
-                  //^.onClick --> handleRemove(i),
-                  word
-                )
-              }: _*
-            */
+            state.words.map { word => <.div(^.key := word, word)  }
           }
         )
       )
     }
   }
 
-  def searchResultsComponent(state: SearchWordsState) = {
-    ReactComponentB[Unit]("SearchResultsComponent")
-      .initialState(state)
-      .renderBackend[SearchOutBackend]
-      .build
+  def searchComponent(oauthProviders: Map[String, String], signUp: (ReactEventI => CallbackTo[Unit])) = {
+
+    /*
+    def searchResultsComponent(state: SearchWordsState) = {
+      ReactComponentB[Unit]("SearchResults")
+        .initialState(state)
+        .renderBackend[SearchOutBackend]
+        .build
+    }*/
+
+    ReactComponentB[UiSession]("SearchComponent")
+      .initialState(SearchWordsState())
+      .backend(new SearchWordsBackend(_))
+      .renderPS { ($, session, searchState) =>
+        <.div(
+          ^.cls := "container-fluid",
+          <.div(
+            topPanelComponent(session, oauthProviders, signUp)(),
+            SearchComponent((searchState, $.backend, session.token.get)),
+            ReactComponentB[Unit]("SearchResults")
+              .initialState(searchState)
+              .renderBackend[SearchOutBackend]
+              .build()
+          )
+        )
+      }.build
   }
 }

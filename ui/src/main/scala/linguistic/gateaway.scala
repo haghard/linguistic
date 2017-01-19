@@ -8,17 +8,19 @@ import scala.concurrent.Future
 import scala.util.control.NonFatal
 import upickle.default._
 
-object ui {
-  case class UiSession(entry: Option[SignInResponse], token: Option[String], error: Option[String] = None)
+object gateaway {
+
+  trait LoginMode
+  case object SignInMode extends LoginMode
+  case object SignUpMode extends LoginMode
+
+  case class UiSession(user: Option[SignInResponse] = None, token: Option[String] = None,
+    mode: LoginMode = SignInMode, error: Option[String] = None)
 
   import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 
-  def httpSignUp(url: String, hs: Map[String, String]): Future[Either[String, String]] = {
-    Ajax.post(url, headers = hs).map { r =>
-      val token = r.getResponseHeader(shared.Headers.fromServer)
-      //org.scalajs.dom.console.log("token: " + token)
-      Right(token)
-    }.recover { case NonFatal(e) => Left(e.getMessage) }
+  def httpSignUp(url: String, hs: Map[String, String]): Future[dom.XMLHttpRequest] = {
+    Ajax.post(url, headers = hs)
   }
 
   def httpSignIp[T: upickle.default.Reader](url: String, hs: Map[String, String]): Future[Either[String, (T, String)]] = {

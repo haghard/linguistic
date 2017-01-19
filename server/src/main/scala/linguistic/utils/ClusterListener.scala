@@ -1,4 +1,4 @@
-package linguistic
+package linguistic.utils
 
 import akka.actor.{Actor, ActorLogging, Props}
 import akka.cluster.Cluster

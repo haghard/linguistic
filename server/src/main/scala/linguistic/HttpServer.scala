@@ -1,11 +1,13 @@
 package linguistic
 
-import akka.actor.{Actor, ActorLogging, Status}
-import akka.cluster.Cluster
-import akka.cluster.sharding.ClusterSharding
-import akka.stream.ActorMaterializerSettings
+
 import linguistic.Application._
 import linguistic.dao.UsersRepo
+import akka.cluster.sharding.ClusterSharding
+import akka.stream.ActorMaterializerSettings
+import akka.actor.{Actor, ActorLogging, Status}
+import linguistic.utils.ShutdownCoordinator
+import ShutdownCoordinator.NodeShutdownOpts
 import linguistic.ps.{HomophonesSubTreeShardEntity, WordShardEntity}
 
 object HttpServer {
@@ -18,6 +20,10 @@ object HttpServer {
 class HttpServer(port: Int, address: String, keypass: String, storepass: String) extends Actor with ActorLogging
   with SslSupport with ShardingSupport {
   import HttpServer._
+  import akka.http.scaladsl.Http
+  import akka.pattern.pipe
+  import akka.http.scaladsl.server.RouteResult._
+  import akka.http.scaladsl.server.RouteConcatenation._
 
   implicit val system = context.system
   implicit val ex = system.dispatchers.lookup(HttpDispatcher)
@@ -29,23 +35,14 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
 
   startRegions(system, mat)
 
-  val searchMaster = system.actorOf(
-    SearchMaster.props(mat,
-      ClusterSharding(context.system).shardRegion(WordShardEntity.Name),
-      ClusterSharding(context.system).shardRegion(HomophonesSubTreeShardEntity.Name)
-    ),
-    name = "search-master")
+  val wordShard = ClusterSharding(coreSystem).shardRegion(WordShardEntity.Name)
+  val homophonesShard = ClusterSharding(coreSystem).shardRegion(HomophonesSubTreeShardEntity.Name)
+  val regions = scala.collection.immutable.Set(wordShard, homophonesShard)
 
+  val searchMaster = system.actorOf(SearchMaster.props(mat, wordShard, homophonesShard), name = "search-master")
 
-  import akka.http.scaladsl.Http
-  import akka.pattern.pipe
-  import akka.http.scaladsl.server.RouteResult._
-  import akka.http.scaladsl.server.RouteConcatenation._
-
-  val routes = (new api.SearchApi(searchMaster).route ~ new api.Nvd3Api().route ~ new api.UsersApi(new UsersRepo()).route ~
-    new api.ClusterApi(searchMaster,
-      coreSystem.actorOf(ps.GracefulShutdownRegion.props(self, Seq(WordShardEntity.Name, HomophonesSubTreeShardEntity.Name)))
-    ).route)
+  val routes = new api.SearchApi(searchMaster).route ~ new api.Nvd3Api().route ~
+    new api.UsersApi(new UsersRepo()).route ~ new api.ClusterApi(self, searchMaster, regions).route
 
   Http()
     .bindAndHandle(routes, address, port, connectionContext = https(keypass, storepass))
@@ -58,7 +55,11 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
 
   def serverBinding(b: akka.http.scaladsl.Http.ServerBinding) = {
     log.info("Binding on {}", b.localAddress)
-    context.become(bound(b))
+
+    //https://gist.github.com/nelanka/891e9ac82fc83a6ab561
+    import scala.concurrent.duration._
+    ShutdownCoordinator.register(NodeShutdownOpts(5 seconds, 15 seconds), regions)(coreSystem)
+    context become bound(b)
   }
 
   def handleBindFailure(cause: Throwable) = {
@@ -69,9 +70,6 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
   def bound(b: akka.http.scaladsl.Http.ServerBinding): Receive = {
     case HttpServer.Stop =>
       log.info("Unbound {}:{}", address, port)
-      b.unbind().onComplete { _ =>
-        context.stop(self)
-        context.system.terminate()
-      }
+      b.unbind()
   }
 }

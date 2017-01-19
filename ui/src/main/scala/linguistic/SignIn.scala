@@ -3,10 +3,9 @@ package linguistic
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
 
+object SignIn {
 
-object Sign {
-
-  val SignFormArea = ReactComponentB[((ReactEventI) => CallbackTo[Unit])]("SignFormComp")
+  val SignInFormArea = ReactComponentB[((ReactEventI) => CallbackTo[Unit])]("SignFormComp")
     .stateless
     .render_P { onSignIn =>
       <.div(

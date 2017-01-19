@@ -6,8 +6,6 @@ import akka.http.scaladsl.model.{ContentTypes, HttpResponse}
 import akka.http.scaladsl.server._
 import akka.util.ByteString
 
-import scala.concurrent.duration._
-
 class Nvd3Api(implicit sys: ActorSystem) extends Directives {
   import linguistic._
   implicit val dispatcher = sys.dispatchers.lookup("akka.http.dispatcher")
@@ -26,6 +24,9 @@ class Nvd3Api(implicit sys: ActorSystem) extends Directives {
           } ~ path("histogram") {
             complete(HttpResponse(entity = Strict(ContentTypes.`text/html(UTF-8)`,
               ByteString(HistogramComponent("histogram").render))))
+          } ~ path("signup") {
+            complete(HttpResponse(entity = Strict(ContentTypes.`text/html(UTF-8)`,
+              ByteString(SignUpComponent().render))))
           }
         }
       }
