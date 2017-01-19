@@ -58,7 +58,7 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
 
     //https://gist.github.com/nelanka/891e9ac82fc83a6ab561
     import scala.concurrent.duration._
-    ShutdownCoordinator.register(NodeShutdownOpts(5 seconds, 15 seconds), regions)(coreSystem)
+    ShutdownCoordinator.register(NodeShutdownOpts(5 seconds, 15 seconds), self, regions)(coreSystem)
     context become bound(b)
   }
 
@@ -70,6 +70,8 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
   def bound(b: akka.http.scaladsl.Http.ServerBinding): Receive = {
     case HttpServer.Stop =>
       log.info("Unbound {}:{}", address, port)
-      b.unbind()
+      b.unbind().onComplete { _ =>
+        mat.shutdown()
+      }
   }
 }

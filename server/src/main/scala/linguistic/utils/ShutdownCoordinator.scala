@@ -3,6 +3,7 @@ package linguistic.utils
 import akka.actor._
 import akka.cluster.Cluster
 import akka.cluster.sharding.ShardRegion
+import linguistic.HttpServer
 
 import scala.concurrent.Await
 import scala.concurrent.duration.FiniteDuration
@@ -35,15 +36,18 @@ object ShutdownCoordinator {
   final case class ManagedRegions(shardRegions: Set[ActorRef]) extends Data
 
   // Register ShardRegions for graceful shutdown
-  def register(shutdownOpts: NodeShutdownOpts, shardRegions: Set[ActorRef])(implicit system: ActorSystem) = {
-    sys.addShutdownHook { shutdown(shutdownOpts, shardRegions) }
+  def register(shutdownOpts: NodeShutdownOpts, http: ActorRef, shardRegions: Set[ActorRef])(implicit system: ActorSystem) = {
+    sys.addShutdownHook { shutdown(shutdownOpts, http, shardRegions) }
   }
 
-  private[linguistic] def shutdown(shutdownOpts: NodeShutdownOpts, shardRegions: Set[ActorRef])(implicit system: ActorSystem) = {
+  private[linguistic] def shutdown(shutdownOpts: NodeShutdownOpts, http: ActorRef,
+    shardRegions: Set[ActorRef])(implicit system: ActorSystem) = {
     // 1 - jvm gets the shutdown signal
+
     system.log.info("1 - Jvm gets the shutdown signal")
     val nodeShutdown = system.actorOf(Props(new GracefulShutdownCoordinator(shutdownOpts))
       .withDispatcher("shard-dispatcher"), "shutdown-coord")
+    http ! HttpServer.Stop
     nodeShutdown ! StartNodeShutdown(shardRegions)
     system.log.info("Awaiting node shutdown ...")
     Await.result(system.whenTerminated, shutdownOpts.actorSystemShutdownTimeout)
