@@ -16,6 +16,10 @@ object ReactJs {
 
   class AppSessionBackend(scope: BackendScope[Map[String, String], UiSession]) {
 
+    def signOut(e: ReactEventI): CallbackTo[Unit] = {
+      e.preventDefaultCB >> scope.modState(s => s.copy(user = None, token = None))
+    }
+
     def signUp(e: ReactEventI): CallbackTo[Unit] = {
       e.preventDefaultCB >> scope.modState(s => s.copy(mode = SignUpMode))
     }
@@ -42,13 +46,13 @@ object ReactJs {
 
         case UiSession(None, _, SignInMode, _) =>
           <.div(
-            topPanelComponent(session, oauthProviders, signUp)(),
+            topPanelComponent(session, oauthProviders, signUp, signOut)(),
             SignInFormArea(signIn),
             ErrorSignInFormArea(session.error)
           )
 
         case UiSession(Some(login), _, SignInMode, _) =>
-          <.div(searchComponent(oauthProviders, signUp)(session))
+          <.div(searchComponent(oauthProviders, signUp, signOut)(session))
       }
     }
   }

@@ -7,14 +7,7 @@ import shared.protocol.SignInResponse
 
 object Panels {
 
-/*
-  private def signUp(e: ReactEventI): CallbackTo[Unit] = {
-    e.preventDefaultCB >> Callback.log("")
-    //ReactDOM.render(SignUp.SignUpComp, )
-  }
-*/
-
-  def topPanelLeftArea(signUp: (ReactEventI => CallbackTo[Unit])) =
+  def topPanelLeftArea(signUp: (ReactEventI => CallbackTo[Unit]), signOut: (ReactEventI => CallbackTo[Unit])) =
     ReactComponentB[Option[SignInResponse]]("LeftSidePanel")
     .stateless
     .render_P { props =>
@@ -60,7 +53,10 @@ object Panels {
         }
       }.build
 
-  def topPanelComponent(s: UiSession, oauthProviders: Map[String, String], signUp: (ReactEventI => CallbackTo[Unit])) =
+  def topPanelComponent(s: UiSession, oauthProviders: Map[String, String],
+    signUp: (ReactEventI => CallbackTo[Unit]),
+    signOut: (ReactEventI => CallbackTo[Unit])
+  ) =
     ReactComponentB[Unit]("TopPanel")
     .stateless
     .render { _ =>
@@ -68,7 +64,7 @@ object Panels {
         ^.cls := "navbar navbar-default",
         <.div(
           ^.cls := "container-fluid",
-          topPanelLeftArea(signUp)(s.user),
+          topPanelLeftArea(signUp, signOut)(s.user),
           topPanelRightArea(oauthProviders)(s.user)
         )
       )

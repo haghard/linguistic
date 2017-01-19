@@ -125,7 +125,10 @@ object Search {
     }
   }
 
-  def searchComponent(oauthProviders: Map[String, String], signUp: (ReactEventI => CallbackTo[Unit])) = {
+  def searchComponent(oauthProviders: Map[String, String],
+    signUp: (ReactEventI => CallbackTo[Unit]),
+    signOut: (ReactEventI => CallbackTo[Unit])
+  ) = {
     ReactComponentB[UiSession]("SearchComponent")
       .initialState(SearchWordsState())
       .backend(new SearchWordsBackend(_))
@@ -133,7 +136,7 @@ object Search {
         <.div(
           ^.cls := "container-fluid",
           <.div(
-            topPanelComponent(session, oauthProviders, signUp)(),
+            topPanelComponent(session, oauthProviders, signUp, signOut)(),
             SearchComponent((searchState, $.backend, session.token.get)),
             ReactComponentB[Unit]("SearchResults")
               .initialState(searchState)
