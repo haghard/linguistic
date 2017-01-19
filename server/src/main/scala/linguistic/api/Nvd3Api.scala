@@ -24,10 +24,13 @@ class Nvd3Api(implicit sys: ActorSystem) extends Directives {
           } ~ path("histogram") {
             complete(HttpResponse(entity = Strict(ContentTypes.`text/html(UTF-8)`,
               ByteString(HistogramComponent("histogram").render))))
-          } ~ path("signup") {
-            complete(HttpResponse(entity = Strict(ContentTypes.`text/html(UTF-8)`,
-              ByteString(SignUpComponent().render))))
           }
+          /*
+          ~ path("signup") {
+            complete(HttpResponse(entity = Strict(ContentTypes.`text/html(UTF-8)`,
+              ByteString(SignUpScript().render))))
+          }
+          */
         }
       }
     }
