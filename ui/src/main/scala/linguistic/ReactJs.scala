@@ -8,7 +8,6 @@ import linguistic.SignIn._
 import linguistic.SignUp._
 import linguistic.gateaway.{SignInMode, SignUpMode, UiSession}
 import org.scalajs.dom
-import shared.protocol.SignInResponse
 
 object ReactJs {
   val loginSelector = "#login"
@@ -48,20 +47,20 @@ object ReactJs {
             ErrorSignInFormArea(session.error)
           )
 
-        case UiSession(Some(_), _, SignInMode, _) =>
+        case UiSession(Some(login), _, SignInMode, _) =>
           <.div(searchComponent(oauthProviders, signUp)(session))
       }
     }
   }
 
-  val signInComponent = ReactComponentB[Map[String, String]]("ReactJsAppComponent")
-    .initialState(UiSession(user = None, token = None))
-    .backend(new AppSessionBackend(_))
-    .renderPS { (scope, props, state) =>
-      scope.backend.render(state, props, scope.backend)
-    }.build
-
   def apply(domElement: dom.Element) = {
+    val signInComponent = ReactComponentB[Map[String, String]]("ReactJsAppComponent")
+      .initialState(UiSession(user = None, token = None))
+      .backend(new AppSessionBackend(_))
+      .renderPS { (scope, props, state) =>
+        scope.backend.render(state, props, scope.backend)
+      }.build
+
     //settings
     val providers = shared.HttpSettings.oauthProviders
     ReactDOM.render(signInComponent(providers), domElement)

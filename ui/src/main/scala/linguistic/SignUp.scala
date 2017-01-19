@@ -17,11 +17,6 @@ object SignUp {
   case class SignUpSession(token: Option[String] = None, error: Option[String] = None)
 
   class SignUpBackend(scope: BackendScope[Unit, SignUpSession]) {
-    /*
-      haghard84@gmail.com
-      suBai3sa
-      https://avatars.githubusercontent.com/u/1887034?v=3
-    */
     def signUp(e: ReactEventI): CallbackTo[Unit] = {
       val login = dom.document.querySelector(loginSelector).asInstanceOf[dom.html.Input].value
       val password = dom.document.querySelector(passwordSelector).asInstanceOf[dom.html.Input].value

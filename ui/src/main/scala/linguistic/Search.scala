@@ -126,15 +126,6 @@ object Search {
   }
 
   def searchComponent(oauthProviders: Map[String, String], signUp: (ReactEventI => CallbackTo[Unit])) = {
-
-    /*
-    def searchResultsComponent(state: SearchWordsState) = {
-      ReactComponentB[Unit]("SearchResults")
-        .initialState(state)
-        .renderBackend[SearchOutBackend]
-        .build
-    }*/
-
     ReactComponentB[UiSession]("SearchComponent")
       .initialState(SearchWordsState())
       .backend(new SearchWordsBackend(_))
