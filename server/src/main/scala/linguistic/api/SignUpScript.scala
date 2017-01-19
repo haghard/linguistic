@@ -2,7 +2,7 @@ package linguistic.api
 
 import scalatags.Text.all._
 
-object SignUpComponent {
+object SignUpScript {
 
   def apply() = {
     html(
