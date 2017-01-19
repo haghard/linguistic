@@ -19,41 +19,6 @@ object SignUpScript {
         script(`type` := "text/javascript", src := "/assets/ui-launcher.js"),
 
         div(id := "content", "A web form should be displayed here"),
-/*
-        div(
-          id := where,
-          cls := "center",
-          div(cls := "container-fluid",
-            form(
-              cls := "signin",
-              role := "form",
-              input(
-                id := "login",
-                cls := "form-control",
-                `type` := "text",
-                placeholder := "Login"
-              ),
-              input(
-                id := "password",
-                cls := "form-control",
-                `type` := "password",
-                placeholder := "Password"
-              ),
-              input(
-                id := "photo",
-                cls := "form-control",
-                `type` := "text",
-                placeholder := "Photo url"
-              ),
-              button(
-                "sign up",
-                cls := "btn btn-lg btn-primary btn-block"
-                //onclick := click _
-              )
-            )
-          )
-        )*/
-
         script("linguistic.SignUp().main()")
       )
     )
