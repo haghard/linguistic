@@ -17,11 +17,11 @@ object gateaway {
 
   import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 
-  def httpSignUp(url: String, hs: Map[String, String]): Future[dom.XMLHttpRequest] = {
+  def signUpAjax(url: String, hs: Map[String, String]): Future[dom.XMLHttpRequest] = {
     Ajax.post(url, headers = hs)
   }
 
-  def httpSignIp[T: upickle.default.Reader](url: String, hs: Map[String, String]): Future[(T, String)] = {
+  def signInAjax[T: upickle.default.Reader](url: String, hs: Map[String, String]): Future[(T, String)] = {
     Ajax.get(url, headers = hs).map { r =>
       val token = r.getResponseHeader(shared.Headers.fromServer)
       (read[T](r.responseText), token)

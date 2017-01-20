@@ -38,9 +38,10 @@ object SignIn {
     .stateless
     .render_P { error =>
       val ariaHidden = "aria-hidden".reactAttr
-      error.fold(<.div(EmptyTag)) { _ =>
+      error.fold(<.div(EmptyTag)) { msg =>
         <.div(
-          s"Enter a valid login and password",
+          msg,
+          //s"Enter a valid login and password",
           ^.id := "sign-error", ^.cls := "alert alert-danger role=alert",
           <.span(^.cls := "glyphicon glyphicon-exclamation-sign", ariaHidden := "true"),
           <.span("Error:", ^.cls := "sr-only")

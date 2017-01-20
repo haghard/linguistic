@@ -7,6 +7,7 @@ import linguistic.gateaway.{SignInMode, UiSession}
 import org.scalajs.dom
 
 import scala.scalajs.js.annotation.JSExport
+import scala.util.control.NonFatal
 
 @JSExport
 object SignUp {
@@ -25,7 +26,7 @@ object SignUp {
       e.preventDefaultCB >>
         Callback {
           val (h, v) = linguistic.gateaway.signUpHeader(login, password, photo)
-          linguistic.gateaway.httpSignUp(shared.Routes.clientSignUp, Map((h, v)))
+          linguistic.gateaway.signUpAjax(shared.Routes.clientSignUp, Map((h, v)))
             .map { response =>
               val token = response.getResponseHeader(shared.Headers.fromServer)
               scope.modState(_.copy(token = Option(token))).runNow()
@@ -33,6 +34,9 @@ object SignUp {
               case e: org.scalajs.dom.ext.AjaxException =>
                 //org.scalajs.dom.console.log(msg)
                 val msg = s"Error: Login $login isn't unique !!! Try another one."
+                scope.modState(_.copy(error = Option(msg))).runNow()
+              case NonFatal(e) =>
+                val msg = s"Unexpected error at sign up stage"
                 scope.modState(_.copy(error = Option(msg))).runNow()
             }
         }
@@ -101,7 +105,7 @@ object SignUp {
             ErrorSignUpFormArea(error)
           )
         case SignUpSession(Some(_), _) =>
-          back.render(session.copy(mode = SignInMode), oauthProviders, back)
+          back.render(session.copy(mode = SignInMode, error = None), oauthProviders, back)
       }
     }
 

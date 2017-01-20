@@ -9,6 +9,8 @@ import linguistic.SignUp._
 import linguistic.gateaway.{SignInMode, SignUpMode, UiSession}
 import org.scalajs.dom
 
+import scala.util.control.NonFatal
+
 object ReactJs {
   val loginSelector = "#login"
   val passwordSelector = "#password"
@@ -31,11 +33,13 @@ object ReactJs {
           val login = dom.document.querySelector(loginSelector).asInstanceOf[dom.html.Input].value
           val password = dom.document.querySelector(passwordSelector).asInstanceOf[dom.html.Input].value
           val (h, v) = linguistic.gateaway.signInHeader(login, password)
-          linguistic.gateaway.httpSignIp[shared.protocol.SignInResponse](shared.Routes.clientSignIn, Map((h, v)))
+          linguistic.gateaway.signInAjax[shared.protocol.SignInResponse](shared.Routes.clientSignIn, Map((h, v)))
             .map(r => scope.setState(UiSession(user = Option(r._1), token = Option(r._2))).runNow)
             .recover {
-              case ex: Exception  =>
-                scope.modState(s => s.copy(error = Option(s"Error: $ex"))).runNow()
+              case e: org.scalajs.dom.ext.AjaxException =>
+                scope.modState(s => s.copy(error = Option("Sign in error. Check your password"))).runNow()
+              case NonFatal(e)  =>
+                scope.modState(s => s.copy(error = Option(s"Unexpected sign in error"))).runNow()
             }
         }
     }
@@ -45,11 +49,11 @@ object ReactJs {
         case UiSession(None, _, SignUpMode, _) =>
           <.div(signUpComponent(session, b, oauthProviders)())
 
-        case UiSession(None, _, SignInMode, _) =>
+        case UiSession(None, _, SignInMode, error) =>
           <.div(
             topPanelComponent(session, oauthProviders, signUp, signOut)(),
             SignInFormArea(signIn),
-            ErrorSignInFormArea(session.error)
+            ErrorSignInFormArea(error)
           )
 
         case UiSession(Some(login), _, SignInMode, _) =>
