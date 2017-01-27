@@ -1,17 +1,13 @@
 package linguistic
 
 import java.io.File
-import java.time.{Clock, LocalDateTime}
 import java.util.TimeZone
-import akka.actor.{Props, ActorSystem}
-import akka.cluster.Cluster
-import akka.cluster.sharding.ClusterSharding
+import java.time.LocalDateTime
+import akka.actor.{ActorSystem, Props}
 import com.typesafe.config.{Config, ConfigFactory}
-import linguistic.ps.{HomophonesSubTreeShardEntity, WordShardEntity}
-import linguistic.utils.ShutdownCoordinator
-import ShutdownCoordinator.NodeShutdownOpts
-import scala.collection._
+//import akka.cluster.metrics.ClusterMetricsExtension
 
+import scala.collection._
 
 object Application extends App with AppSupport {
   //-Duser.timezone=UTC
@@ -64,16 +60,8 @@ object Application extends App with AppSupport {
     httpPort.toInt, config.getString("akka.http.interface"),
     config.getString("akka.http.ssl.keypass"), config.getString("akka.http.ssl.storepass"))), "http-server")
 
+  //ClusterMetricsExtension(coreSystem).settings
   //Auto-downing (DO NOT USE)
-  /*
-  val clock = Clock.systemDefaultZone
-  val start = clock.instant
-
-  sys.addShutdownHook {
-    val stop = clock.instant
-    val upTime = stop.getEpochSecond - start.getEpochSecond
-    coreSystem.log.info(s"★ ★ ★ Stopping application at ${clock.instant} after being up for ${upTime} sec. ★ ★ ★ ")
-  }*/
 
   val tz = TimeZone.getDefault.getID
   val greeting = new StringBuilder()

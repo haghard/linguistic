@@ -1,5 +1,7 @@
 package linguistic.utils
 
+import java.time.Clock
+
 import akka.actor._
 import akka.cluster.Cluster
 import akka.cluster.sharding.ShardRegion
@@ -37,7 +39,14 @@ object ShutdownCoordinator {
 
   // Register ShardRegions for graceful shutdown
   def register(shutdownOpts: NodeShutdownOpts, http: ActorRef, shardRegions: Set[ActorRef])(implicit system: ActorSystem) = {
-    sys.addShutdownHook { shutdown(shutdownOpts, http, shardRegions) }
+    val clock = Clock.systemDefaultZone
+    val start = clock.instant
+    sys.addShutdownHook {
+      val stop = clock.instant
+      val upTime = stop.getEpochSecond - start.getEpochSecond
+      system.log.info(s"★ ★ ★ Stopping application at ${clock.instant} after being up for ${upTime} sec. ★ ★ ★ ")
+      shutdown(shutdownOpts, http, shardRegions)
+    }
   }
 
   private[linguistic] def shutdown(shutdownOpts: NodeShutdownOpts, http: ActorRef,

@@ -10,7 +10,7 @@ import scala.scalajs.js.annotation.JSExport
 import scala.util.control.NonFatal
 
 @JSExport
-object SignUp {
+object SignUpModule {
   val loginSelector = "#login"
   val passwordSelector = "#password"
   val photoSelector = "#photo"
@@ -31,14 +31,14 @@ object SignUp {
               val token = response.getResponseHeader(shared.Headers.fromServer)
               scope.modState(_.copy(token = Option(token))).runNow()
             }.recover {
-              case e: org.scalajs.dom.ext.AjaxException =>
-                //org.scalajs.dom.console.log(msg)
-                val msg = s"Error: Login $login isn't unique !!! Try another one."
-                scope.modState(_.copy(error = Option(msg))).runNow()
-              case NonFatal(e) =>
-                val msg = s"Unexpected error at sign up stage"
-                scope.modState(_.copy(error = Option(msg))).runNow()
-            }
+            case e: org.scalajs.dom.ext.AjaxException =>
+              //org.scalajs.dom.console.log(msg)
+              val msg = s"Error: Login $login isn't unique !!! Try another one."
+              scope.modState(_.copy(error = Option(msg))).runNow()
+            case NonFatal(e) =>
+              val msg = s"Unexpected error at sign up stage"
+              scope.modState(_.copy(error = Option(msg))).runNow()
+          }
         }
       //Callback.log(s"$login $password $photo")  >> CallbackTo { scope.modState(s =>s.copy(login=Option(login))).runNow() }
     }
@@ -95,7 +95,7 @@ object SignUp {
       }.build
 
     def render(state: SignUpSession, back: AppSessionBackend,
-      oauthProviders: Map[String, String], session: UiSession): ReactElement = {
+               oauthProviders: Map[String, String], session: UiSession): ReactElement = {
       state match {
         case SignUpSession(None, None) =>
           <.div(SignUpFormArea())
@@ -131,19 +131,18 @@ object SignUp {
   //https://192.168.0.62:9443/signup
   def apply() = {
     val content = dom.document.getElementById("content")
-
     val signUpComp = ReactComponentB[Unit]("SignUpComponent2")
       .initialState(SignUpSession())
       .backend(new SignUpBackend(_))
       .renderPS { (scope, props, state) =>
         scope.backend.render2(state)
       }.build
-
+    //import chandu0101.scalajs.react.components.Implicits._
     ReactDOM.render(signUpComp(), content)
   }
 
   @JSExport
-  def main(selector: String) = {
+  def main() = {
     apply()
   }
 }

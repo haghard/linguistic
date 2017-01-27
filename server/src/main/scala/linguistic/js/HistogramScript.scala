@@ -1,25 +1,25 @@
-package linguistic.api
+package linguistic.js
 
 import scalatags.Text.all._
 
-object SignUpScript {
+object HistogramScript {
 
-  def apply() = {
+  def apply(where: String) = {
     html(
       head(
         link(rel := "stylesheet", href := "/assets/lib/bootstrap/css/bootstrap.css"),
-        link(rel := "stylesheet", href := "/assets/lib/bootstrap/css/main.css")
+        link(rel := "stylesheet", href := "/assets/lib/bootstrap/css/nv.d3.css")
       ),
       body(
-        script(`type` := "text/javascript", src := "/assets/lib/jquery/jquery.js"),
+        script(`type` := "text/javascript", src := "/assets/lib/bootstrap/js/nv.d3.js"),
         script(`type` := "text/javascript", src := "/assets/lib/bootstrap/js/bootstrap.js"),
 
         script(`type` := "text/javascript", src := "/assets/ui-jsdeps.min.js"),
         script(`type` := "text/javascript", src := "/assets/ui-opt.js"),
         script(`type` := "text/javascript", src := "/assets/ui-launcher.js"),
 
-        div(id := "content", "A web form should be displayed here"),
-        script("linguistic.SignUp().main()")
+        div(id := where, cls := "center"),
+        script(s"linguistic.d3.Histogram().main('#${where}')")
       )
     )
   }

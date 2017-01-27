@@ -1,8 +1,8 @@
-package linguistic.api
+package linguistic.js
 
 import scalatags.Text.all._
 
-object BarGraphComponent {
+object BarGraphScript {
 
   def apply(where: String) = {
     html(

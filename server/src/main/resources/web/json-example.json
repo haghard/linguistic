@@ -1,0 +1,51 @@
+{
+  "name": "Animal",
+  "children": [
+    {
+      "name": "Vertebrates",
+      "parent": "Animal",
+      "children": [
+        {
+          "name": "Mammals",
+          "children": [
+            {
+              "name": "Canine",
+              "parent": "Mammals"
+            },
+            {
+              "name": "Primate" ,
+              "parent": "Mammals"
+            }
+          ]
+        },
+        {
+          "name": "Birds",
+          "children": [
+            {
+              "name": "BirdsA",
+              "parent": "Birds"
+            },
+            {
+              "name": "BirdsB" ,
+              "parent": "Birds"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Invertebrates",
+      "parent": "Animal",
+      "children": [
+        {
+          "parent" :"Invertebrates",
+          "name": "Jellyfish"
+        },
+        {
+          "parent" :"Invertebrates",
+          "name": "Worms"
+        }
+      ]
+    }
+  ]
+}

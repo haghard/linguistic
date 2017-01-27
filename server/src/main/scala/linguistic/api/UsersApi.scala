@@ -9,9 +9,8 @@ import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import com.softwaremill.session.SessionDirectives._
 import com.softwaremill.session.SessionOptions._
 import linguistic.dao.UsersRepo
-import linguistic.{ServerSession, AuthTokenSupport}
+import linguistic.{AuthTokenSupport, ServerSession}
 import shared.protocol.SignInResponse
-import upickle.default._
 
 //val photo = "https://avatars.githubusercontent.com/u/1887034?v=3"
 class UsersApi(users: UsersRepo)(implicit val system: ActorSystem) extends BaseApi with AuthTokenSupport {
@@ -20,6 +19,8 @@ class UsersApi(users: UsersRepo)(implicit val system: ActorSystem) extends BaseA
   private def respondWithUserError(error: String) = {
     complete(HttpResponse(InternalServerError, entity = s"""{ "error": "${error}" }"""))
   }
+
+  //UserServerApi(users, system)
 
   val route = extractMaterializer { implicit mat =>
     extractExecutionContext { implicit ec =>
@@ -44,7 +45,7 @@ class UsersApi(users: UsersRepo)(implicit val system: ActorSystem) extends BaseA
                       case Right(false) => respondWithUserError(s"Login ${login} isn't unique")
                       case Left(errorMsg) => respondWithUserError(errorMsg)
                     }
-                  } else respondWithUserError("Expected login, password and photo")
+                  } else respondWithUserError("Invalid credentials. Expected login, password and photo")
                 }
               }
             }
@@ -56,9 +57,10 @@ class UsersApi(users: UsersRepo)(implicit val system: ActorSystem) extends BaseA
                   val loginPassword = decoded.split(shared.Routes.Separator)
                   if (loginPassword.length == 2) {
                     log.info(s"sign-in request from: $host login: ${loginPassword(0)} ")
-                    onSuccess(users.signIn(loginPassword(0), loginPassword(1))) {
+                    onSuccess(users.signIn(loginPassword(0), loginPassword(1), system.log)) {
                       case Right(response) =>
                         setSession(oneOff, usingHeaders, ServerSession(response.login)) {
+                          import upickle.default._
                           complete(write[SignInResponse](response))
                         }
                       case Left(loginError) => respondWithUserError(loginError)
@@ -73,3 +75,17 @@ class UsersApi(users: UsersRepo)(implicit val system: ActorSystem) extends BaseA
     }
   }
 }
+
+/*
+complete {
+  log.info(s"signin request from: $host header: $credentials")
+  AutowireServer.route[UsersApi2](UserServerApi)(
+    autowire.Core.Request(
+      path = Seq("shared","UsersApi2","signin"),
+      args = Map("headerName" -> upickle.Js.Str(shared.Headers.SignInHeader), "headerValue" -> upickle.Js.Str(credentials))
+    )
+  ).map { resp =>
+    system.log.debug("signin response: ", resp)
+    upickle.json.write(resp)
+  }(ec)
+}*/

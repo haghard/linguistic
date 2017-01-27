@@ -4,6 +4,7 @@ import java.net.InetSocketAddress
 import java.time.Instant
 
 import akka.actor.ActorSystem
+import akka.event.LoggingAdapter
 import com.datastax.driver.core._
 import com.datastax.driver.core.exceptions.WriteTimeoutException
 import org.mindrot.jbcrypt.BCrypt
@@ -50,21 +51,21 @@ class UsersRepo()(implicit system: ActorSystem, ex: ExecutionContext) {
   selectStmt.setConsistencyLevel(ConsistencyLevel.SERIAL)
   selectStmt.enableTracing
 
-  def signIn(login: String, password: String): Future[Either[String, SignInResponse]] = {
+  def signIn(login: String, password: String, log: LoggingAdapter)(implicit ex:ExecutionContext): Future[Either[String, SignInResponse]] = {
     session.executeAsync(selectStmt.bind(login)).asScala.map { r =>
       val queryTrace = r.getExecutionInfo.getQueryTrace
-      println("Trace id: %s\n", queryTrace.getTraceId)
+      log.info("Trace id: {}", queryTrace.getTraceId)
 
       val row = r.one
-      if (row eq null) Left("Couldn't find user " + login)
+      if (row eq null) Left(s"Couldn't find user $login")
       else if (BCrypt.checkpw(password, row.getString("password"))) {
         Right(SignInResponse(row.getString("login"), row.getString("photo")))
       }
       else Left("Something went wrong. Password mismatches")
-    }.recover { case ex: Exception => Left("Db access error: " + ex.getMessage) }
+    }
   }
 
-  def signUp(login: String, password: String, photo: String): Future[Either[String, Boolean]] = {
+  def signUp(login: String, password: String, photo: String)(implicit ex:ExecutionContext): Future[Either[String, Boolean]] = {
     val createdAt = Instant.now()
     session.executeAsync(insertStmt.bind(login, BCrypt.hashpw(password, BCrypt.gensalt), photo, createdAt)).asScala
       .map(r => Right(r.wasApplied))

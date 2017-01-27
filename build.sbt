@@ -7,9 +7,10 @@ val scalaV = "2.11.8"
 val akkaVersion = "2.4.16"
 val version = "0.1"
 
+name := "linguistic"
+
 resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/"
 
-name := "linguistic"
 
 //val appStage = settingKey[String]("stage")
 //appStage := sys.props.getOrElse("stage", "development")
@@ -19,7 +20,8 @@ updateOptions in Global := updateOptions.in(Global).value.withCachedResolution(t
 lazy val server = (project in file("server")).settings(
   resolvers ++= Seq(
     "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/",
-    "isarn project" at "https://dl.bintray.com/isarn/maven/"),
+    "isarn project" at "https://dl.bintray.com/isarn/maven/"
+  ),
 
   scalacOptions in(Compile, console) := Seq("-feature", "-Xfatal-warnings", "-deprecation", "-unchecked"),
   scalaVersion := scalaV,
@@ -53,12 +55,13 @@ lazy val server = (project in file("server")).settings(
     "org.scalatest"    %% "scalatest"       % "3.0.1" % "test"
   ) ++ Seq(
     "com.softwaremill.akka-http-session" %% "core" % "0.3.0",
-    //).exclude("com.typesafe.akka", "akka-http")
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
     "com.typesafe.akka" %% "akka-persistence-cassandra" % "0.22",
-    "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion
+    "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion,
+    "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
+    "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion
   ),
 
   //javaOptions in runMain += "-DENV=prod",
@@ -179,10 +182,28 @@ lazy val server = (project in file("server")).settings(
 //for debugging
 def cpCss() = (baseDirectory) map { dir =>
   def execute() = {
-    Process(s"cp ${dir}/src/main/twirl/linguistic/main.css ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/css/").!
-    Process(s"cp ${dir}/src/main/resources/chat.css ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/css/").!
+    IO.copyFile(dir / "src" / "main" / "twirl" / "linguistic"/ "main.css",
+      dir / "target" /"web"/"web-modules"/"main"/"webjars"/"lib"/"bootstrap"/"css"/"main.css")
+
+    IO.copyFile(dir /"src"/"main"/"resources"/"chat.css",
+      dir/"target"/"web"/"web-modules"/"main"/"webjars"/"lib"/"bootstrap"/"css"/"chat.css")
+
+    Process(s"cp ${dir}/src/main/resources/graph/graph.css ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/css/").!
+    Process(s"cp ${dir}/src/main/resources/graph/graph.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
+
     Process(s"cp ${dir}/src/main/resources/nv.d3.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
+    //Process(s"cp ${dir}/src/main/resources/d3.min.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
+    Process(s"cp ${dir}/src/main/resources/d3.v3.min.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
+    Process(s"cp ${dir}/src/main/resources/colorbrewer.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
+    Process(s"cp ${dir}/src/main/resources/d3.v4.min.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
+
+
+    Process(s"cp ${dir}/src/main/resources/wordtree/raphael.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
+    Process(s"cp ${dir}/src/main/resources/wordtree/word-tree-layout.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
+    Process(s"cp ${dir}/src/main/resources/wordtree/wordtree.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
+
     Process(s"cp ${dir}/src/main/twirl/linguistic/nv.d3.css ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/css/").!
+    Process(s"cp ${dir}/src/main/resources/tree.css ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/css/").!
   }
 
   println("Coping resources ...")
@@ -194,17 +215,24 @@ def haltOnCmdResultError(result: Int) {
 }
 
 lazy val ui = (project in file("ui")).settings(
+
+  resolvers += "Sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
   scalaVersion := scalaV,
   persistLauncher := true,
   persistLauncher in Test := false,
+
   libraryDependencies ++= Seq(
     "org.singlespaced" %%% "scalajs-d3" % "0.3.3", //the version for scala 2.12 is 0.3.4
     "com.github.japgolly.scalajs-react" %%% "core"    % "0.11.3",
-    "com.github.japgolly.scalajs-react" %%% "extra"   % "0.11.3"
+    "com.github.japgolly.scalajs-react" %%% "extra"   % "0.11.3",
+    "com.github.yoeluk"                 %%% "raphael-scala-js" % "0.2-SNAPSHOT"
+    //"com.github.chandu0101.scalajs-react-components" %%%  "core"      % "0.5.0",
+    //"com.github.chandu0101.scalajs-react-components" %%%  "macros"    % "0.5.0"
+    //"com.github.japgolly.scalacss"                   %%%  "ext-react" % "0.5.1"
   ),
 
   jsDependencies ++= Seq(
-    //"org.webjars" % "jquery" % "2.1.3" / "2.1.3/jquery.js",
+    "org.webjars" % "jquery" % "2.1.3" / "2.1.3/jquery.js",
     "org.webjars.bower" % "react" % "15.3.2"
         /        "react-with-addons.js"
         minified "react-with-addons.min.js"
@@ -228,7 +256,8 @@ lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared")).
   settings(
     scalaVersion := scalaV,
     libraryDependencies ++= Seq(
-      "com.lihaoyi"  %%% "upickle" % "0.4.3"
+      "com.lihaoyi" %%% "upickle" % "0.4.3"
+      //"com.lihaoyi" %%% "autowire" % "0.2.6"
       //"org.scala-js" %%% "scalajs-dom"    % "0.9.1"
     )
   ).jsConfigure(_ enablePlugins ScalaJSWeb)

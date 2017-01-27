@@ -1,0 +1,26 @@
+#header {
+    background: #f5f5f5;
+    padding: 10px 0 5px;
+    border-bottom: solid #ddd 1px;
+    height: 40px;
+}
+
+.wrapper {
+    width: 800px;
+    margin: 0 auto;
+    text-align: justify;
+}
+
+#logo {
+    margin: 0;
+    font-size: 2em;
+    line-height: 25px;
+    float: left;
+    margin-right: 1em;
+    padding: 0;
+}
+
+form {
+    display: block;
+    margin-top: 0em;
+}

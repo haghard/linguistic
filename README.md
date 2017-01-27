@@ -148,3 +148,11 @@ Run docker container
   if you want pass SECRET 
   
   `docker run --net=host -it -p 2551:2551 -e HOSTNAME=192.168.0.146 -e PORT=2551 -e JMX_PORT=1089 -e SERVER_SECRET=... haghard/linguistic:0.1`
+
+
+http://www.jasondavies.com/wordtree/
+http://chandu0101.github.io/sjrc/
+https://www.jasondavies.com/wordtree/
+https://github.com/d3/d3/wiki/Gallery
+http://bl.ocks.org/mbostock/4063550
+https://ochrons.github.io/scalajs-spa-tutorial/en/routing.html
