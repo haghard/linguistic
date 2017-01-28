@@ -111,8 +111,9 @@ lazy val server = (project in file("server")).settings(
 
   dockerfile in docker := {
     //development | production
-    val appEnv = sys.props.getOrElse("env", "production")
-    //Option(System.getenv("env")).getOrElse("production")
+    val appEnv = Option(System.getenv("env")).getOrElse("production")
+    //sys.props.getOrElse("env", "production")
+    println(s"******* App Env:$appEnv *******")
 
     //val appConfig = "/app/conf"
     val baseDir = baseDirectory.value
