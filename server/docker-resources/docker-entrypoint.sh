@@ -19,7 +19,8 @@ APP_OPTS="-d64 \
           -Dakka.remote.netty.tcp.port=${AKKA_PORT} \
           -Dakka.http.port=${HTTP_PORT} \
           -Djava.rmi.server.hostname=${HOSTNAME} \
-          -DENV="${ENV}
+          -DENV=${ENV} \
+          -DCONFIG="${CONFIG}
 
 #production, development
 
