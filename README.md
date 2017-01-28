@@ -29,10 +29,10 @@ The first step is to create a certificate authority that will sign the linguisti
 
     keytool -genkeypair -v \
        -alias linguistic.com \
-       -dname "CN=linguistic.com, O=Chatter Company, L=Spb, ST=Spb, C=RU" \
+       -dname "CN=linguistic.com, O=Linguistic Company, L=Spb, ST=Spb, C=RU" \
        -keystore server/src/main/resources/linguistic.jks  \
-       -keypass avmiejtq  \
-       -storepass akdfopjb \
+       -keypass ...  \
+       -storepass ... \
        -keyalg RSA \
        -keysize 4096 \
        -ext KeyUsage:critical="keyCertSign" \
@@ -46,8 +46,8 @@ Export the linguistic public certificate as linguistic.crt so that it can be use
 	keytool -export -v \
 	  -alias linguistic.com \
 	  -file linguistic.crt \
-	  -keypass avmiejtq \
-	  -storepass akdfopjb \
+	  -keypass ... \
+	  -storepass ... \
 	  -keystore server/src/main/resources/linguistic.jks \
 	  -rfc
 
