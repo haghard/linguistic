@@ -32,11 +32,6 @@ object Application extends App with AppSupport {
   val hostName = System.getProperty("HOSTNAME")
   val confPath = System.getProperty("CONFIG")
 
-  println(tcpPort)
-  println(httpPort)
-  println(hostName)
-  println(confPath)
-
   val httpConf =
     s"""
        |akka.remote.netty.tcp.port=%port%
