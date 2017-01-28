@@ -18,7 +18,7 @@ APP_OPTS="-d64 \
           -Dcom.sun.management.jmxremote=true \
           -Dakka.remote.netty.tcp.port=${AKKA_PORT} \
           -Dakka.http.port=${HTTP_PORT} \
-          -Djava.rmi.server.hostname=${HOSTHAME} \
+          -Djava.rmi.server.hostname=${HOSTNAME} \
           -DENV="${ENV}
 
 #production, development
