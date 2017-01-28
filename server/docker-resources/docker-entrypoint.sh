@@ -20,6 +20,7 @@ APP_OPTS="-d64 \
           -Dakka.http.port=${HTTP_PORT} \
           -Djava.rmi.server.hostname=${HOSTNAME} \
           -DENV=${ENV} \
+          -DHOSTNAME=${HOSTNAME} \
           -DCONFIG="${CONFIG}
 
 #production, development
