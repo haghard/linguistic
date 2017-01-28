@@ -9,6 +9,17 @@ import com.typesafe.config.{Config, ConfigFactory}
 
 import scala.collection._
 
+/*
+
+java -d64 -server
+-XX:MaxGCPauseMillis=400 -XX:+UseStringDeduplication -Xmx1024m -XX:+UseG1GC -XX:ConcGCThreads=4
+-XX:ParallelGCThreads=4 -Dcom.sun.management.jmxremote.port=1089 -Dcom.sun.management.jmxremote.ssl=false
+-Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.rmi.port=1089 -Dcom.sun.management.jmxremote=true
+-Dakka.remote.netty.tcp.port=2551 -Dakka.http.port=9443 -Djava.rmi.server.hostname= -DENV=production
+-cp /app/conf -jar /app/linguistic-0.1.jar
+
+*/
+
 object Application extends App with AppSupport {
   //-Duser.timezone=UTC
   //TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
@@ -20,6 +31,11 @@ object Application extends App with AppSupport {
   val httpPort = System.getProperty("akka.http.port")
   val hostName = System.getProperty("HOSTNAME")
   val confPath = System.getProperty("CONFIG")
+
+  println(tcpPort)
+  println(httpPort)
+  println(hostName)
+  println(confPath)
 
   val httpConf =
     s"""
