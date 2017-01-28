@@ -6,36 +6,22 @@
 $ sbt
 > ~re-start
 
-Cluster info
-===
-  http GET 192.168.0.62:9000/cluster/wordslist/shards  
-  http --verify=no https://192.168.0.62:9443/cluster/wordslist/shards
-  
-  http GET 192.168.0.62:9000/cluster/wordslist/shards2
-  http --verify=no https://192.168.0.62:9443/cluster/wordslist/shards2
-  
-  http GET 192.168.0.62:9000/cluster/wordslist/regions
-  http --verify=no https://192.168.0.62:9443/cluster/wordslist/regions
-  
-  http GET 192.168.0.62:9000/cluster/homophones/shards
-  http --verify=no https://192.168.0.62:9443/cluster/homophones/shards
-  
-  http GET 192.168.0.62:9000/cluster/homophones/shards2
-  http --verify=no https://192.168.0.62:9443/cluster/homophones/shards2
-  
-  http GET 192.168.0.62:9000/cluster/homophones/regions
-  http --verify=no https://192.168.0.62:9443/cluster/homophones/regions
-  
-  http --verify=no https://192.168.0.62:9443/cluster/stop
-Links
-====
-    https://github.com/softwaremill/akka-http-session
-    http://www.cakesolutions.net/teamblogs/composing-microservices-with-docker-part1
-    http://www.cakesolutions.net/teamblogs/composing-microservices-with-docker-part2
-    https://www.javacodegeeks.com/2016/11/developing-modern-applications-scala-web-apis-akka-http.html
-    https://medium.com/@ianjuma/deploying-scala-on-docker-e8d98aa39bcf#.oonxy2zi8
-    https://www.digitalocean.com/community/tutorials/how-to-provision-and-manage-remote-docker-hosts-with-docker-machine-on-ubuntu-16-04
 
+Cluster info routes
+===    
+  http --verify=no https://192.168.0.62:9443/cluster/wordslist/shards
+      
+  http --verify=no https://192.168.0.62:9443/cluster/wordslist/shards2
+    
+  http --verify=no https://192.168.0.62:9443/cluster/wordslist/regions
+    
+  http --verify=no https://192.168.0.62:9443/cluster/homophones/shards
+    
+  http --verify=no https://192.168.0.62:9443/cluster/homophones/shards2
+    
+  http --verify=no https://192.168.0.62:9443/cluster/homophones/regions
+
+  
 Generating self-signed certificates
 
 The first step is to create a certificate authority that will sign the linguistic.com certificate. The root CA certificate has a couple of additional attributes (ca:true, keyCertSign) that mark it explicitly as a CA certificate, and will be kept in a trust store.
@@ -81,10 +67,6 @@ Time zone options
   TZ="UTC+5" - America/New_York 
   TZ="UTC-3" - Europe/Moscow
   TZ="UTC+8" - Los-Angeles
-
-#### Env ###
-  You can run this server using either prod or dev env. If there is production.conf in resources it will be attached during docker build, otherwise application.conf will be used 
-  
     
 #### Clean docker images ####  
   
@@ -104,7 +86,23 @@ RadixTree
 
   https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Patricia_trie.svg/400px-Patricia_trie.svg.png
   https://en.wikipedia.org/wiki/Radix_tree
+
   
+Useful Links
+====
+    https://github.com/softwaremill/akka-http-session
+    http://www.cakesolutions.net/teamblogs/composing-microservices-with-docker-part1
+    http://www.cakesolutions.net/teamblogs/composing-microservices-with-docker-part2
+    https://www.javacodegeeks.com/2016/11/developing-modern-applications-scala-web-apis-akka-http.html
+    https://medium.com/@ianjuma/deploying-scala-on-docker-e8d98aa39bcf#.oonxy2zi8
+    https://www.digitalocean.com/community/tutorials/how-to-provision-and-manage-remote-docker-hosts-with-docker-machine-on-ubuntu-16-04
+    http://www.jasondavies.com/wordtree/
+    http://chandu0101.github.io/sjrc/
+    https://www.jasondavies.com/wordtree/
+    https://github.com/d3/d3/wiki/Gallery
+    http://bl.ocks.org/mbostock/4063550
+    https://ochrons.github.io/scalajs-spa-tutorial/en/routing.html
+
 WebUi
 ===
   
@@ -123,7 +121,6 @@ Scalajs-react
   
   https://japgolly.github.io/scalajs-react/#examples/websockets
   https://japgolly.github.io/scalajs-react/#examples/product-table
-
  
 ScalaJs
 ===
@@ -135,24 +132,21 @@ ScalaJs
 
 SSL
 ===
-    http://typesafehub.github.io/ssl-config/CertificateGeneration.html
+    http://typesafehub.github.io/ssl-config/CertificateGeneration.html        
 
+
+
+To build Docker images
+===
+    Docker image for development
+        `sbt -Denv=development docker`
+        
+    Docker image for production
+        `sbt docker`
 
 Run docker container
 
-  To run with `--net=host` is necessary because you are passing env val   
-
+  To run it with `--net=host` is necessary because you are passing env val   
   
   `docker run --net=host -it -p 2551:2551 -e HOSTNAME=192.168.0.146 -e AKKA_PORT=2551 -e HTTP_PORT=9443 -e JMX_PORT=1089 -e TZ="Europe/Moscow" haghard/linguistic:0.1`
-
-  if you want pass SECRET 
   
-  `docker run --net=host -it -p 2551:2551 -e HOSTNAME=192.168.0.146 -e PORT=2551 -e JMX_PORT=1089 -e SERVER_SECRET=... haghard/linguistic:0.1`
-
-
-http://www.jasondavies.com/wordtree/
-http://chandu0101.github.io/sjrc/
-https://www.jasondavies.com/wordtree/
-https://github.com/d3/d3/wiki/Gallery
-http://bl.ocks.org/mbostock/4063550
-https://ochrons.github.io/scalajs-spa-tutorial/en/routing.html
