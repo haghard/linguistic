@@ -6,28 +6,21 @@
 $ sbt
 > ~re-start
 
-
-Cluster info routes
-===    
-  http --verify=no https://192.168.0.62:9443/cluster/wordslist/shards
-      
-  http --verify=no https://192.168.0.62:9443/cluster/wordslist/shards2
+Cluster info routes 
+    http --verify=no https://192.168.0.62:9443/cluster/wordslist/shards      
+    http --verify=no https://192.168.0.62:9443/cluster/wordslist/shards2    
+    http --verify=no https://192.168.0.62:9443/cluster/wordslist/regions    
     
-  http --verify=no https://192.168.0.62:9443/cluster/wordslist/regions
-    
-  http --verify=no https://192.168.0.62:9443/cluster/homophones/shards
-    
-  http --verify=no https://192.168.0.62:9443/cluster/homophones/shards2
-    
-  http --verify=no https://192.168.0.62:9443/cluster/homophones/regions
+    http --verify=no https://192.168.0.62:9443/cluster/homophones/shards    
+    http --verify=no https://192.168.0.62:9443/cluster/homophones/shards2    
+    http --verify=no https://192.168.0.62:9443/cluster/homophones/regions
 
   
 Generating self-signed certificates
 
 The first step is to create a certificate authority that will sign the linguistic.com certificate. The root CA certificate has a couple of additional attributes (ca:true, keyCertSign) that mark it explicitly as a CA certificate, and will be kept in a trust store.
-====
 
-    keytool -genkeypair -v \
+    `keytool -genkeypair -v \
        -alias linguistic.com \
        -dname "CN=linguistic.com, O=Linguistic Company, L=Spb, ST=Spb, C=RU" \
        -keystore server/src/main/resources/linguistic.jks  \
@@ -37,19 +30,18 @@ The first step is to create a certificate authority that will sign the linguisti
        -keysize 4096 \
        -ext KeyUsage:critical="keyCertSign" \
        -ext BasicConstraints:critical="ca:true" \
-       -validity 365
+       -validity 365`
 
 
 Export the linguistic public certificate as linguistic.crt so that it can be used in trust stores.
-====
 
-	keytool -export -v \
+	`keytool -export -v \
 	  -alias linguistic.com \
 	  -file linguistic.crt \
 	  -keypass ... \
 	  -storepass ... \
 	  -keystore server/src/main/resources/linguistic.jks \
-	  -rfc
+	  -rfc`
 
 Checking the status of ssh :
 
@@ -82,14 +74,12 @@ Delete all stopped containers `docker rm $( docker ps -q -f status=exited)`
   http://typesafehub.github.io/ssl-config/CertificateGeneration.html
   
 RadixTree
-===
 
   https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Patricia_trie.svg/400px-Patricia_trie.svg.png
   https://en.wikipedia.org/wiki/Radix_tree
-
   
 Useful Links
-====
+
     https://github.com/softwaremill/akka-http-session
     http://www.cakesolutions.net/teamblogs/composing-microservices-with-docker-part1
     http://www.cakesolutions.net/teamblogs/composing-microservices-with-docker-part2
@@ -104,26 +94,23 @@ Useful Links
     https://ochrons.github.io/scalajs-spa-tutorial/en/routing.html
 
 WebUi
-===
   
   https://getbootstrap.com/components/#navbar
   http://foat.me/articles/reactive-fun-with-scala-js/
   http://www.baeldung.com/geolocation-by-ip-with-maxmind
 
 Graph
-===
 
   https://github.com/nvd3-community/nvd3/tree/gh-pages
   https://github.com/nvd3-community/nvd3/blob/gh-pages/examples/forceDirected.html
 
 Scalajs-react
-===
   
   https://japgolly.github.io/scalajs-react/#examples/websockets
   https://japgolly.github.io/scalajs-react/#examples/product-table
  
 ScalaJs
-===
+
     http://www.scala-js.org/tutorial/basic/
     http://www.scala-js.org/tutorial/basic/
     https://github.com/japgolly/scalajs-react/blob/master/doc/USAGE.md
@@ -131,13 +118,11 @@ ScalaJs
     https://japgolly.github.io/scalajs-react/#examples/todo        
 
 SSL
-===
+
     http://typesafehub.github.io/ssl-config/CertificateGeneration.html        
 
-
-
 To build Docker images
-===
+
     Docker image for development
         `sbt -Denv=development docker`
         
