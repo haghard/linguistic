@@ -66,7 +66,7 @@ object ReactJs {
     val signInComponent = ReactComponentB[Map[String, String]]("ReactJsAppComponent")
       .initialState(UiSession(user = None, token = None))
       .backend(new AppSessionBackend(_))
-      .renderPS { (scope, props, state) =>
+        .renderPS { (scope, props, state) =>
         scope.backend.render(state, props, scope.backend)
       }.build
 

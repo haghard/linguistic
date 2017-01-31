@@ -4,7 +4,7 @@ import linguistic.Application._
 import linguistic.dao.UsersRepo
 import akka.cluster.sharding.ClusterSharding
 import akka.stream.ActorMaterializerSettings
-import akka.actor.{Actor, ActorLogging, ActorSystem, Status}
+import akka.actor.{Actor, ActorLogging, Props, Status}
 import linguistic.utils.ShutdownCoordinator
 import ShutdownCoordinator.NodeShutdownOpts
 import linguistic.ps.{HomophonesSubTreeShardEntity, WordShardEntity}
@@ -12,6 +12,9 @@ import linguistic.ps.{HomophonesSubTreeShardEntity, WordShardEntity}
 object HttpServer {
   val HttpDispatcher = "akka.http.dispatcher"
   object Stop
+
+  def props(port: Int, address: String, keypass: String, storepass: String) =
+    Props(new HttpServer(port, address, keypass, storepass)).withDispatcher(HttpDispatcher)
 }
 
 class HttpServer(port: Int, address: String, keypass: String, storepass: String) extends Actor with ActorLogging
@@ -25,10 +28,8 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
   implicit val system = context.system
   implicit val ex = system.dispatchers.lookup(HttpDispatcher)
   implicit val mat = akka.stream.ActorMaterializer(
-    ActorMaterializerSettings.create(coreSystem).withDispatcher(HttpDispatcher)
-  )(system)
-
-  //context.system.actorOf(ClusterListener.props, "listener")
+    ActorMaterializerSettings.create(coreSystem)
+      .withDispatcher(HttpDispatcher))(system)
 
   startRegions(system, mat)
 
@@ -66,8 +67,6 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
   def bound(b: akka.http.scaladsl.Http.ServerBinding): Receive = {
     case HttpServer.Stop =>
       log.info("Unbound {}:{}", address, port)
-      b.unbind().onComplete { _ =>
-        mat.shutdown()
-      }
+      b.unbind().onComplete { _ =>  mat.shutdown }
   }
 }

@@ -134,4 +134,9 @@ Run docker container
   To run it with `--net=host` is necessary because you are passing env val   
   
   `docker run --net=host -it -p 2551:2551 -e HOSTNAME=192.168.0.146 -e AKKA_PORT=2551 -e HTTP_PORT=9443 -e JMX_PORT=1089 -e TZ="Europe/Moscow" haghard/linguistic:0.1`
+
   
+Etcd
+
+  curl http://192.168.0.146:2379/v2/keys/constructr/linguistics/nodes
+  curl http://192.168.0.203:2379/v2/keys/constructr/linguistics/nodes

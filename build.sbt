@@ -11,7 +11,6 @@ name := "linguistic"
 
 resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/"
 
-
 //val appStage = settingKey[String]("stage")
 //appStage := sys.props.getOrElse("stage", "development")
 
@@ -20,7 +19,8 @@ updateOptions in Global := updateOptions.in(Global).value.withCachedResolution(t
 lazy val server = (project in file("server")).settings(
   resolvers ++= Seq(
     "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/",
-    "isarn project" at "https://dl.bintray.com/isarn/maven/"
+    "isarn project" at "https://dl.bintray.com/isarn/maven/",
+    Resolver.bintrayRepo("hseeberger", "maven")
   ),
 
   scalacOptions in(Compile, console) := Seq("-feature", "-Xfatal-warnings", "-deprecation", "-unchecked"),
@@ -35,6 +35,7 @@ lazy val server = (project in file("server")).settings(
   //javaOptions in runMain := Seq("ENV=development", "CONFIG=./server/conf"),
 
   fork in runMain := true,
+  javaOptions in run ++= Seq("-Xms128m", "-Xmx1024m"),
 
   libraryDependencies ++= Seq(
     "net.ceedubs"     %%  "ficus"           % "1.1.2",
@@ -62,6 +63,9 @@ lazy val server = (project in file("server")).settings(
     "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion
+  ) ++ Seq(
+    "de.heikoseeberger" %%  "constructr"                   %  "0.15.0",
+    "de.heikoseeberger" %%  "constructr-coordination-etcd" %  "0.16.1"
   ),
 
   //javaOptions in runMain += "-DENV=prod",
