@@ -20,7 +20,9 @@ addCommandAlias(
   "-DDISCOVERY=78.155.207.122 " +
   "-Dcassandra.hosts=78.155.207.122,78.155.218.24 " +
   "-Dcassandra-journal.contact-points.0=78.155.207.122 " +
-  "-Dcassandra-journal.contact-points.1=78.155.218.24 "
+  "-Dcassandra-journal.contact-points.1=78.155.218.24 " +
+  "-Dcassandra-snapshot-store.0=78.155.207.122 " +
+  "-Dcassandra-snapshot-store.1=78.155.218.24 "
 )
 
 addCommandAlias(
@@ -35,7 +37,9 @@ addCommandAlias(
   "-DDISC_HOST=78.155.207.122 " +
   "-Dcassandra.hosts=78.155.207.122,78.155.218.24 " +
   "-Dcassandra-journal.contact-points.0=78.155.207.122 " +
-  "-Dcassandra-journal.contact-points.1=78.155.218.24 "
+  "-Dcassandra-journal.contact-points.1=78.155.218.24 " +
+  "-Dcassandra-snapshot-store.0=78.155.207.122 " +
+  "-Dcassandra-snapshot-store.1=78.155.218.24 "
 )
 
 
@@ -51,6 +55,8 @@ addCommandAlias(
   "-Dcassandra.hosts=78.155.207.122,78.155.218.24 " +
   "-Dcassandra-journal.0=78.155.207.122 " +
   "-Dcassandra-journal.1=78.155.218.24 " +
-  "-Dakka.cluster.seed-nodes.0=akka.tcp://linguistics@78.155.207.122:2551 " +
-  "-Dakka.cluster.seed-nodes.1=akka.tcp://linguistics@78.155.218.24:2552 "
+  "-Dcassandra-snapshot-store.0=78.155.207.122 " +
+  "-Dcassandra-snapshot-store.1=78.155.218.24 " +
+  "-Dakka.cluster.seed-nodes.0=akka.tcp://linguistics@78.155.217.68:2551 " +
+  "-Dakka.cluster.seed-nodes.1=akka.tcp://linguistics@78.155.217.68:2552 "
 )
