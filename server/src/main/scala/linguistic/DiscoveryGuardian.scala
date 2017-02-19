@@ -8,7 +8,8 @@ import akka.actor.{Actor, ActorLogging, Props, SupervisorStrategy}
 
 object DiscoveryGuardian {
   def props(env: String, httpPort: Int, hostName: String) =
-    Props(new DiscoveryGuardian(env, httpPort, hostName)).withDispatcher(HttpServer.HttpDispatcher)
+    Props(new DiscoveryGuardian(env, httpPort, hostName))
+      .withDispatcher(HttpServer.HttpDispatcher)
 }
 
 class DiscoveryGuardian(env: String, httpPort: Int, hostName: String) extends Actor with ActorLogging {
@@ -23,11 +24,8 @@ class DiscoveryGuardian(env: String, httpPort: Int, hostName: String) extends Ac
 
   override def receive: Receive = {
     case 'Discovered =>
-      context.system.actorOf(
-        HttpServer.props(httpPort, hostName,
-          config.getString("akka.http.ssl.keypass"),
-          config.getString("akka.http.ssl.storepass")
-        ), "http-server")
+      context.system.actorOf(HttpServer.props(httpPort, hostName,
+          config.getString("akka.http.ssl.keypass"), config.getString("akka.http.ssl.storepass")), "http-server")
 
 
       val tz = TimeZone.getDefault.getID
@@ -37,7 +35,7 @@ class DiscoveryGuardian(env: String, httpPort: Int, hostName: String) extends Ac
         .append('\n')
         .append(s"★ ★ ★  Environment: ${env} TimeZone: $tz Started at ${LocalDateTime.now}  ★ ★ ★")
         .append('\n')
-        .append(s"★ ★ ★  ConstructR service-discovery: ${config.getString("constructr.coordination.class-name")} host: ${config.getString("constructr.coordination.host")}  ★ ★ ★")
+        .append(s"★ ★ ★  ConstructR service-discovery: ${config.getString("constructr.coordination.class-name")} on ${config.getString("constructr.coordination.host")}  ★ ★ ★")
         .append('\n')
         .append(s"★ ★ ★  Akka cluster: ${config.getInt("akka.remote.netty.tcp.port")}  ★ ★ ★")
         .append('\n')

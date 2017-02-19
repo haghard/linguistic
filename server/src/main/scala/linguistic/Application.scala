@@ -20,7 +20,7 @@ object Application extends App with AppSupport {
 
   val httpConf =
     s"""
-       |akka.extensions = [de.heikoseeberger.constructr.ConstructrExtension]
+       |
        |akka.remote.netty.tcp.port=%port%
        |akka.http.port=%httpP%
        |akka.remote.netty.tcp.hostname=%hostName%
@@ -37,6 +37,7 @@ object Application extends App with AppSupport {
 
   val constructrConf =
     s"""
+      |akka.extensions = [de.heikoseeberger.constructr.ConstructrExtension]
       |constructr {
       |  max-nr-of-seed-nodes = 5
       |  coordination {
