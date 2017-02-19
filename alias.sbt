@@ -17,7 +17,7 @@ addCommandAlias(
   "-Dakka.http.port=9443 " +
   "-DHOSTNAME=78.155.217.68 " +
   "-Dakka.cluster.roles.0=linguistic-engine " +
-  "-DDISC_HOST=78.155.207.122 " +
+  "-DDISCOVERY=78.155.207.122 " +
   "-Dcassandra.hosts=78.155.207.122,78.155.218.24 " +
   "-Dcassandra-journal.0=78.155.207.122 " +
   "-Dcassandra-journal.1=78.155.218.24 "
