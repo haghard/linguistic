@@ -16,9 +16,11 @@ object Application extends App with AppSupport {
   val httpPort = System.getProperty("akka.http.port")
   val hostName = System.getProperty("HOSTNAME")
   val confPath = System.getProperty("CONFIG")
+  val dischost = System.getProperty("DISCOVERY")
 
   val httpConf =
     s"""
+       |akka.extensions = [de.heikoseeberger.constructr.ConstructrExtension]
        |akka.remote.netty.tcp.port=%port%
        |akka.http.port=%httpP%
        |akka.remote.netty.tcp.hostname=%hostName%
@@ -32,6 +34,21 @@ object Application extends App with AppSupport {
        | }
        |
     """.stripMargin
+
+  val constructrConf =
+    s"""
+      |constructr {
+      |  max-nr-of-seed-nodes = 5
+      |  coordination {
+      |    host = ${dischost}
+      |    port = 2379
+      |    class-name = de.heikoseeberger.constructr.coordination.etcd.EtcdCoordination
+      |  }
+      |
+      |  join-timeout = 15 seconds
+      |}
+    """.stripMargin
+
 
   val effectedHttpConf = httpConf.replaceAll("%port%", tcpPort).replaceAll("%httpP%", httpPort)
     .replaceAll("%hostName%", hostName).replaceAll("%interface%", hostName)
@@ -47,6 +64,7 @@ object Application extends App with AppSupport {
 
   val config: Config =
     ConfigFactory.parseString(effectedHttpConf)
+      .withFallback(ConfigFactory.parseString(constructrConf))
       .withFallback(ConfigFactory.parseFile(configFile).resolve())
       .withFallback(ConfigFactory.load()) //for read seeds from env vars
 
