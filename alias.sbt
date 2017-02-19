@@ -16,7 +16,11 @@ addCommandAlias(
   "-Dakka.remote.netty.tcp.port=2551 " +
   "-Dakka.http.port=9443 " +
   "-DHOSTNAME=192.168.0.62 " +
-  "-Dakka.cluster.roles.0=linguistic-engine "
+  "-Dakka.cluster.roles.0=linguistic-engine " +
+  "-DDISC_HOST=78.155.207.122 " +
+  "-Dcassandra.hosts=78.155.207.122,78.155.218.24 " +
+  "-Dcassandra-journal.0=78.155.207.122 " +
+  "-Dcassandra-journal.1=78.155.218.24 "
 )
 
 addCommandAlias(
@@ -27,19 +31,13 @@ addCommandAlias(
   "-Dakka.remote.netty.tcp.port=2552 " +
   "-Dakka.http.port=9444 " +
   "-DHOSTNAME=192.168.0.62 " +
-  "-Dakka.cluster.roles.0=linguistic-engine "
+  "-Dakka.cluster.roles.0=linguistic-engine " +
+  "-DDISC_HOST=78.155.207.122 " +
+  "-Dcassandra.hosts=78.155.207.122,78.155.218.24 " +
+  "-Dcassandra-journal.0=78.155.207.122 " +
+  "-Dcassandra-journal.1=78.155.218.24 "
 )
 
-addCommandAlias(
-  "engine-2",
-  "runMain linguistic.Application " +
-  "-DENV=development " +
-  "-DCONFIG=./server/conf " +
-  "-Dakka.remote.netty.tcp.port=2553 " +
-  "-Dakka.http.port=9445 " +
-  "-DHOSTNAME=192.168.0.62 " +
-  "-Dakka.cluster.roles.0=linguistic-engine "
-)
 
 addCommandAlias(
   "engine-3",
@@ -50,6 +48,9 @@ addCommandAlias(
   "-Dakka.http.port=9446 " +
   "-DHOSTNAME=192.168.0.62 " +
   "-Dakka.cluster.roles.0=linguistic-engine " +
-  "-Dakka.cluster.seed-nodes.0=akka.tcp://linguistics@192.168.0.62:2551 " +
-  "-Dakka.cluster.seed-nodes.1=akka.tcp://linguistics@192.168.0.62:2552 "
+  "-Dcassandra.hosts=78.155.207.122,78.155.218.24 " +
+  "-Dcassandra-journal.0=78.155.207.122 " +
+  "-Dcassandra-journal.1=78.155.218.24 " +
+  "-Dakka.cluster.seed-nodes.0=akka.tcp://linguistics@78.155.207.122:2551 " +
+  "-Dakka.cluster.seed-nodes.1=akka.tcp://linguistics@78.155.218.24:2552 "
 )
