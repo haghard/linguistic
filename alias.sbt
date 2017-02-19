@@ -19,8 +19,8 @@ addCommandAlias(
   "-Dakka.cluster.roles.0=linguistic-engine " +
   "-DDISCOVERY=78.155.207.122 " +
   "-Dcassandra.hosts=78.155.207.122,78.155.218.24 " +
-  "-Dcassandra-journal.0=78.155.207.122 " +
-  "-Dcassandra-journal.1=78.155.218.24 "
+  "-Dcassandra-journal.contact-points.0=78.155.207.122 " +
+  "-Dcassandra-journal.contact-points.1=78.155.218.24 "
 )
 
 addCommandAlias(
@@ -34,8 +34,8 @@ addCommandAlias(
   "-Dakka.cluster.roles.0=linguistic-engine " +
   "-DDISC_HOST=78.155.207.122 " +
   "-Dcassandra.hosts=78.155.207.122,78.155.218.24 " +
-  "-Dcassandra-journal.0=78.155.207.122 " +
-  "-Dcassandra-journal.1=78.155.218.24 "
+  "-Dcassandra-journal.contact-points.0=78.155.207.122 " +
+  "-Dcassandra-journal.contact-points.1=78.155.218.24 "
 )
 
 
