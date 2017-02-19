@@ -3,7 +3,7 @@ import sbt._
 import com.typesafe.sbt.packager.docker.Dockerfile
 import sbtdocker.ImageName
 
-val scalaV = "2.12.1"
+val scalaV = "2.11.8"
 val akkaVersion = "2.4.17"
 val version = "0.1"
 
