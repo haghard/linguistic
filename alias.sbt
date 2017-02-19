@@ -1,13 +1,3 @@
-
-/*
-export ENV=development
-export CONFIG=./server/conf
-
-export ENV=production
-export CONFIG=./server/conf
-
-*/
-
 addCommandAlias(
   "engine-0",
   "runMain linguistic.Application " +
@@ -42,9 +32,8 @@ addCommandAlias(
   "-Dcassandra-snapshot-store.contact-points.1=78.155.218.24 "
 )
 
-
 addCommandAlias(
-  "engine-3",
+  "engine-2",
   "runMain linguistic.Application " +
   "-DENV=development " +
   "-DCONFIG=./server/conf " +
