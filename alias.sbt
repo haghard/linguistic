@@ -15,7 +15,7 @@ addCommandAlias(
   "-DCONFIG=./server/conf " +
   "-Dakka.remote.netty.tcp.port=2551 " +
   "-Dakka.http.port=9443 " +
-  "-DHOSTNAME=192.168.0.62 " +
+  "-DHOSTNAME=78.155.217.68 " +
   "-Dakka.cluster.roles.0=linguistic-engine " +
   "-DDISC_HOST=78.155.207.122 " +
   "-Dcassandra.hosts=78.155.207.122,78.155.218.24 " +
@@ -30,7 +30,7 @@ addCommandAlias(
   "-DCONFIG=./server/conf " +
   "-Dakka.remote.netty.tcp.port=2552 " +
   "-Dakka.http.port=9444 " +
-  "-DHOSTNAME=192.168.0.62 " +
+  "-DHOSTNAME=78.155.217.68 " +
   "-Dakka.cluster.roles.0=linguistic-engine " +
   "-DDISC_HOST=78.155.207.122 " +
   "-Dcassandra.hosts=78.155.207.122,78.155.218.24 " +
