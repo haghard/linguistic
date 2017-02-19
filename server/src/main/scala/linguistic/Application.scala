@@ -55,11 +55,11 @@ object Application extends App with AppSupport {
   val dbConf =
     s"""
       |cassandra-journal {
-      |   contact-points = [ ${dbHosts.mkString(",")} ]
+      |   contact-points = [ ${dbHosts.mkString(",").dropRight(1)} ]
       |}
       |
       |cassandra-snapshot-store {
-      |   contact-points = [ ${dbHosts.mkString(",")} ]
+      |   contact-points = [ ${dbHosts.mkString(",").dropRight(1)} ]
       |}
       |
     """.stripMargin
