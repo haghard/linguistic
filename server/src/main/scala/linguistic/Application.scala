@@ -16,7 +16,8 @@ object Application extends App with AppSupport {
   val httpPort = System.getProperty("akka.http.port")
   val hostName = System.getProperty("HOSTNAME")
   val confPath = System.getProperty("CONFIG")
-  val dischost = System.getProperty("DISCOVERY")
+  val discHost = System.getProperty("DISCOVERY")
+  val dbHosts = System.getProperty("cassandra.hosts")
 
   val httpConf =
     s"""
@@ -41,7 +42,7 @@ object Application extends App with AppSupport {
       |constructr {
       |  max-nr-of-seed-nodes = 5
       |  coordination {
-      |    host = ${dischost}
+      |    host = ${discHost}
       |    port = 2379
       |    class-name = de.heikoseeberger.constructr.coordination.etcd.EtcdCoordination
       |  }
@@ -50,6 +51,18 @@ object Application extends App with AppSupport {
       |}
     """.stripMargin
 
+
+  val dbConf =
+    s"""
+      |cassandra-journal {
+      |   contact-points = [ ${dbHosts.mkString(",")} ]
+      |}
+      |
+      |cassandra-snapshot-store {
+      |   contact-points = [ ${dbHosts.mkString(",")} ]
+      |}
+      |
+    """.stripMargin
 
   val effectedHttpConf = httpConf.replaceAll("%port%", tcpPort).replaceAll("%httpP%", httpPort)
     .replaceAll("%hostName%", hostName).replaceAll("%interface%", hostName)
@@ -66,6 +79,7 @@ object Application extends App with AppSupport {
   val config: Config =
     ConfigFactory.parseString(effectedHttpConf)
       .withFallback(ConfigFactory.parseString(constructrConf))
+      .withFallback(ConfigFactory.parseString(dbConf))
       .withFallback(ConfigFactory.parseFile(configFile).resolve())
       .withFallback(ConfigFactory.load()) //for read seeds from env vars
 
