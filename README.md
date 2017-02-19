@@ -135,8 +135,28 @@ Run docker container
   
   `docker run --net=host -it -p 2551:2551 -e HOSTNAME=192.168.0.146 -e AKKA_PORT=2551 -e HTTP_PORT=9443 -e JMX_PORT=1089 -e TZ="Europe/Moscow" haghard/linguistic:0.1`
 
-  
-Etcd
+Install Etcd
 
+    docker run -it -p 2380:2380 -p 2379:2379 quay.io/coreos/etcd:v2.3.7 \
+      -name etcd0 \
+      -advertise-client-urls http://192.168.0.146:2379 \
+      -listen-client-urls http://0.0.0.0:2379 \
+      -initial-advertise-peer-urls http://192.168.0.146:2380 \
+      -listen-peer-urls http://0.0.0.0:2380 \
+      -initial-cluster etcd0=http://192.168.0.146:2380,etcd1=http://192.168.0.203:2380 \
+      -initial-cluster-state new
+      
+    docker run -it -p 2380:2380 -p 2379:2379 quay.io/coreos/etcd:v2.3.7 \
+      -name etcd1 \
+      -advertise-client-urls http://192.168.0.203:2379 \
+      -listen-client-urls http://0.0.0.0:2379 \
+      -initial-advertise-peer-urls http://192.168.0.203:2380 \
+      -listen-peer-urls http://0.0.0.0:2380 \
+      -initial-cluster etcd0=http://192.168.0.146:2380,etcd1=http://192.168.0.203:2380 \
+      -initial-cluster-state new
+  
+Etcd registry   
   curl http://192.168.0.146:2379/v2/keys/constructr/linguistics/nodes
   curl http://192.168.0.203:2379/v2/keys/constructr/linguistics/nodes
+  
+  

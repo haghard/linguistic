@@ -3,8 +3,8 @@ import sbt._
 import com.typesafe.sbt.packager.docker.Dockerfile
 import sbtdocker.ImageName
 
-val scalaV = "2.11.8"
-val akkaVersion = "2.4.16"
+val scalaV = "2.12.1"
+val akkaVersion = "2.4.17"
 val version = "0.1"
 
 name := "linguistic"
@@ -49,17 +49,17 @@ lazy val server = (project in file("server")).settings(
 
     "com.datastax.cassandra" % "cassandra-driver-extras" % "3.1.0",
 
-    "com.jsuereth"     %% "scala-arm"       % "1.4",
+    "com.jsuereth"     %% "scala-arm"       % "2.0",
     "org.openjdk.jol"  %  "jol-core"        % "0.6",
     "com.rklaehn"      %% "radixtree"       % "0.4.0", //blocker for scala 2.12
 
     "org.scalatest"    %% "scalatest"       % "3.0.1" % "test"
   ) ++ Seq(
-    "com.softwaremill.akka-http-session" %% "core" % "0.3.0",
+    "com.softwaremill.akka-http-session" %% "core" % "0.4.0",
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
-    "com.typesafe.akka" %% "akka-persistence-cassandra" % "0.22",
+    "com.typesafe.akka" %% "akka-persistence-cassandra" % "0.23",
     "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion
@@ -205,6 +205,7 @@ def cpCss() = (baseDirectory) map { dir =>
     Process(s"cp ${dir}/src/main/resources/colorbrewer.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
     Process(s"cp ${dir}/src/main/resources/d3.v4.min.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
 
+    Process(s"cp ${dir}/src/main/resources/queue.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
 
     Process(s"cp ${dir}/src/main/resources/wordtree/raphael.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
     Process(s"cp ${dir}/src/main/resources/wordtree/word-tree-layout.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
@@ -263,11 +264,7 @@ lazy val ui = (project in file("ui")).settings(
 lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared")).
   settings(
     scalaVersion := scalaV,
-    libraryDependencies ++= Seq(
-      "com.lihaoyi" %%% "upickle" % "0.4.3"
-      //"com.lihaoyi" %%% "autowire" % "0.2.6"
-      //"org.scala-js" %%% "scalajs-dom"    % "0.9.1"
-    )
+    libraryDependencies ++= Seq("com.lihaoyi" %%% "upickle" % "0.4.3")
   ).jsConfigure(_ enablePlugins ScalaJSWeb)
 
 lazy val sharedJvm = shared.jvm

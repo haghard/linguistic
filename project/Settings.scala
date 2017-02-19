@@ -4,7 +4,7 @@ import org.scalajs.sbtplugin.ScalaJSPlugin.autoImport._
 object Settings {
 
   object versions {
-    val akkaVersion = "2.4.16"
+    val akkaVersion = "2.4.17"
 
     val scala = "2.11.8"
     val scalaDom = "0.9.1"

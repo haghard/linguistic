@@ -36,12 +36,18 @@ class Nvd3Api(implicit sys: ActorSystem) extends Directives {
             getFromResource("web/tweets2.json")
           } ~ path("tweets.json") {
             getFromResource("web/tweets.json")
+          } ~ path("nodelist.csv") {
+            getFromResource("web/nodelist.csv")
+          } ~ path("edgelist.csv") {
+            getFromResource("web/edgelist.csv")
           } ~ path("ch5-12") {
             getFromResource("web/ch5_12.html")
           } ~ path("ch5-16") {
             getFromResource("web/ch5_16.html")
           } ~ path("ch5-17") {
             getFromResource("web/ch5_17.html")
+          } ~ path("ch6-08") {
+            getFromResource("web/ch6_08.html")
           } ~ path("flare.csv") {
             getFromResource("web/flare.csv")
           } ~ path("dendrogram") {

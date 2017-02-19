@@ -38,6 +38,8 @@ class DiscoveryGuardian(env: String, httpPort: Int, hostName: String) extends Ac
         .append('\n')
         .append(s"★ ★ ★   ConstructR service-discovery: ${config.getString("constructr.coordination.class-name")}   ★ ★ ★")
         .append('\n')
+        .append(s"★ ★ ★   ${config.getString("constructr.coordination.host"}  ★ ★ ★")
+        .append('\n')
         .append(s"★ ★ ★   Akka cluster: ${config.getInt("akka.remote.netty.tcp.port")}   ★ ★ ★")
         .append('\n')
         .append(s"★ ★ ★   Akka seeds: ${config.getStringList("akka.cluster.seed-nodes")}   ★ ★ ★")
