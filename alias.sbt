@@ -21,8 +21,8 @@ addCommandAlias(
   "-Dcassandra.hosts=78.155.207.122,78.155.218.24 " +
   "-Dcassandra-journal.contact-points.0=78.155.207.122 " +
   "-Dcassandra-journal.contact-points.1=78.155.218.24 " +
-  "-Dcassandra-snapshot-store.0=78.155.207.122 " +
-  "-Dcassandra-snapshot-store.1=78.155.218.24 "
+  "-Dcassandra-snapshot-store.contact-points.0=78.155.207.122 " +
+  "-Dcassandra-snapshot-store.contact-points.1=78.155.218.24 "
 )
 
 addCommandAlias(
@@ -32,14 +32,14 @@ addCommandAlias(
   "-DCONFIG=./server/conf " +
   "-Dakka.remote.netty.tcp.port=2552 " +
   "-Dakka.http.port=9444 " +
-  "-DHOSTNAME=78.155.217.68 " +
+  "-DHOSTNAME=78.155.207.123 " +
   "-Dakka.cluster.roles.0=linguistic-engine " +
   "-DDISC_HOST=78.155.207.122 " +
   "-Dcassandra.hosts=78.155.207.122,78.155.218.24 " +
   "-Dcassandra-journal.contact-points.0=78.155.207.122 " +
   "-Dcassandra-journal.contact-points.1=78.155.218.24 " +
-  "-Dcassandra-snapshot-store.0=78.155.207.122 " +
-  "-Dcassandra-snapshot-store.1=78.155.218.24 "
+  "-Dcassandra-snapshot-store.contact-points.0=78.155.207.122 " +
+  "-Dcassandra-snapshot-store.contact-points.1=78.155.218.24 "
 )
 
 
@@ -53,10 +53,10 @@ addCommandAlias(
   "-DHOSTNAME=192.168.0.62 " +
   "-Dakka.cluster.roles.0=linguistic-engine " +
   "-Dcassandra.hosts=78.155.207.122,78.155.218.24 " +
-  "-Dcassandra-journal.0=78.155.207.122 " +
-  "-Dcassandra-journal.1=78.155.218.24 " +
-  "-Dcassandra-snapshot-store.0=78.155.207.122 " +
-  "-Dcassandra-snapshot-store.1=78.155.218.24 " +
+  "-Dcassandra-journal.contact-points.0=78.155.207.122 " +
+  "-Dcassandra-journal.contact-points.1=78.155.218.24 " +
+  "-Dcassandra-snapshot-store.contact-points.0=78.155.207.122 " +
+  "-Dcassandra-snapshot-store.contact-points.1=78.155.218.24 "
   "-Dakka.cluster.seed-nodes.0=akka.tcp://linguistics@78.155.217.68:2551 " +
   "-Dakka.cluster.seed-nodes.1=akka.tcp://linguistics@78.155.217.68:2552 "
 )
