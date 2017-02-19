@@ -56,7 +56,7 @@ addCommandAlias(
   "-Dcassandra-journal.contact-points.0=78.155.207.122 " +
   "-Dcassandra-journal.contact-points.1=78.155.218.24 " +
   "-Dcassandra-snapshot-store.contact-points.0=78.155.207.122 " +
-  "-Dcassandra-snapshot-store.contact-points.1=78.155.218.24 "
+  "-Dcassandra-snapshot-store.contact-points.1=78.155.218.24 "  +
   "-Dakka.cluster.seed-nodes.0=akka.tcp://linguistics@78.155.217.68:2551 " +
   "-Dakka.cluster.seed-nodes.1=akka.tcp://linguistics@78.155.217.68:2552 "
 )
