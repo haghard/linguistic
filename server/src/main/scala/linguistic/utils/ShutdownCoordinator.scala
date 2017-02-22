@@ -11,6 +11,13 @@ import scala.concurrent.Await
 import scala.concurrent.duration.FiniteDuration
 import scala.util.{Failure, Success}
 
+/*
+  1 JVM gets the shutdown signal
+  2 Coordinator tells all local ShardRegions to shut down gracefully
+  3 Node leaves cluster
+  4 Coordinator gives singletons a grace period to migrate
+  5 Actor System & JVM Termination
+*/
 object ShutdownCoordinator {
 
   // Shutdown options
@@ -77,7 +84,7 @@ class GracefulShutdownCoordinator(shutdownOpts: NodeShutdownOpts)(implicit syste
       log.info("2 - node tells all local shard regions to shut down gracefully")
       // 2 - node tells all local shard regions to shut down gracefully
       shardRegions.foreach { shardRegion =>
-        context.watch(shardRegion)
+        context watch shardRegion
         shardRegion ! ShardRegion.GracefulShutdown
       }
       log.info("Waiting for {} local shard region(s) to shut down ...", shardRegions.size)

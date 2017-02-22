@@ -20,8 +20,6 @@ class DiscoveryGuardian(env: String, httpPort: Int, hostName: String) extends Ac
   val timeout = FiniteDuration(config.getDuration("constructr.join-timeout").toNanos, NANOSECONDS)
   system.scheduler.scheduleOnce(timeout)(self ! 'Discovered)(system.dispatcher)
 
-  //system.actorSelection("/")
-
   override def receive: Receive = {
     case 'Discovered =>
       context.system.actorOf(HttpServer.props(httpPort, hostName,

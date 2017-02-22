@@ -15,6 +15,8 @@ Cluster info routes
     http --verify=no https://192.168.0.62:9443/cluster/homophones/shards2    
     http --verify=no https://192.168.0.62:9443/cluster/homophones/regions
 
+My avatar 
+    https://avatars.githubusercontent.com/u/1887034?v=3
   
 Generating self-signed certificates
 
