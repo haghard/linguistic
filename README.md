@@ -158,7 +158,7 @@ Install Etcd
       -listen-client-urls http://0.0.0.0:2379 \
       -initial-advertise-peer-urls http://80.93.177.253:2380 \
       -listen-peer-urls http://0.0.0.0:2380 \
-      -initial-cluster etcd0=http://80.93.177.253:2380,etcd1=http://185.143.172.11:2380 \
+      -initial-cluster etcd0=http://80.93.177.253:2380,etcd1=http://78.155.207.129:2380 \
       -initial-cluster-state new
       
     docker run -d -p 2380:2380 -p 2379:2379 quay.io/coreos/etcd:v2.3.7 \
@@ -179,4 +179,4 @@ Run docker container
 
   To run it with `--net=host` is necessary because you are passing env val   
   
-  `docker run --net=host -it -p 2551:2551 -e HOSTNAME=77.244.213.53 -e AKKA_PORT=2551 -e DISCOVERY=78.155.207.129 -e HTTP_PORT=9443 -e CASSANDRA=80.93.177.253,78.155.207.129 -e JMX_PORT=1089 -e TZ="Europe/Moscow" haghard/linguistic:0.1`
+  `docker run --net=host -it -p 2551:2551 -e HOSTNAME=77.244.213.53 -e AKKA_PORT=2551 -e DISCOVERY=80.93.177.253 -e HTTP_PORT=9443 -e CASSANDRA=80.93.177.253,78.155.207.129 -e JMX_PORT=1089 -e TZ="Europe/Moscow" haghard/linguistic:0.1`
