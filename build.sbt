@@ -160,7 +160,7 @@ lazy val server = (project in file("server")).settings(
       copy(dockerResourcesDir, dockerResourcesTargetPath)
       copy(jks, jksTargetPath)
 
-      copy(baseDir / "data" / "wordsEn.txt", s"$imageAppBaseDir/wordsEn.txt")
+      copy(baseDir / "data" / "words.txt", s"$imageAppBaseDir/wordsEn.txt")
       copy(baseDir / "data" / "homophones.txt", s"$imageAppBaseDir/homophones.txt")
 
 
