@@ -179,17 +179,4 @@ Run docker container
 
   To run it with `--net=host` is necessary because you are passing env val   
   
-  `docker run --net=host -it -p 2551:2551 -e HOSTNAME=192.168.0.146 -e AKKA_PORT=2551 -e DISCOVERY=78.155.207.129 -e HTTP_PORT=9443 -e cassandra.hosts=80.93.177.253,78.155.207.129 -e JMX_PORT=1089 -e TZ="Europe/Moscow" haghard/linguistic:0.1`
-
-
-
-"engine-0",
-  "runMain linguistic.Application " +
-  "-DENV=development " +
-  "-DCONFIG=./server/conf " +
-  "-Dakka.remote.netty.tcp.port=2551 " +
-  "-Dakka.http.port=9443 " +
-  "-DHOSTNAME=78.155.217.68 " +
-  "-Dakka.cluster.roles.0=linguistic-engine " +
-  "-DDISCOVERY=78.155.207.122 " +
-  "-Dcassandra.hosts=78.155.207.122,78.155.218.24 "
+  `docker run --net=host -it -p 2551:2551 -e HOSTNAME=77.244.213.53 -e AKKA_PORT=2551 -e DISCOVERY=78.155.207.129 -e HTTP_PORT=9443 -e CASSANDRA=80.93.177.253,78.155.207.129 -e JMX_PORT=1089 -e TZ="Europe/Moscow" haghard/linguistic:0.1`

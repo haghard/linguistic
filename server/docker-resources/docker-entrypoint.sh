@@ -22,7 +22,8 @@ APP_OPTS="-d64 \
           -DENV=${ENV} \
           -DHOSTNAME=${HOSTNAME} \
           -DCONFIG=${CONFIG} \
-          -Dcassandra.hosts="${CASSANDRA}
+          -Dcassandra.hosts=${CASSANDRA} \
+          -DDISCOVERY="${DISCOVERY}
 
 #production, development
 
