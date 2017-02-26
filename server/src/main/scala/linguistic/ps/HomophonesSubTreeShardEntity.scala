@@ -30,7 +30,7 @@ object HomophonesSubTreeShardEntity {
   val Name = "homophones"
 
   def props(mat: ActorMaterializer): Props =
-    Props(new HomophonesSubTreeShardEntity("data/homophones.txt")(mat)).withDispatcher("shard-dispatcher")
+    Props(new HomophonesSubTreeShardEntity("./homophones.txt")(mat)).withDispatcher("shard-dispatcher")
 }
 
 //born,borne,bourn,bourne
