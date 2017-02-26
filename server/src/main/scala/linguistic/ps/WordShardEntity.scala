@@ -54,6 +54,7 @@ class WordShardEntity(path: String)(implicit val mat: ActorMaterializer) extends
 
   override def preStart() = {
     val file = new File(path)
+    log.info("AbsolutePath: {}", file.getAbsolutePath)
     log.info("Started Entity Actor for key [{}] file.exists: {}", key, file.exists())
   }
 
