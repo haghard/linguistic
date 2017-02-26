@@ -136,14 +136,14 @@ Suppose we have 2 machines 185.143.172.184 and 185.143.172.11
 
 Install Cassandra
 
-    docker run -d -e CASSANDRA_BROADCAST_ADDRESS=80.93.177.253 -e CASSANDRA_SEEDS=80.93.177.253,78.155.207.129  \
+    docker run -it -e CASSANDRA_BROADCAST_ADDRESS=80.93.177.253 -e CASSANDRA_SEEDS=80.93.177.253,78.155.207.129  \
         -e CASSANDRA_CLUSTER_NAME="haghard_cluster" -e CASSANDRA_HOME="/var/lib/cassandra"  \
         -e CASSANDRA_START_RPC="true" -e CASSANDRA_RACK="wr1" -e CASSANDRA_DC="spb"  \
         -e CASSANDRA_ENDPOINT_SNITCH="GossipingPropertyFileSnitch"  \
         -p 7000:7000 -p 7001:7001 -p 9042:9042 -p 9160:9160 -p 7199:7199  \
         -v /home/haghard/db-3.10:/var/lib/cassandra cassandra:3.10
     
-    docker run -d -e CASSANDRA_BROADCAST_ADDRESS=78.155.207.129 -e CASSANDRA_SEEDS=80.93.177.253,78.155.207.129  \
+    docker run -it -e CASSANDRA_BROADCAST_ADDRESS=78.155.207.129 -e CASSANDRA_SEEDS=80.93.177.253,78.155.207.129  \
         -e CASSANDRA_CLUSTER_NAME="haghard_cluster" -e CASSANDRA_HOME="/var/lib/cassandra"  \
         -e CASSANDRA_START_RPC="true" -e CASSANDRA_RACK="wr2" -e CASSANDRA_DC="spb" \
         -e CASSANDRA_ENDPOINT_SNITCH="GossipingPropertyFileSnitch"  \
@@ -179,4 +179,6 @@ Run docker container
 
   To run it with `--net=host` is necessary because you are passing env val   
   
-  `docker run --net=host -it -p 2551:2551 -e HOSTNAME=77.244.213.53 -e AKKA_PORT=2551 -e DISCOVERY=80.93.177.253 -e HTTP_PORT=9443 -e CASSANDRA=80.93.177.253,78.155.207.129 -e JMX_PORT=1089 -e TZ="Europe/Moscow" haghard/linguistic:0.1`
+  `docker run --net=host -it -p 2551:2551 -e HOSTNAME=78.155.219.177 -e AKKA_PORT=2551 -e DISCOVERY=80.93.177.253 -e HTTP_PORT=9443 -e CASSANDRA=80.93.177.253,78.155.207.129 -e JMX_PORT=1089 -e TZ="Europe/Moscow" haghard/linguistic:0.1`
+
+77.244.213.7
