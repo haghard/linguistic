@@ -160,8 +160,8 @@ lazy val server = (project in file("server")).settings(
       copy(dockerResourcesDir, dockerResourcesTargetPath)
       copy(jks, jksTargetPath)
 
-      copy(baseDir / "main" / "resource" / "wordsEn.txt", s"$imageAppBaseDir/wordsEn.txt")
-      copy(baseDir / "main" / "resource" / "homophones.txt", s"$imageAppBaseDir/homophones.txt")
+      copy(baseDir / "data" / "wordsEn.txt", s"$imageAppBaseDir/wordsEn.txt")
+      copy(baseDir / "data" / "homophones.txt", s"$imageAppBaseDir/homophones.txt")
 
 
       if(prodConfigSrc.exists)
