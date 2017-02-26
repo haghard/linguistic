@@ -38,7 +38,6 @@ class HomophonesSubTreeShardEntity(path: String)(implicit val mat: ActorMaterial
   with ActorLogging with Indexing[Array[String]] with Stash with Passivation {
 
   override val key = self.path.name
-    //self.path.name
   val passivationTimeout = 15.minutes
   context.setReceiveTimeout(passivationTimeout)
 

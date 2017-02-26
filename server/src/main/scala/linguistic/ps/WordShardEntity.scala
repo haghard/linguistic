@@ -1,5 +1,6 @@
 package linguistic.ps
 
+import java.io.File
 import java.net.URLDecoder
 import java.util.Locale
 
@@ -52,7 +53,8 @@ class WordShardEntity(path: String)(implicit val mat: ActorMaterializer) extends
   override def persistenceId = key
 
   override def preStart() = {
-    log.info("Started Entity Actor for key [{}]", key)
+    val file = new File(path)
+    log.info("Started Entity Actor for key [{}] file.exists: {}", key, file.exists())
   }
 
   override def postStop() = log.info("{} has been stopped", self)

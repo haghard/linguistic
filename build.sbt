@@ -138,12 +138,9 @@ lazy val server = (project in file("server")).settings(
 
     val jks = baseDir / "ser" / "linguistic.jks"
 
-    //val prodConfigSrc = baseDir / "src" / "main" / "resources" / "production.conf"
-
     val prodConfigSrc = baseDir / "conf" / "production.conf"
     val devConfigSrc =  baseDir / "conf" / "development.conf"
 
-    //val curEnv = System.getenv("ENV")
 
     val appProdConfTarget = s"$imageAppBaseDir/$configDir/production.conf"
     val appDevConfTarget = s"$imageAppBaseDir/$configDir/development.conf"
@@ -157,9 +154,6 @@ lazy val server = (project in file("server")).settings(
       env("CONFIG", s"$imageAppBaseDir/$configDir")
 
       env("ENV", appEnv)
-
-      //workDir(imageAppBaseDir)
-      //run("mkdir", configDir)
 
       workDir(imageAppBaseDir)
 
@@ -194,26 +188,8 @@ def cpCss() = (baseDirectory) map { dir =>
     //IO.copyFile(dir / "src" / "main" / "twirl" / "linguistic" / "main.css", dir / "target" /"web"/"web-modules"/"main"/"webjars"/"lib"/"bootstrap"/"css"/"main.css")
     //IO.copyFile(dir /"src"/"main"/"resources"/"chat.css", dir/"target"/"web"/"web-modules"/"main"/"webjars"/"lib"/"bootstrap"/"css"/"chat.css")
 
-    Process(s"cp  ${dir}/src/main/twirl/linguistic/main.css ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/css/").!
-    Process(s"cp  ${dir}/src/main/resources/chat.css ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/css/").!
-
-    //Process(s"cp ${dir}/src/main/resources/graph/graph.css ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/css/").!
-    //Process(s"cp ${dir}/src/main/resources/graph/graph.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
-
-    //Process(s"cp ${dir}/src/main/resources/nv.d3.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
-    //Process(s"cp ${dir}/src/main/resources/d3.min.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
-    //Process(s"cp ${dir}/src/main/resources/d3.v3.min.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
-    //Process(s"cp ${dir}/src/main/resources/colorbrewer.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
-    //Process(s"cp ${dir}/src/main/resources/d3.v4.min.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
-
-    //Process(s"cp ${dir}/src/main/resources/queue.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
-
-    //Process(s"cp ${dir}/src/main/resources/wordtree/raphael.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
-    //Process(s"cp ${dir}/src/main/resources/wordtree/word-tree-layout.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
-    //Process(s"cp ${dir}/src/main/resources/wordtree/wordtree.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
-
-    //Process(s"cp ${dir}/src/main/twirl/linguistic/nv.d3.css ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/css/").!
-    //Process(s"cp ${dir}/src/main/resources/tree.css ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/css/").!
+    Process(s"cp ${dir}/src/main/twirl/linguistic/main.css ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/css/").!
+    Process(s"cp ${dir}/src/main/resources/chat.css ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/css/").!
   }
 
   println("Coping resources ...")
