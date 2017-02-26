@@ -30,7 +30,7 @@ object WordShardEntity {
   val Name = "wordslist"
 
   def props(mat: ActorMaterializer): Props =
-    Props(new WordShardEntity("./wordsEn.txt")(mat)).withDispatcher("shard-dispatcher")
+    Props(new WordShardEntity("./words.txt")(mat)).withDispatcher("shard-dispatcher")
 }
 
 /**

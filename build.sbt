@@ -119,8 +119,7 @@ lazy val server = (project in file("server")).settings(
   dockerfile in docker := {
     //development | production
     val appEnv = sys.props.getOrElse("env", "production")
-    //Option(System.getenv("env")).getOrElse("production")
-    //sys.props.getOrElse("env", "production")
+
     println(s"★ ★ ★ ★ ★ ★ ★ ★ ★ Build Docker image for Env:$appEnv ★ ★ ★ ★ ★ ★ ★ ★ ★")
 
     //val appConfig = "/app/conf"
@@ -160,6 +159,10 @@ lazy val server = (project in file("server")).settings(
       copy(artifact, artifactTargetPath)
       copy(dockerResourcesDir, dockerResourcesTargetPath)
       copy(jks, jksTargetPath)
+
+      copy(baseDir / "main" / "resource" / "wordsEn.txt", s"$imageAppBaseDir/wordsEn.txt")
+      copy(baseDir / "main" / "resource" / "homophones.txt", s"$imageAppBaseDir/homophones.txt")
+
 
       if(prodConfigSrc.exists)
         copy(prodConfigSrc, appProdConfTarget) //Copy the prod config
