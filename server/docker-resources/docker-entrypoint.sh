@@ -21,7 +21,8 @@ APP_OPTS="-d64 \
           -Djava.rmi.server.hostname=${HOSTNAME} \
           -DENV=${ENV} \
           -DHOSTNAME=${HOSTNAME} \
-          -DCONFIG="${CONFIG}
+          -DCONFIG=${CONFIG} \
+          -Dcassandra.hosts="${CASSANDRA}
 
 #production, development
 
