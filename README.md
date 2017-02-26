@@ -131,25 +131,19 @@ To build Docker images
     Docker image for production
         `sbt docker`
 
-Run docker container
-
-  To run it with `--net=host` is necessary because you are passing env val   
-  
-  `docker run --net=host -it -p 2551:2551 -e HOSTNAME=192.168.0.146 -e AKKA_PORT=2551 -e HTTP_PORT=9443 -e JMX_PORT=1089 -e TZ="Europe/Moscow" haghard/linguistic:0.1`
-
 
 Suppose we have 2 machines 185.143.172.184 and 185.143.172.11
 
 Install Cassandra
 
-    docker run -d -e CASSANDRA_BROADCAST_ADDRESS=185.143.172.184 -e CASSANDRA_SEEDS=185.143.172.184,185.143.172.11  \
+    docker run -d -e CASSANDRA_BROADCAST_ADDRESS=80.93.177.253 -e CASSANDRA_SEEDS=80.93.177.253,78.155.207.129  \
         -e CASSANDRA_CLUSTER_NAME="haghard_cluster" -e CASSANDRA_HOME="/var/lib/cassandra"  \
         -e CASSANDRA_START_RPC="true" -e CASSANDRA_RACK="wr1" -e CASSANDRA_DC="spb"  \
         -e CASSANDRA_ENDPOINT_SNITCH="GossipingPropertyFileSnitch"  \
         -p 7000:7000 -p 7001:7001 -p 9042:9042 -p 9160:9160 -p 7199:7199  \
         -v /home/haghard/db-3.10:/var/lib/cassandra cassandra:3.10
     
-    docker run -d -e CASSANDRA_BROADCAST_ADDRESS=185.143.172.11 -e CASSANDRA_SEEDS=185.143.172.184,185.143.172.11  \
+    docker run -d -e CASSANDRA_BROADCAST_ADDRESS=78.155.207.129 -e CASSANDRA_SEEDS=80.93.177.253,78.155.207.129  \
         -e CASSANDRA_CLUSTER_NAME="haghard_cluster" -e CASSANDRA_HOME="/var/lib/cassandra"  \
         -e CASSANDRA_START_RPC="true" -e CASSANDRA_RACK="wr2" -e CASSANDRA_DC="spb" \
         -e CASSANDRA_ENDPOINT_SNITCH="GossipingPropertyFileSnitch"  \
@@ -160,22 +154,30 @@ Install Etcd
 
     docker run -d -p 2380:2380 -p 2379:2379 quay.io/coreos/etcd:v2.3.7 \
       -name etcd0 \
-      -advertise-client-urls http://185.143.172.184:2379 \
+      -advertise-client-urls http://80.93.177.253:2379 \
       -listen-client-urls http://0.0.0.0:2379 \
-      -initial-advertise-peer-urls http://185.143.172.184:2380 \
+      -initial-advertise-peer-urls http://80.93.177.253:2380 \
       -listen-peer-urls http://0.0.0.0:2380 \
-      -initial-cluster etcd0=http://185.143.172.184:2380,etcd1=http://185.143.172.11:2380 \
+      -initial-cluster etcd0=http://80.93.177.253:2380,etcd1=http://185.143.172.11:2380 \
       -initial-cluster-state new
       
     docker run -d -p 2380:2380 -p 2379:2379 quay.io/coreos/etcd:v2.3.7 \
       -name etcd1 \
-      -advertise-client-urls http://185.143.172.11:2379 \
+      -advertise-client-urls http://78.155.207.129:2379 \
       -listen-client-urls http://0.0.0.0:2379 \
-      -initial-advertise-peer-urls http://185.143.172.11:2380 \
+      -initial-advertise-peer-urls http://78.155.207.129:2380 \
       -listen-peer-urls http://0.0.0.0:2380 \
-      -initial-cluster etcd0=http://185.143.172.184:2380,etcd1=http://185.143.172.11:2380 \
+      -initial-cluster etcd0=http://80.93.177.253:2380,etcd1=http://78.155.207.129:2380 \
       -initial-cluster-state new
   
 Etcd registry   
-  curl http://192.168.0.146:2379/v2/keys/constructr/linguistics/nodes
-  curl http://192.168.0.203:2379/v2/keys/constructr/linguistics/nodes
+  curl http://...:2379/v2/keys/constructr/linguistics/nodes
+  curl http://...:2379/v2/keys/constructr/linguistics/nodes
+  
+
+Run docker container
+
+  To run it with `--net=host` is necessary because you are passing env val   
+  
+  `docker run --net=host -it -p 2551:2551 -e HOSTNAME=192.168.0.146 -e AKKA_PORT=2551 -e HTTP_PORT=9443 -e JMX_PORT=1089 -e TZ="Europe/Moscow" haghard/linguistic:0.1`
+

@@ -39,7 +39,7 @@ lazy val server = (project in file("server")).settings(
 
   libraryDependencies ++= Seq(
     //"net.ceedubs"     %%  "ficus"           % "1.1.2",
-    "com.iheart"      %%  "ficus"           % "1.1.3",
+    //"com.iheart"      %%  "ficus"           % "1.1.3",
     "ch.qos.logback"  %   "logback-classic" % "1.1.2",
     "org.mindrot"     %   "jbcrypt"         % "0.3m",
 
@@ -115,7 +115,7 @@ lazy val server = (project in file("server")).settings(
   */
 
 
-  //docker -DENV "development"
+  //docker -Denv="development"
   dockerfile in docker := {
     //development | production
     val appEnv = sys.props.getOrElse("env", "production")

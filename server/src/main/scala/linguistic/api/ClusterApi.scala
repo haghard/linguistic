@@ -8,7 +8,7 @@ import akka.pattern._
 import linguistic.utils.ShutdownCoordinator
 import linguistic.{HttpServer, ps}
 import ShutdownCoordinator.NodeShutdownOpts
-import linguistic.ps.{WordShardEntity$, HomophonesSubTreeShardEntity}
+import linguistic.ps.{WordShardEntity, HomophonesSubTreeShardEntity}
 
 import scala.concurrent.{Future, ExecutionContext}
 import scala.concurrent.duration._
