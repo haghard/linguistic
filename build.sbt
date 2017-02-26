@@ -38,7 +38,8 @@ lazy val server = (project in file("server")).settings(
   javaOptions in run ++= Seq("-Xms128m", "-Xmx1024m"),
 
   libraryDependencies ++= Seq(
-    "net.ceedubs"     %%  "ficus"           % "1.1.2",
+    //"net.ceedubs"     %%  "ficus"           % "1.1.2",
+    "com.iheart"      %%  "ficus"           % "1.1.3",
     "ch.qos.logback"  %   "logback-classic" % "1.1.2",
     "org.mindrot"     %   "jbcrypt"         % "0.3m",
 

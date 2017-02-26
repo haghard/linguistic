@@ -1,6 +1,5 @@
 package linguistic.ps
 
-import java.io.File
 import java.net.URLDecoder
 import java.util.Locale
 

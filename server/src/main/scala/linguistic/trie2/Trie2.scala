@@ -34,7 +34,6 @@ package object trie2 {
       }
     }
 
-
     private def normalise(s: String): WrappedString = {
       new WrappedString(s.toLowerCase.replaceAll("""\W+""", ""))
     }

@@ -38,8 +38,8 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
   val regions = scala.collection.immutable.Set(wordShard, homophonesShard)
   val searchMaster = system.actorOf(SearchMaster.props(mat, wordShard, homophonesShard), name = "search-master")
 
-  val routes = new api.SearchApi(searchMaster).route ~ new api.Nvd3Api().route ~
-    new api.UsersApi(new UsersRepo()).route  ~ new api.ClusterApi(self, searchMaster, regions).route
+  val routes = new api.SearchApi(searchMaster).route ~ new api.UsersApi(new UsersRepo()).route ~
+    new api.ClusterApi(self, searchMaster, regions).route
 
   Http()
     .bindAndHandle(routes, address, port, connectionContext = https(keypass, storepass))
