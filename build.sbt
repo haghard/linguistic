@@ -194,8 +194,8 @@ def cpCss() = (baseDirectory) map { dir =>
     //IO.copyFile(dir / "src" / "main" / "twirl" / "linguistic" / "main.css", dir / "target" /"web"/"web-modules"/"main"/"webjars"/"lib"/"bootstrap"/"css"/"main.css")
     //IO.copyFile(dir /"src"/"main"/"resources"/"chat.css", dir/"target"/"web"/"web-modules"/"main"/"webjars"/"lib"/"bootstrap"/"css"/"chat.css")
 
-    Process(s"${dir}/src/main/twirl/linguistic/main.css ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/css/").!
-    Process(s"${dir}/src/main/resources/chat.css ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/css/").!
+    Process(s"cp  ${dir}/src/main/twirl/linguistic/main.css ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/css/").!
+    Process(s"cp  ${dir}/src/main/resources/chat.css ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/css/").!
 
     //Process(s"cp ${dir}/src/main/resources/graph/graph.css ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/css/").!
     //Process(s"cp ${dir}/src/main/resources/graph/graph.js ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/js").!
