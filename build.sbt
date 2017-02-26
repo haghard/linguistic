@@ -5,7 +5,7 @@ import sbtdocker.ImageName
 
 val scalaV = "2.11.8"
 val akkaVersion = "2.4.17"
-val version = "0.1"
+val version = "0.2"
 
 name := "linguistic"
 
