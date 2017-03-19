@@ -91,17 +91,19 @@ class WordShardEntity(path: String)(implicit val mat: ActorMaterializer) extends
     super.onPersistFailure(cause, event, seqNr)
   }
 
-  var recoveredIndex = RadixTree.empty[String, Unit]
+  override def receiveRecover: Receive = {
+    var recoveredIndex = RadixTree.empty[String, Unit]
 
-  override def receiveRecover = {
-    case SnapshotOffer(meta, seq: collection.immutable.Seq[String]@unchecked) =>
-      recoveredIndex = RadixTree(seq.map(name => name -> (())): _*)
+    {
+      case SnapshotOffer(meta, seq: collection.immutable.Seq[String]@unchecked) =>
+        recoveredIndex = RadixTree(seq.map(name => name -> (())): _*)
       //val mb = GraphLayout.parseInstance(recoveredIndex).totalSize.toFloat / mbDivider
       //log.info("SnapshotOffer {}: count:{}", meta, recoveredIndex.count)
-    case RecoveryCompleted =>
-      log.info("Recovered key: {} count:{}", key, recoveredIndex.count)
-      self ! RestoredIndex(recoveredIndex)
-      recoveredIndex = RadixTree.empty[String, Unit]
+      case RecoveryCompleted =>
+        log.info("Recovered key: {} count:{}", key, recoveredIndex.count)
+        self ! RestoredIndex(recoveredIndex)
+        recoveredIndex = RadixTree.empty[String, Unit]
+    }
   }
 
   def active(index: SubTree): Receive = {
