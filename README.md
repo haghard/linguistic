@@ -179,6 +179,6 @@ Run docker container
 
   To run it with `--net=host` is necessary because you are passing env val   
   
-  `docker run --net=host -it -p 2551:2551 -e HOSTNAME=78.155.219.177 -e AKKA_PORT=2551 -e DISCOVERY=80.93.177.253 -e HTTP_PORT=9443 -e CASSANDRA=80.93.177.253,78.155.207.129 -e JMX_PORT=1089 -e TZ="Europe/Moscow" haghard/linguistic:0.1`
+  `docker run --net=host -it -p 2551:2551 -e HOSTNAME=78.155.219.177 -e AKKA_PORT=2551 -e DISCOVERY=80.93.177.253 -e HTTP_PORT=9443 -e CASSANDRA=80.93.177.253,78.155.207.129 -e JMX_PORT=1089 -e TZ="Europe/Moscow" haghard/linguistic:0.2`
 
 77.244.213.7
