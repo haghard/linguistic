@@ -23,7 +23,7 @@ object UsersRepo {
       case Success(r) =>  r
       case Failure(ex) =>
         if(n > 0) {
-          Thread.sleep(1000)
+          Thread.sleep(3000)
           retry(f, n - 1)
         } else throw ex
     }
@@ -41,13 +41,16 @@ class UsersRepo extends Actor with ActorLogging {
   val selectUser = "SELECT login, password, photo FROM users where login = ?"
   val insertUsers = "INSERT INTO users(login, password, photo, created_at) VALUES (?, ?, ?, ?) IF NOT EXISTS"
 
-  val cassandraPort = context.system.settings.config.getInt("cassandra.port")
-  val keySpace = context.system.settings.config.getString("cassandra.keyspace")
-  val cassandraHosts = context.system.settings.config.getString("cassandra.hosts").split(",").toSeq.map(new InetSocketAddress(_, cassandraPort))
+  val cassandraPort = context.system.settings.config.getInt("cassandra-journal.port")
+  val keySpace = context.system.settings.config.getString("cassandra-journal.keyspace")
+  val cassandraHosts = context.system.settings.config.getStringList("cassandra-journal.contact-points")
+    .asScala.map(new InetSocketAddress(_, cassandraPort))
+
   implicit val ex = context.system.dispatchers.lookup("shard-dispatcher")
 
   def idle: Receive = {
     case Activate =>
+      log.info(s"************* Activate:${cassandraHosts.mkString(",")}")
       val cluster = Cluster.builder()
         .addContactPointsWithPorts(cassandraHosts.asJava)
         //.withLoadBalancingPolicy(DCAwareRoundRobinPolicy.builder().withLocalDc(localDC).build())

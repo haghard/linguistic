@@ -60,7 +60,6 @@ lazy val server = (project in file("server")).settings(
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
-    //"com.typesafe.akka" %% "akka-persistence-cassandra" % "0.25.1",
     "com.typesafe.akka" %% "akka-persistence-cassandra" % "0.50",
     "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
