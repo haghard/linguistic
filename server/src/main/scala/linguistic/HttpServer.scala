@@ -63,12 +63,11 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
     implicit val t = akka.util.Timeout(5 seconds)
 
     scala.concurrent.Future
-      .sequence(Seq((searchMaster ? SearchWord("Average", 1)), (homophonesShard ? SearchHomophones("Aaa", 1))))
+      .sequence(Seq((searchMaster ? SearchWord("average", 1)), (homophonesShard ? SearchHomophones("rose", 1))))
       .map(_  =>  users ! Activate)
       .onFailure {  case e: Throwable =>
-        throw new Exception("")
+        throw new Exception(e, "Couldn't activate sharded-domain")
       }
-
 
     //https://gist.github.com/nelanka/891e9ac82fc83a6ab561
     ShutdownCoordinator.register(NodeShutdownOpts(5 seconds, 20 seconds), self, regions)(coreSystem)
