@@ -3,8 +3,9 @@ package linguistic
 import java.time.LocalDateTime
 import java.util.TimeZone
 
-import scala.concurrent.duration._
 import akka.actor.{Actor, ActorLogging, Props, SupervisorStrategy}
+
+import scala.concurrent.duration._
 
 object DiscoveryGuardian {
   def props(env: String, httpPort: Int, hostName: String) =
@@ -23,16 +24,16 @@ class DiscoveryGuardian(env: String, httpPort: Int, hostName: String) extends Ac
   override def receive: Receive = {
     case 'Discovered =>
       context.system.actorOf(HttpServer.props(httpPort, hostName,
-          config.getString("akka.http.ssl.keypass"), config.getString("akka.http.ssl.storepass")), "http-server")
+        config.getString("akka.http.ssl.keypass"), config.getString("akka.http.ssl.storepass")), "http-server")
 
-      Console.println(Console.GREEN +
+      println(Console.GREEN +
         """
               ___   ___   ___  __   __  ___   ___
              / __| | __| | _ \ \ \ / / | __| | _ \
              \__ \ | _|  |   /  \ V /  | _|  |   /
              |___/ |___| |_|_\   \_/   |___| |_|_\
 
-        """+Console.RESET)
+        """ + Console.RESET)
 
       val tz = TimeZone.getDefault.getID
       val greeting = new StringBuilder()

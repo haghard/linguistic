@@ -4,7 +4,7 @@ import linguistic.Application._
 import linguistic.dao.UsersRepo
 import akka.cluster.sharding.ClusterSharding
 import akka.stream.ActorMaterializerSettings
-import akka.actor.{Actor, ActorLogging, Props, Status}
+import akka.actor.{Actor, ActorLogging, Identify, Props, Status}
 import linguistic.utils.ShutdownCoordinator
 import ShutdownCoordinator.NodeShutdownOpts
 import linguistic.ps.{HomophonesSubTreeShardEntity, WordShardEntity}
@@ -52,6 +52,9 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
 
   def serverBinding(b: akka.http.scaladsl.Http.ServerBinding) = {
     log.info("Binding on {}",  b.localAddress)
+
+    wordShard ! Identify(None)
+    homophonesShard ! Identify(None)
 
     //https://gist.github.com/nelanka/891e9ac82fc83a6ab561
     import scala.concurrent.duration._
