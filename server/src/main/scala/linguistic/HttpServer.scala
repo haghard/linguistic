@@ -61,14 +61,14 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
 
     import akka.pattern.ask
 
-    //wake up 
-    implicit val t = akka.util.Timeout(15 seconds)
+    //wake up could make longer than ...
+    implicit val t = akka.util.Timeout(30 seconds)
 
     scala.concurrent.Future
       .sequence(Seq((searchMaster ? SearchWord("average", 1)), (homophonesShard ? SearchHomophones("rose", 1))))
       .map(_  =>  users ! Activate)
       .onFailure {  case e: Throwable =>
-        throw new Exception("Couldn't activate sharded-domain", e)
+        throw new Exception("Couldn't activate sharded-domains", e)
       }
 
     //https://gist.github.com/nelanka/891e9ac82fc83a6ab561
