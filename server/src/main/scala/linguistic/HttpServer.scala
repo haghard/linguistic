@@ -7,7 +7,8 @@ import akka.stream.ActorMaterializerSettings
 import akka.actor.{Actor, ActorIdentity, ActorLogging, Identify, Props, Status}
 import linguistic.utils.ShutdownCoordinator
 import ShutdownCoordinator.NodeShutdownOpts
-import linguistic.WordsSearchProtocol.SearchWord
+import linguistic.WordsSearchProtocol.{SearchHomophones, SearchWord}
+import linguistic.dao.UsersRepo.Activate
 import linguistic.ps.{HomophonesSubTreeShardEntity, WordShardEntity}
 
 object HttpServer {
@@ -59,21 +60,15 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
     log.info("Binding on {}",  b.localAddress)
 
     import akka.pattern.ask
-    implicit val t = akka.util.Timeout(3 seconds)
+    implicit val t = akka.util.Timeout(5 seconds)
 
-    wordShard.ask(Identify(1)).mapTo[ActorIdentity].flatMap { ident =>
-      if(ident.correlationId == 1) {
-        log.info("Identified Word-Shard")
-        wordShard ! SearchWord("Aaa", 1)
+    scala.concurrent.Future
+      .sequence(Seq((searchMaster ? SearchWord("Average", 1)), (homophonesShard ? SearchHomophones("Aaa", 1))))
+      .map(_  =>  users ! Activate)
+      .onFailure {  case e: Throwable =>
+        throw new Exception("")
+      }
 
-        homophonesShard.ask(Identify(2)).mapTo[ActorIdentity].map { ident =>
-          if (ident.correlationId == 2) {
-            log.info("Identified Homophones-Shard")
-            users ! UsersRepo.Activate
-          } else throw new Exception(s"Couldn't start homophones-shard ${ident.correlationId}")
-        }
-      } else throw new Exception(s"Couldn't start words-shard ${ident.correlationId}")
-    }
 
     //https://gist.github.com/nelanka/891e9ac82fc83a6ab561
     ShutdownCoordinator.register(NodeShutdownOpts(5 seconds, 20 seconds), self, regions)(coreSystem)

@@ -50,7 +50,6 @@ class UsersRepo extends Actor with ActorLogging {
 
   def idle: Receive = {
     case Activate =>
-      log.info(s"************* Activate:  ${cassandraHosts.mkString(",")}")
       val cluster = Cluster.builder()
         .addContactPointsWithPorts(cassandraHosts.asJava)
         //.withLoadBalancingPolicy(DCAwareRoundRobinPolicy.builder().withLocalDc(localDC).build())
