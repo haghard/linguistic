@@ -3,8 +3,8 @@ import sbt._
 import com.typesafe.sbt.packager.docker.Dockerfile
 import sbtdocker.ImageName
 
-val scalaV = "2.11.8"
-val akkaVersion = "2.4.17"
+val scalaV = "2.12.1"
+val akkaVersion = "2.5.0"
 val version = "0.2"
 
 name := "linguistic"
@@ -28,7 +28,7 @@ lazy val server = (project in file("server")).settings(
   scalaJSProjects := Seq(ui),
   pipelineStages in Assets := Seq(scalaJSPipeline),
   // triggers scalaJSPipeline when using compile or continuous compilation
-  compile in Compile <<= (compile in Compile).dependsOn(scalaJSPipeline, cpCss),
+  compile in Compile <<= (compile in Compile).dependsOn(scalaJSPipeline/*,cpCss*/),
 
   name := "server",
 
@@ -38,7 +38,6 @@ lazy val server = (project in file("server")).settings(
   javaOptions in run ++= Seq("-Xms128m", "-Xmx1024m"),
 
   libraryDependencies ++= Seq(
-    //"net.ceedubs"     %%  "ficus"           % "1.1.2",
     //"com.iheart"      %%  "ficus"           % "1.1.3",
     "ch.qos.logback"  %   "logback-classic" % "1.1.2",
     "org.mindrot"     %   "jbcrypt"         % "0.3m",
@@ -52,7 +51,7 @@ lazy val server = (project in file("server")).settings(
 
     "com.jsuereth"     %% "scala-arm"       % "2.0",
     "org.openjdk.jol"  %  "jol-core"        % "0.6",
-    "com.rklaehn"      %% "radixtree"       % "0.4.0", //blocker for scala 2.12
+    "com.rklaehn"      %% "radixtree"       % "0.5.0",
 
     "org.scalatest"    %% "scalatest"       % "3.0.1" % "test"
   ) ++ Seq(
@@ -60,13 +59,13 @@ lazy val server = (project in file("server")).settings(
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
-    "com.typesafe.akka" %% "akka-persistence-cassandra" % "0.23",
+    "com.typesafe.akka" %% "akka-persistence-cassandra" % "0.25.1",
     "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion
   ) ++ Seq(
-    "de.heikoseeberger" %%  "constructr"                   %  "0.15.0",
-    "de.heikoseeberger" %%  "constructr-coordination-etcd" %  "0.16.1"
+    "de.heikoseeberger" %%  "constructr"                   %  "0.17.0",
+    "de.heikoseeberger" %%  "constructr-coordination-etcd" %  "0.17.0"
   ),
 
   //javaOptions in runMain += "-DENV=prod",
@@ -211,10 +210,10 @@ lazy val ui = (project in file("ui")).settings(
   persistLauncher in Test := false,
 
   libraryDependencies ++= Seq(
-    "org.singlespaced" %%% "scalajs-d3" % "0.3.3", //the version for scala 2.12 is 0.3.4
+    "org.singlespaced" %%% "scalajs-d3" % "0.3.4",
     "com.github.japgolly.scalajs-react" %%% "core"    % "0.11.3",
-    "com.github.japgolly.scalajs-react" %%% "extra"   % "0.11.3",
-    "com.github.yoeluk"                 %%% "raphael-scala-js" % "0.2-SNAPSHOT"
+    "com.github.japgolly.scalajs-react" %%% "extra"   % "0.11.3"
+    //"com.github.yoeluk"                 %%% "raphael-scala-js" % "0.2-SNAPSHOT"
     //"com.github.chandu0101.scalajs-react-components" %%%  "core"      % "0.5.0",
     //"com.github.chandu0101.scalajs-react-components" %%%  "macros"    % "0.5.0"
     //"com.github.japgolly.scalacss"                   %%%  "ext-react" % "0.5.1"
@@ -244,7 +243,7 @@ lazy val ui = (project in file("ui")).settings(
 lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared")).
   settings(
     scalaVersion := scalaV,
-    libraryDependencies ++= Seq("com.lihaoyi" %%% "upickle" % "0.4.3")
+    libraryDependencies ++= Seq("com.lihaoyi" %%% "upickle" % "0.4.4")
   ).jsConfigure(_ enablePlugins ScalaJSWeb)
 
 lazy val sharedJvm = shared.jvm

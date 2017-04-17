@@ -1,3 +1,5 @@
+/*
+
 package linguistic.d3
 
 import org.scalajs.dom.html
@@ -61,4 +63,4 @@ object Sketcher {
   @JSExport def main(scene: html.Element): Unit = {
     draw(scene)
   }
-}
+}*/
