@@ -25,6 +25,15 @@ class DiscoveryGuardian(env: String, httpPort: Int, hostName: String) extends Ac
       context.system.actorOf(HttpServer.props(httpPort, hostName,
           config.getString("akka.http.ssl.keypass"), config.getString("akka.http.ssl.storepass")), "http-server")
 
+      Console.println(Console.GREEN +
+        """
+              ___   ___   ___  __   __  ___   ___
+             / __| | __| | _ \ \ \ / / | __| | _ \
+             \__ \ | _|  |   /  \ V /  | _|  |   /
+             |___/ |___| |_|_\   \_/   |___| |_|_\
+
+        """+Console.RESET)
+
       val tz = TimeZone.getDefault.getID
       val greeting = new StringBuilder()
         .append('\n')
