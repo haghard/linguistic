@@ -64,8 +64,8 @@ lazy val server = (project in file("server")).settings(
     "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion
   ) ++ Seq(
-    "de.heikoseeberger" %%  "constructr"                   %  "0.15.0",
-    "de.heikoseeberger" %%  "constructr-coordination-etcd" %  "0.16.1"
+    "de.heikoseeberger" %%  "constructr"                   %  "0.17.0",
+    "de.heikoseeberger" %%  "constructr-coordination-etcd" %  "0.17.0"
   ),
 
   //javaOptions in runMain += "-DENV=prod",
