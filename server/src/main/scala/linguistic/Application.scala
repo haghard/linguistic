@@ -40,13 +40,14 @@ object Application extends App with AppSupport {
     s"""
       |akka.extensions = [de.heikoseeberger.constructr.ConstructrExtension]
       |constructr {
-      |  max-nr-of-seed-nodes = 5
       |  coordination {
       |    host = ${discHost}
       |    port = 2379
       |    class-name = de.heikoseeberger.constructr.coordination.etcd.EtcdCoordination
       |  }
-      |
+      |  max-nr-of-seed-nodes = 5
+      |  coordination-timeout = 5 seconds
+      |  nr-of-retries        = 3
       |  join-timeout = 15 seconds
       |}
     """.stripMargin
