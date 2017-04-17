@@ -69,9 +69,8 @@ class UsersRepo extends Actor with ActorLogging {
       selectStmt.setConsistencyLevel(ConsistencyLevel.SERIAL)
       selectStmt.enableTracing
 
-      session.execute(s"CREATE TABLE IF NOT EXISTS ${keySpace}.users(login text, created_at timestamp, password text, photo text, PRIMARY KEY (login))")
-
-      log.info("******************* UsersRepo has been activated *************************")
+      session.execute(s"CREATE TABLE IF NOT EXISTS ${keySpace}.users(login text, created_at timestamp, password text, photo text, PRIMARY KEY (login))").one()
+      log.info("******************* Users has been activated *************************")
       (context become active(session, selectStmt, insertStmt))
   }
 
