@@ -8,10 +8,10 @@ import com.datastax.driver.core._
 import com.datastax.driver.core.exceptions.WriteTimeoutException
 import org.mindrot.jbcrypt.BCrypt
 import shared.protocol.SignInResponse
-import akka.pattern.pipe
 
 import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
+import akka.pattern._
 
 object UsersRepo {
   case object Activate
@@ -75,7 +75,6 @@ class UsersRepo extends Actor with ActorLogging {
 
   override def receive = idle
 
-  import akka.pattern._
   def active(session: Session, selectStmt: PreparedStatement, insertStmt: PreparedStatement): Receive = {
     case SignIn(login, password) =>
       val replyTo = sender()

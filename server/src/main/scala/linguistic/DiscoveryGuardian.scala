@@ -48,8 +48,6 @@ class DiscoveryGuardian(env: String, httpPort: Int, hostName: String) extends Ac
         .append('\n')
         .append(s"★ ★ ★  Akka seeds: ${config.getStringList("akka.cluster.seed-nodes")}  ★ ★ ★")
         .append('\n')
-        .append(s"★ ★ ★  Cassandra entry points: ${config.getString("cassandra.hosts")}  ★ ★ ★")
-        .append('\n')
         .append(s"★ ★ ★  Cassandra domain points: ${config.getStringList("cassandra-journal.contact-points")}  ★ ★ ★")
         .append('\n')
         .append(s"★ ★ ★  Server online at https://${config.getString("akka.http.interface")}:${httpPort}   ★ ★ ★")

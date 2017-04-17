@@ -87,5 +87,4 @@ object Application extends App with AppSupport {
 
   val coreSystem: ActorSystem = ActorSystem("linguistics", config)
   coreSystem.actorOf(DiscoveryGuardian.props(env, httpPort.toInt, hostName), "guardian")
-  //Auto-downing (DO NOT USE)
 }
