@@ -36,9 +36,12 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
   val wordShard = ClusterSharding(coreSystem).shardRegion(WordShardEntity.Name)
   val homophonesShard = ClusterSharding(coreSystem).shardRegion(HomophonesSubTreeShardEntity.Name)
   val regions = scala.collection.immutable.Set(wordShard, homophonesShard)
+
+  val users = system.actorOf(UsersRepo.props, "users")
+
   val searchMaster = system.actorOf(SearchMaster.props(mat, wordShard, homophonesShard), name = "search-master")
 
-  val routes = new api.SearchApi(searchMaster).route ~ new api.UsersApi().route ~
+  val routes = new api.SearchApi(searchMaster).route ~ new api.UsersApi(users).route ~
     new api.ClusterApi(self, searchMaster, regions).route
 
   Http()
@@ -55,6 +58,7 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
 
     wordShard ! Identify(None)
     homophonesShard ! Identify(None)
+    users ! UsersRepo.Activate
 
     //https://gist.github.com/nelanka/891e9ac82fc83a6ab561
     import scala.concurrent.duration._

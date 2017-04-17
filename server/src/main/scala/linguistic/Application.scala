@@ -53,15 +53,15 @@ object Application extends App with AppSupport {
     """.stripMargin
 
 
-  val line = dbHosts.split(",").map(h=> s""" "$h" """).mkString(",").dropRight(1)
+  val contactPoints = dbHosts.split(",").map(h=> s""" "$h" """).mkString(",").dropRight(1)
   val dbConf =
     s"""
       |cassandra-journal {
-      |   contact-points = [ $line ]
+      |   contact-points = [ $contactPoints ]
       |}
       |
       |cassandra-snapshot-store {
-      |   contact-points = [ $line ]
+      |   contact-points = [ $contactPoints ]
       |}
       |
     """.stripMargin
