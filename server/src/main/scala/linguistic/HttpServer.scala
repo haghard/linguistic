@@ -62,10 +62,10 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
 
     wordShard.ask(Identify(1)).mapTo[ActorIdentity].flatMap { ident =>
       if(ident.correlationId == 1) {
-        log.info("************************ Word-Shard ****************")
+        log.info("Identified Word-Shard")
         homophonesShard.ask(Identify(2)).mapTo[ActorIdentity].map { ident =>
           if (ident.correlationId == 2) {
-            log.info("************************ Homophones-Shard ****************")
+            log.info("Identified Homophones-Shard")
             users ! UsersRepo.Activate
           } else throw new Exception(s"Couldn't start homophones-shard ${ident.correlationId}")
         }

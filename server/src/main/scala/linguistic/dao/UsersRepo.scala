@@ -11,11 +11,23 @@ import shared.protocol.SignInResponse
 import akka.pattern.pipe
 
 import scala.collection.JavaConverters._
+import scala.util.{Failure, Success, Try}
 
 object UsersRepo {
   case object Activate
   case class SignIn(login: String, password: String)
   case class SignUp(login: String, password: String, photo: String)
+
+  def retry(f: () => Session, n: Int): Session = {
+    Try(f()) match {
+      case Success(r) =>  r
+      case Failure(ex) =>
+        if(n > 0) {
+          Thread.sleep(1000)
+          retry(f, n - 1)
+        } else throw ex
+    }
+  }
 
   def props() = Props(new UsersRepo).withDispatcher("shard-dispatcher")
 }
@@ -42,7 +54,7 @@ class UsersRepo extends Actor with ActorLogging {
         .withQueryOptions(new QueryOptions().setConsistencyLevel(ConsistencyLevel.QUORUM))
         .build
 
-      val session = (cluster connect keySpace)
+      val session = retry(() => (cluster connect keySpace), 5)
 
       cluster.getConfiguration().getCodecRegistry().register(InstantCodec.instance)
 
