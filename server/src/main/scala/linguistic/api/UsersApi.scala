@@ -13,20 +13,17 @@ import linguistic.{AuthTokenSupport, ServerSession}
 import shared.protocol.SignInResponse
 
 //val photo = "https://avatars.githubusercontent.com/u/1887034?v=3"
-class UsersApi(/*users: UsersRepo*/)(implicit val system: ActorSystem) extends BaseApi with AuthTokenSupport {
+class UsersApi(implicit val system: ActorSystem) extends BaseApi with AuthTokenSupport {
   val Ch = StandardCharsets.UTF_8
 
   private def respondWithUserError(error: String) = {
     complete(HttpResponse(InternalServerError, entity = s"""{ "error": "${error}" }"""))
   }
 
-  //UserServerApi(users, system)
 
   import scala.concurrent.duration._
   implicit val t = akka.util.Timeout(5.seconds)
   val users = system.actorOf(UsersRepo.props)
-
-  users ! UsersRepo.Activate
 
   import akka.pattern.ask
 
@@ -45,6 +42,7 @@ class UsersApi(/*users: UsersRepo*/)(implicit val system: ActorSystem) extends B
                     val pas = profile(1)
                     val photo = profile(2)
                     log.info(s"signup request from: $host login: $login")
+                    users ! UsersRepo.Activate
                     onSuccess((users ask UsersRepo.SignUp(login, pas, photo)).mapTo[String Either Boolean]) {
                       case Right(true) =>
                         setSession(oneOff, usingHeaders, ServerSession(login)) {
@@ -65,6 +63,7 @@ class UsersApi(/*users: UsersRepo*/)(implicit val system: ActorSystem) extends B
                   val loginPassword = decoded.split(shared.Routes.Separator)
                   if (loginPassword.length == 2) {
                     log.info(s"sign-in request from: $host login: ${loginPassword(0)} ")
+                    users ! UsersRepo.Activate
                     onSuccess((users ask UsersRepo.SignIn(loginPassword(0), loginPassword(1))).mapTo[String Either SignInResponse]) {
                       case Right(response) =>
                         setSession(oneOff, usingHeaders, ServerSession(response.login)) {
