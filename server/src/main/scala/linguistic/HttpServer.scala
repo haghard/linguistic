@@ -66,7 +66,7 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
       .sequence(Seq((searchMaster ? SearchWord("average", 1)), (homophonesShard ? SearchHomophones("rose", 1))))
       .map(_  =>  users ! Activate)
       .onFailure {  case e: Throwable =>
-        throw new Exception(e, "Couldn't activate sharded-domain")
+        throw new Exception("Couldn't activate sharded-domain", e)
       }
 
     //https://gist.github.com/nelanka/891e9ac82fc83a6ab561
