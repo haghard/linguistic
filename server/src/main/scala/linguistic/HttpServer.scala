@@ -64,7 +64,7 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
 
     //wake up could make longer than ...
     //Create schema and cache words that starts with a
-    implicit val t = akka.util.Timeout(15.seconds)
+    implicit val t = akka.util.Timeout(10.seconds)
 
     Future.sequence(
       Seq((searchMaster ? SearchWord("average", 1)), (homophonesShard ? SearchHomophones("rose", 1))))

@@ -20,7 +20,7 @@ class SearchMaster(mat: ActorMaterializer, wordslist: ActorRef, homophones: Acto
 
   import context.dispatcher
 
-  implicit val timeout = Timeout(15.seconds)
+  implicit val timeout = Timeout(10.seconds)
 
   override def receive: Receive = {
     case search: SearchWord => (wordslist ? search).pipeTo(sender())
