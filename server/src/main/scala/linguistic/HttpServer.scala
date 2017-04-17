@@ -7,6 +7,7 @@ import akka.stream.ActorMaterializerSettings
 import akka.actor.{Actor, ActorIdentity, ActorLogging, Identify, Props, Status}
 import linguistic.utils.ShutdownCoordinator
 import ShutdownCoordinator.NodeShutdownOpts
+import linguistic.WordsSearchProtocol.SearchWord
 import linguistic.ps.{HomophonesSubTreeShardEntity, WordShardEntity}
 
 object HttpServer {
@@ -63,6 +64,8 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
     wordShard.ask(Identify(1)).mapTo[ActorIdentity].flatMap { ident =>
       if(ident.correlationId == 1) {
         log.info("Identified Word-Shard")
+        wordShard ! SearchWord("Aaa", 1)
+
         homophonesShard.ask(Identify(2)).mapTo[ActorIdentity].map { ident =>
           if (ident.correlationId == 2) {
             log.info("Identified Homophones-Shard")
