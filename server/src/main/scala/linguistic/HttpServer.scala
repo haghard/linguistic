@@ -75,8 +75,8 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
   }
 
   def handleBindFailure(cause: Throwable) = {
-    log.error(cause, s"Can't bind to $address:$port!")
-    (context stop self)
+    log.error(cause, s"Can't bind to $address:$port")
+    context stop self
   }
 
   def bound(b: akka.http.scaladsl.Http.ServerBinding): Receive = {
