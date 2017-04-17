@@ -55,6 +55,7 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
     case Status.Failure(c) => handleBindFailure(c)
   }
 
+  import scala.concurrent.Future
   import scala.concurrent.duration._
   def serverBinding(b: akka.http.scaladsl.Http.ServerBinding) = {
     log.info("Binding on {}",  b.localAddress)
@@ -62,17 +63,17 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
     import akka.pattern.ask
 
     //wake up could make longer than ...
-    implicit val t = akka.util.Timeout(30 seconds)
+    //Create schema and cache words that starts with a
+    implicit val t = akka.util.Timeout(1 minute)
 
-    scala.concurrent.Future
-      .sequence(Seq((searchMaster ? SearchWord("average", 1)), (homophonesShard ? SearchHomophones("rose", 1))))
+    Future.sequence(Seq((searchMaster ? SearchWord("average", 1)), (homophonesShard ? SearchHomophones("rose", 1))))
       .map(_  =>  users ! Activate)
       .onFailure {  case e: Throwable =>
         throw new Exception("Couldn't activate sharded-domains", e)
       }
 
     //https://gist.github.com/nelanka/891e9ac82fc83a6ab561
-    ShutdownCoordinator.register(NodeShutdownOpts(5 seconds, 20 seconds), self, regions)(coreSystem)
+    ShutdownCoordinator.register(NodeShutdownOpts(), self, regions)(coreSystem)
     context become bound(b)
   }
 

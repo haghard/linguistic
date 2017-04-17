@@ -10,6 +10,7 @@ import linguistic.HttpServer
 import scala.concurrent.Await
 import scala.concurrent.duration.FiniteDuration
 import scala.util.{Failure, Success}
+import scala.concurrent.duration._
 
 /*
   1 JVM gets the shutdown signal
@@ -22,8 +23,8 @@ object ShutdownCoordinator {
 
   // Shutdown options
   final case class NodeShutdownOpts(
-    nodeShutdownSingletonMigrationDelay: FiniteDuration,
-    actorSystemShutdownTimeout: FiniteDuration)
+    nodeShutdownSingletonMigrationDelay: FiniteDuration = 5 seconds,
+    actorSystemShutdownTimeout: FiniteDuration  = 20 seconds)
 
   // Messaging Protocol
   sealed trait NodeShutdownProtocol
