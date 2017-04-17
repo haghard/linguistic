@@ -66,10 +66,10 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
     //Create schema and cache words that starts with a
     implicit val t = akka.util.Timeout(15.seconds)
 
-    Future.sequence(Seq((searchMaster ? SearchWord("average", 1)), (homophonesShard ? SearchHomophones("rose", 1))))
-      .map(_  =>  users ! Activate)
-      .onFailure {  case e: Throwable =>
-        throw new Exception("Couldn't activate sharded-domains", e)
+    Future.sequence(
+      Seq((searchMaster ? SearchWord("average", 1)), (homophonesShard ? SearchHomophones("rose", 1))))
+      .onComplete {
+        users ! Activate
       }
 
     //https://gist.github.com/nelanka/891e9ac82fc83a6ab561
