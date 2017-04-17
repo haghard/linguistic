@@ -36,16 +36,6 @@ class ClusterApi(http: ActorRef, searchMaster: ActorRef, regions: Set[ActorRef])
           HttpResponse(entity = r.regions.mkString(","))
         }
       }
-    }/* ~ (get & path("stop")) {
-      complete {
-        http ! HttpServer.Stop
-
-        Future {
-          ShutdownCoordinator.shutdown(NodeShutdownOpts(5 seconds, 20 seconds), regions)(sys)
-        }(scala.concurrent.ExecutionContext.global)
-
-        "Shutdown ..."
-      }
-    }*/
+    }
   }
 }

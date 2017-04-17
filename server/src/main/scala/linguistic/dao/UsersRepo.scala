@@ -2,6 +2,7 @@ package linguistic.dao
 
 import java.net.InetSocketAddress
 import java.time.Instant
+import java.util.concurrent.atomic.AtomicBoolean
 
 import akka.actor.ActorSystem
 import akka.event.LoggingAdapter
@@ -17,7 +18,7 @@ class UsersRepo()(implicit system: ActorSystem, ex: ExecutionContext) {
 
   import linguistic._
 
-  //val localDC = system.settings.config.getString("cassandra.dc")
+  val active = new AtomicBoolean()
   val cassandraPort = system.settings.config.getInt("cassandra.port")
   val keySpace = system.settings.config.getString("cassandra.keyspace")
   val cassandraHosts = system.settings.config.getString("cassandra.hosts").split(",").toSeq.map(new InetSocketAddress(_, cassandraPort))
@@ -36,10 +37,8 @@ class UsersRepo()(implicit system: ActorSystem, ex: ExecutionContext) {
 
   cluster.getConfiguration().getCodecRegistry().register(InstantCodec.instance)
 
-  val insertUsers = "INSERT INTO users(login, password, photo, created_at) VALUES (?, ?, ?, ?) IF NOT EXISTS"
   val selectUser = "SELECT login, password, photo FROM users where login = ?"
-
-  session.execute(s"CREATE TABLE IF NOT EXISTS ${keySpace}.users(login text, created_at timestamp, password text, photo text, PRIMARY KEY (login))")
+  val insertUsers = "INSERT INTO users(login, password, photo, created_at) VALUES (?, ?, ?, ?) IF NOT EXISTS"
 
   private val insertStmt = session.prepare(insertUsers)
 
@@ -51,39 +50,54 @@ class UsersRepo()(implicit system: ActorSystem, ex: ExecutionContext) {
   selectStmt.setConsistencyLevel(ConsistencyLevel.SERIAL)
   selectStmt.enableTracing
 
-  def signIn(login: String, password: String, log: LoggingAdapter)(implicit ex:ExecutionContext): Future[Either[String, SignInResponse]] = {
-    session.executeAsync(selectStmt.bind(login)).asScala.map { r =>
-      val queryTrace = r.getExecutionInfo.getQueryTrace
-      log.info("Trace id: {}", queryTrace.getTraceId)
+  private def createUsersTable = {
+    session.execute(s"CREATE TABLE IF NOT EXISTS ${keySpace}.users(login text, created_at timestamp, password text, photo text, PRIMARY KEY (login))")
+    active.compareAndSet(false, true)
+  }
 
-      val row = r.one
-      if (row eq null) Left(s"Couldn't find user $login")
-      else if (BCrypt.checkpw(password, row.getString("password"))) {
-        Right(SignInResponse(row.getString("login"), row.getString("photo")))
+  def signIn(login: String, password: String, log: LoggingAdapter)(implicit ex:ExecutionContext): Future[Either[String, SignInResponse]] = {
+    if(active.get) {
+      session.executeAsync(selectStmt.bind(login)).asScala.map { r =>
+        val queryTrace = r.getExecutionInfo.getQueryTrace
+        log.info("Trace id: {}", queryTrace.getTraceId)
+
+        val row = r.one
+        if (row eq null) Left(s"Couldn't find user $login")
+        else if (BCrypt.checkpw(password, row.getString("password"))) {
+          Right(SignInResponse(row.getString("login"), row.getString("photo")))
+        }
+        else Left("Something went wrong. Password mismatches")
       }
-      else Left("Something went wrong. Password mismatches")
+    } else {
+      createUsersTable
+      signIn(login, password, log)
     }
   }
 
   def signUp(login: String, password: String, photo: String)(implicit ex:ExecutionContext): Future[Either[String, Boolean]] = {
-    val createdAt = Instant.now()
-    session.executeAsync(insertStmt.bind(login, BCrypt.hashpw(password, BCrypt.gensalt), photo, createdAt)).asScala
-      .map(r => Right(r.wasApplied))
-      .recover {
-        case e: WriteTimeoutException =>
-          log.error(e, "Cassandra write error :")
-          if (e.getWriteType eq WriteType.CAS) {
-            //UnknownException
-            Left(s"Unknown result: ${e.getMessage}")
-          } else if (e.getWriteType eq WriteType.SIMPLE) {
-            //commit stage has failed
-            Left(s"Commit stage has failed: ${e.getMessage}")
-          } else {
-            Left(s"Unexpected write type: ${e.getMessage}")
-          }
-        case ex: Exception =>
-          log.error(ex, "Cassandra error :")
-          Left(s"Db access error: ${ex.getMessage}")
-      }
+    if(active.get) {
+      val createdAt = Instant.now()
+      session.executeAsync(insertStmt.bind(login, BCrypt.hashpw(password, BCrypt.gensalt), photo, createdAt)).asScala
+        .map(r => Right(r.wasApplied))
+        .recover {
+          case e: WriteTimeoutException =>
+            log.error(e, "Cassandra write error :")
+            if (e.getWriteType eq WriteType.CAS) {
+              //UnknownException
+              Left(s"Unknown result: ${e.getMessage}")
+            } else if (e.getWriteType eq WriteType.SIMPLE) {
+              //commit stage has failed
+              Left(s"Commit stage has failed: ${e.getMessage}")
+            } else {
+              Left(s"Unexpected write type: ${e.getMessage}")
+            }
+          case ex: Exception =>
+            log.error(ex, "Cassandra error :")
+            Left(s"Db access error: ${ex.getMessage}")
+        }
+    } else {
+      createUsersTable
+      signUp(login, password, photo)
+    }
   }
 }
