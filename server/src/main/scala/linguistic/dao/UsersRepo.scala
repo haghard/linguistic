@@ -51,6 +51,7 @@ class UsersRepo()(implicit system: ActorSystem, ex: ExecutionContext) {
   selectStmt.enableTracing
 
   private def createUsersTable = {
+    log.warning("Create users table")
     session.execute(s"CREATE TABLE IF NOT EXISTS ${keySpace}.users(login text, created_at timestamp, password text, photo text, PRIMARY KEY (login))")
     active.compareAndSet(false, true)
   }
