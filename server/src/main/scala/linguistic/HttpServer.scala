@@ -60,7 +60,9 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
     log.info("Binding on {}",  b.localAddress)
 
     import akka.pattern.ask
-    implicit val t = akka.util.Timeout(5 seconds)
+
+    //wake up 
+    implicit val t = akka.util.Timeout(15 seconds)
 
     scala.concurrent.Future
       .sequence(Seq((searchMaster ? SearchWord("average", 1)), (homophonesShard ? SearchHomophones("rose", 1))))
