@@ -4,7 +4,7 @@ import linguistic.Application._
 import linguistic.dao.UsersRepo
 import akka.cluster.sharding.ClusterSharding
 import akka.stream.ActorMaterializerSettings
-import akka.actor.{Actor, ActorLogging, Identify, Props, Status}
+import akka.actor.{Actor, ActorIdentity, ActorLogging, Identify, Props, Status}
 import linguistic.utils.ShutdownCoordinator
 import ShutdownCoordinator.NodeShutdownOpts
 import linguistic.ps.{HomophonesSubTreeShardEntity, WordShardEntity}
@@ -56,9 +56,15 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
   def serverBinding(b: akka.http.scaladsl.Http.ServerBinding) = {
     log.info("Binding on {}",  b.localAddress)
 
-    wordShard ! Identify(None)
-    homophonesShard ! Identify(None)
-    users ! UsersRepo.Activate
+    import akka.pattern.ask
+    (wordShard ask Identify(1)).mapTo[ActorIdentity].flatMap { ident =>
+      if(ident.correlationId == 1)
+        (homophonesShard ask Identify(2)).mapTo[ActorIdentity].flatMap { ident
+          if(ident.correlationId == 2) users ! UsersRepo.Activate
+          else throw Exception(s"Couldn't start homophones ${ident.correlationId}")
+        }
+      else throw Exception(s"Couldn't start wordShard ${ident.correlationId}")
+    }
 
     //https://gist.github.com/nelanka/891e9ac82fc83a6ab561
     import scala.concurrent.duration._
