@@ -55,7 +55,8 @@ lazy val server = (project in file("server")).settings(
 
     "org.scalatest"    %% "scalatest"       % "3.0.1" % "test"
   ) ++ Seq(
-    "com.softwaremill.akka-http-session" %% "core" % "0.4.0",
+    ("com.softwaremill.akka-http-session" %% "core" % "0.4.0").exclude("com.typesafe.akka", "akka-http"),
+    "com.typesafe.akka" %% "akka-http" % "10.0.5",
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-tools" % akkaVersion,
