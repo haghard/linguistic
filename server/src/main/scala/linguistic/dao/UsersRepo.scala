@@ -59,6 +59,7 @@ class UsersRepo extends Actor with ActorLogging {
       val session = retry(() => (cluster connect keySpace), 5)
 
       cluster.getConfiguration().getCodecRegistry().register(InstantCodec.instance)
+      session.execute(s"CREATE TABLE IF NOT EXISTS ${keySpace}.users(login text, created_at timestamp, password text, photo text, PRIMARY KEY (login))").one()
 
       //for 1 dc
       val insertStmt = (session prepare insertUsers)
@@ -69,8 +70,6 @@ class UsersRepo extends Actor with ActorLogging {
       selectStmt.setConsistencyLevel(ConsistencyLevel.SERIAL)
       selectStmt.enableTracing
 
-      session.execute(s"CREATE TABLE IF NOT EXISTS ${keySpace}.users(login text, created_at timestamp, password text, photo text, PRIMARY KEY (login))").one()
-      log.info("******************* Users has been activated *************************")
       (context become active(session, selectStmt, insertStmt))
   }
 
