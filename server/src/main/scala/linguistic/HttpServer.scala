@@ -57,13 +57,14 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
     log.info("Binding on {}",  b.localAddress)
 
     import akka.pattern.ask
+    implicit val _ = akka.util.Timeout(3.seconds)
     (wordShard ask Identify(1)).mapTo[ActorIdentity].flatMap { ident =>
       if(ident.correlationId == 1) {
         (homophonesShard ask Identify(2)).mapTo[ActorIdentity].map { ident =>
           if (ident.correlationId == 2) users ! UsersRepo.Activate
-          else throw new Exception(s"Couldn't start homophones ${ident.correlationId}")
+          else throw new Exception(s"Couldn't start homophones-shard ${ident.correlationId}")
         }
-      } else throw new Exception(s"Couldn't start wordShard ${ident.correlationId}")
+      } else throw new Exception(s"Couldn't start words-shard ${ident.correlationId}")
     }
 
     //https://gist.github.com/nelanka/891e9ac82fc83a6ab561
