@@ -53,14 +53,16 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
     case Status.Failure(c) => handleBindFailure(c)
   }
 
+  import scala.concurrent.duration._
   def serverBinding(b: akka.http.scaladsl.Http.ServerBinding) = {
     log.info("Binding on {}",  b.localAddress)
 
     import akka.pattern.ask
-    implicit val _ = akka.util.Timeout(3.seconds)
-    (wordShard ask Identify(1)).mapTo[ActorIdentity].flatMap { ident =>
+    implicit val t = akka.util.Timeout(3 seconds)
+
+    wordShard.ask(Identify(1)).mapTo[ActorIdentity].flatMap { ident =>
       if(ident.correlationId == 1) {
-        (homophonesShard ask Identify(2)).mapTo[ActorIdentity].map { ident =>
+        homophonesShard.ask(Identify(2)).mapTo[ActorIdentity].map { ident =>
           if (ident.correlationId == 2) users ! UsersRepo.Activate
           else throw new Exception(s"Couldn't start homophones-shard ${ident.correlationId}")
         }
@@ -68,7 +70,6 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
     }
 
     //https://gist.github.com/nelanka/891e9ac82fc83a6ab561
-    import scala.concurrent.duration._
     ShutdownCoordinator.register(NodeShutdownOpts(5 seconds, 20 seconds), self, regions)(coreSystem)
     context become bound(b)
   }
