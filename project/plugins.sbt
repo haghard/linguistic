@@ -14,4 +14,10 @@ addSbtPlugin("se.marcuslonnberg" % "sbt-docker" % "1.4.0")
 
 addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.6.0")
 
+addSbtPlugin("com.dwijnand" % "sbt-travisci" % "1.0.0")
+
+//addSbtPlugin("com.lightbend.paradox"  % "sbt-paradox"  % "0.2.7")
+
+//addSbtPlugin("com.dwijnand" % "sbt-dynver" % "1.0.0")
+
 //addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.1.0")

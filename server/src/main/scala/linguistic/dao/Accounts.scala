@@ -13,7 +13,7 @@ import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
 import akka.pattern._
 
-object UsersRepo {
+object Accounts {
   case object Activate
   case class SignIn(login: String, password: String)
   case class SignUp(login: String, password: String, photo: String)
@@ -29,11 +29,11 @@ object UsersRepo {
     }
   }
 
-  def props() = Props(new UsersRepo).withDispatcher("shard-dispatcher")
+  def props = Props(new Accounts).withDispatcher("shard-dispatcher")
 }
 
-class UsersRepo extends Actor with ActorLogging {
-  import UsersRepo._
+class Accounts extends Actor with ActorLogging {
+  import Accounts._
   import linguistic._
   //https://datastax.github.io/java-driver/manual/custom_codecs/extras/
   import com.datastax.driver.extras.codecs.jdk8.InstantCodec

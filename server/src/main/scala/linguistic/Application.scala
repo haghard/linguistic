@@ -9,6 +9,10 @@ import scala.collection._
 //-Duser.timezone=UTC
 //TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
 object Application extends App with AppSupport {
+
+  //java.util.TimeZone.setDefault
+  val tz = java.util.TimeZone.getDefault.getID
+
   val opts: Map[String, String] = argsToOpts(args.toList)
   applySystemProperties(opts)
 

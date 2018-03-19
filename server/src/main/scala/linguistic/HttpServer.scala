@@ -1,12 +1,13 @@
 package linguistic
 
 import akka.actor.{Actor, ActorLogging, Props, Status}
+import akka.cluster.Cluster
 import akka.cluster.sharding.ClusterSharding
 import akka.stream.ActorMaterializerSettings
 import linguistic.Application._
 import linguistic.WordsSearchProtocol.{SearchHomophones, SearchWord}
-import linguistic.dao.UsersRepo
-import linguistic.dao.UsersRepo.Activate
+import linguistic.dao.Accounts
+import linguistic.dao.Accounts.Activate
 import linguistic.ps.{HomophonesSubTreeShardEntity, WordShardEntity}
 import linguistic.utils.ShutdownCoordinator
 import linguistic.utils.ShutdownCoordinator.NodeShutdownOpts
@@ -41,7 +42,7 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
   val homophonesShard = ClusterSharding(coreSystem).shardRegion(HomophonesSubTreeShardEntity.Name)
   val regions = scala.collection.immutable.Set(wordShard, homophonesShard)
 
-  val users = system.actorOf(UsersRepo.props, "users")
+  val users = system.actorOf(Accounts.props, "users")
 
   val searchMaster = system.actorOf(SearchMaster.props(mat, wordShard, homophonesShard), name = "search-master")
 
@@ -66,6 +67,8 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
 
     //https://gist.github.com/nelanka/891e9ac82fc83a6ab561
     ShutdownCoordinator.register(NodeShutdownOpts(), self, regions)(coreSystem)
+
+    //ClusterHttpManagement(Cluster(coreSystem))
     context become bound(b)
   }
 

@@ -8,7 +8,7 @@ import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import com.softwaremill.session.SessionDirectives._
 import com.softwaremill.session.SessionOptions._
-import linguistic.dao.UsersRepo
+import linguistic.dao.Accounts
 import linguistic.{AuthTokenSupport, ServerSession}
 import shared.protocol.SignInResponse
 
@@ -41,7 +41,7 @@ class UsersApi(users: ActorRef)(implicit val system: ActorSystem) extends BaseAp
                     val pas = profile(1)
                     val photo = profile(2)
                     log.info(s"signup request from: $host login: $login")
-                    onSuccess((users ask UsersRepo.SignUp(login, pas, photo)).mapTo[String Either Boolean]) {
+                    onSuccess((users ask Accounts.SignUp(login, pas, photo)).mapTo[String Either Boolean]) {
                       case Right(true) =>
                         setSession(oneOff, usingHeaders, ServerSession(login)) {
                           complete(HttpResponse(StatusCodes.OK))
@@ -61,7 +61,7 @@ class UsersApi(users: ActorRef)(implicit val system: ActorSystem) extends BaseAp
                   val loginPassword = decoded.split(shared.Routes.Separator)
                   if (loginPassword.length == 2) {
                     log.info(s"sign-in request from: $host login: ${loginPassword(0)} ")
-                    onSuccess((users ask UsersRepo.SignIn(loginPassword(0), loginPassword(1))).mapTo[String Either SignInResponse]) {
+                    onSuccess((users ask Accounts.SignIn(loginPassword(0), loginPassword(1))).mapTo[String Either SignInResponse]) {
                       case Right(response) =>
                         setSession(oneOff, usingHeaders, ServerSession(response.login)) {
                           import upickle.default._
