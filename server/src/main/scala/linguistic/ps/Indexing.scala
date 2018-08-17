@@ -31,7 +31,7 @@ trait Indexing[T] {
       .via(Framing.delimiter(ByteString("\n"), Int.MaxValue))
 
   def buildIndex(key: String, path: String): Unit = {
-    log.info(s"read data from disk for $key")
+    log.info(s"read raw data from disk by $key")
     keywordsSource(path)
       .map(_.utf8String)
       .filter(_.toLowerCase(Locale.ROOT) startsWith key)

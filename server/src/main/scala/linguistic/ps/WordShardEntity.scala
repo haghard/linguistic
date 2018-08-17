@@ -30,7 +30,7 @@ object WordShardEntity {
   val Name = "wordslist"
 
   def props(mat: ActorMaterializer): Props =
-    Props(new WordShardEntity("./words.txt")(mat)).withDispatcher("shard-dispatcher")
+    Props(new WordShardEntity()(mat)).withDispatcher("shard-dispatcher")
 }
 
 /**
@@ -41,12 +41,12 @@ object WordShardEntity {
   * Filtering by prefix will also benefit a lot from structural sharing.
   *
   */
-class WordShardEntity(path: String)(implicit val mat: ActorMaterializer) extends PersistentActor
+class WordShardEntity(implicit val mat: ActorMaterializer) extends PersistentActor
   with ActorLogging with Indexing[Unit] with Stash with Passivation {
 
+  val path = "./words.txt"
   override val key = self.path.name
 
-  //self.path.name
   val passivationTimeout = 15.minutes
   context.setReceiveTimeout(passivationTimeout)
 
@@ -54,13 +54,15 @@ class WordShardEntity(path: String)(implicit val mat: ActorMaterializer) extends
 
   override def preStart() = {
     val file = new File(path)
-    log.info("AbsolutePath: {}", file.getAbsolutePath)
-    log.info("Started Entity Actor for key [{}] file.exists: {}", key, file.exists())
+    log.info("Pre-start ShardEntity:[{}] from:{} exists:{}",
+      key, file.getAbsolutePath, file.exists)
   }
 
-  override def postStop() = log.info("{} has been stopped", self)
+  override def postStop() =
+    log.info("ShardEntity has been stopped")
 
-  override def receiveCommand = indexing(RadixTree.empty[String, Unit])
+  override def receiveCommand =
+    indexing(RadixTree.empty[String, Unit])
 
   def indexing(index: SubTree): Receive = {
     case word: String =>
@@ -71,14 +73,14 @@ class WordShardEntity(path: String)(implicit val mat: ActorMaterializer) extends
       val indSeq = index.keys.to[collection.immutable.Seq]
       saveSnapshot(indSeq)
       unstashAll()
-      (context become passivate(active(index)))
+      context become passivate(active(index))
 
     case m: RestoredIndex[Unit]@unchecked =>
       if (m.index.count == 0) buildIndex(key, path)
       else {
         unstashAll()
         log.info("Index has been recovered from snapshot with size {} for key [{}]", m.index.count, key)
-        (context become passivate(active(m.index)))
+        context become passivate(active(m.index))
       }
 
     case SearchWord(prefix, _) =>
@@ -100,7 +102,7 @@ class WordShardEntity(path: String)(implicit val mat: ActorMaterializer) extends
       //val mb = GraphLayout.parseInstance(recoveredIndex).totalSize.toFloat / mbDivider
       //log.info("SnapshotOffer {}: count:{}", meta, recoveredIndex.count)
       case RecoveryCompleted =>
-        log.info("Recovered key: {} count:{}", key, recoveredIndex.count)
+        log.info("Recovered index by key: {} count:{}", key, recoveredIndex.count)
         self ! RestoredIndex(recoveredIndex)
         recoveredIndex = RadixTree.empty[String, Unit]
     }

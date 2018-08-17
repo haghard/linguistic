@@ -1,7 +1,6 @@
 package linguistic
 
 import akka.actor.{Actor, ActorLogging, Props, Status}
-import akka.cluster.Cluster
 import akka.cluster.sharding.ClusterSharding
 import akka.stream.ActorMaterializerSettings
 import linguistic.Application._
@@ -9,8 +8,6 @@ import linguistic.WordsSearchProtocol.{SearchHomophones, SearchWord}
 import linguistic.dao.Accounts
 import linguistic.dao.Accounts.Activate
 import linguistic.ps.{HomophonesSubTreeShardEntity, WordShardEntity}
-import linguistic.utils.ShutdownCoordinator
-import linguistic.utils.ShutdownCoordinator.NodeShutdownOpts
 
 object HttpServer {
   val HttpDispatcher = "akka.http.dispatcher"
@@ -44,7 +41,7 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
 
   val users = system.actorOf(Accounts.props, "users")
 
-  val searchMaster = system.actorOf(SearchMaster.props(mat, wordShard, homophonesShard), name = "search-master")
+  val searchMaster = system.actorOf(SearchMaster.props(mat, wordShard, homophonesShard), "search-master")
 
   val routes = new api.SearchApi(searchMaster).route ~ new api.UsersApi(users).route ~
     new api.ClusterApi(self, searchMaster, regions).route
@@ -66,7 +63,7 @@ class HttpServer(port: Int, address: String, keypass: String, storepass: String)
     users ! Activate
 
     //https://gist.github.com/nelanka/891e9ac82fc83a6ab561
-    ShutdownCoordinator.register(NodeShutdownOpts(), self, regions)(coreSystem)
+    //ShutdownCoordinator.register(NodeShutdownOpts(), self, regions)(coreSystem)
 
     //ClusterHttpManagement(Cluster(coreSystem))
     context become bound(b)

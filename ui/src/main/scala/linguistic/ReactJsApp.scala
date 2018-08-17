@@ -8,16 +8,14 @@ import linguistic.SignIn._
 import linguistic.SignUpModule._
 import linguistic.gateaway.{SignInMode, SignUpMode, UiSession}
 import org.scalajs.dom
-
 import scala.util.control.NonFatal
 
-object ReactJs {
-  val loginSelector = "#login"
+object ReactJsApp {
+  val loginSelector    = "#login"
   val passwordSelector = "#password"
-  val photoSelector = "#photo"
+  val photoSelector    = "#photo"
 
   class AppSessionBackend(scope: BackendScope[Map[String, String], UiSession]) {
-
     def signOut(e: ReactEventI): CallbackTo[Unit] = {
       e.preventDefaultCB >> scope.modState(s => s.copy(user = None, token = None))
     }
@@ -33,12 +31,12 @@ object ReactJs {
           val login = dom.document.querySelector(loginSelector).asInstanceOf[dom.html.Input].value
           val password = dom.document.querySelector(passwordSelector).asInstanceOf[dom.html.Input].value
           val (headerName, headerValue) = linguistic.gateaway.signInHeader(login, password)
-          linguistic.gateaway.signInAjax[shared.protocol.SignInResponse](shared.Routes.clientSignIn, Map((headerName, headerValue)))
+          linguistic.gateaway.signIn[shared.protocol.SignInResponse](shared.Routes.clientSignIn, Map((headerName, headerValue)))
             .map(r => scope.setState(UiSession(user = Option(r._1), token = Option(r._2))).runNow)
             .recover {
-              case e: org.scalajs.dom.ext.AjaxException =>
+              case _: org.scalajs.dom.ext.AjaxException =>
                 scope.modState(s => s.copy(error = Option("Sign in error. Check your password"))).runNow()
-              case NonFatal(e)  =>
+              case NonFatal(_) =>
                 scope.modState(s => s.copy(error = Option(s"Unexpected sign in error"))).runNow()
             }
         }
@@ -66,7 +64,7 @@ object ReactJs {
     val signInComponent = ReactComponentB[Map[String, String]]("ReactJsAppComponent")
       .initialState(UiSession(user = None, token = None))
       .backend(new AppSessionBackend(_))
-        .renderPS { (scope, props, state) =>
+      .renderPS { (scope, props, state) =>
         scope.backend.render(state, props, scope.backend)
       }.build
 

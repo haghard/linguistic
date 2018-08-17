@@ -10,9 +10,6 @@ import scala.collection._
 //TimeZone.setDefault(TimeZone.getTimeZone("UTC"))
 object Application extends App with AppSupport {
 
-  //java.util.TimeZone.setDefault
-  val tz = java.util.TimeZone.getDefault.getID
-
   val opts: Map[String, String] = argsToOpts(args.toList)
   applySystemProperties(opts)
 
@@ -42,45 +39,41 @@ object Application extends App with AppSupport {
 
   val constructrConf =
     s"""
-      |akka.extensions = [de.heikoseeberger.constructr.ConstructrExtension]
-      |constructr {
-      |  coordination {
-      |    host = ${discHost}
-      |    port = 2379
-      |    class-name = de.heikoseeberger.constructr.coordination.etcd.EtcdCoordination
-      |  }
-      |  max-nr-of-seed-nodes = 5
-      |  coordination-timeout = 5 seconds
-      |  nr-of-retries        = 3
-      |  join-timeout = 15 seconds
-      |}
+       |akka.extensions = [de.heikoseeberger.constructr.ConstructrExtension]
+       |constructr {
+       |  coordination {
+       |    class-name = de.heikoseeberger.constructr.coordination.etcd.EtcdCoordination
+       |    host = ${discHost}
+       |    port = 2379
+       |  }
+       |  max-nr-of-seed-nodes = 2
+       |  coordination-timeout = 5 seconds
+       |  nr-of-retries        = 3
+       |  join-timeout = 15 seconds
+       |}
     """.stripMargin
 
 
-  val contactPoints = dbHosts.split(",").map(h=> s""" "$h" """).mkString(",").dropRight(1)
+  val contactPoints = dbHosts.split(",").map(h => s""" "$h" """).mkString(",").dropRight(1)
   val dbConf =
     s"""
-      |cassandra-journal {
-      |   contact-points = [ $contactPoints ]
-      |}
-      |
-      |cassandra-snapshot-store {
-      |   contact-points = [ $contactPoints ]
-      |}
-      |
+       |cassandra-journal {
+       |  contact-points = [ $contactPoints ]
+       |}
+       |
+       |cassandra-snapshot-store {
+       |  contact-points = [ $contactPoints ]
+       |}
+       |
     """.stripMargin
 
   val effectedHttpConf = httpConf.replaceAll("%port%", tcpPort).replaceAll("%httpP%", httpPort)
     .replaceAll("%hostName%", hostName).replaceAll("%interface%", hostName)
 
-  val confDir = new File(confPath) /*sys.env.getOrElse("CONFIG", ".")*/
-
-  //for re~start
-  //val env = sys.env.getOrElse("ENV", throw new Exception("ENV is expected"))
 
   //for alias
   val env = Option(System.getProperty("ENV")).getOrElse(throw new Exception("ENV is expected"))
-  val configFile = new File(s"${confDir.getAbsolutePath}/" + env + ".conf")
+  val configFile = new File(s"${new File(confPath).getAbsolutePath}/" + env + ".conf")
 
   val config: Config =
     ConfigFactory.parseString(effectedHttpConf)

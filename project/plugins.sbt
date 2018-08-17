@@ -1,23 +1,6 @@
-addSbtPlugin("io.spray" % "sbt-revolver" % "0.8.0")
+resolvers += "Sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
 
-addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.1.4")
-
-addSbtPlugin("org.scala-js" % "sbt-scalajs" % "0.6.15")
-
-addSbtPlugin("com.vmunier" % "sbt-web-scalajs" % "1.0.3")
-
-addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.3.0")
-
-addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.3")
-
-addSbtPlugin("se.marcuslonnberg" % "sbt-docker" % "1.4.0")
-
-addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.6.0")
-
-addSbtPlugin("com.dwijnand" % "sbt-travisci" % "1.0.0")
-
-//addSbtPlugin("com.lightbend.paradox"  % "sbt-paradox"  % "0.2.7")
-
-//addSbtPlugin("com.dwijnand" % "sbt-dynver" % "1.0.0")
-
-//addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.1.0")
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.7")
+addSbtPlugin("org.scala-js" % "sbt-scalajs" % "0.6.23")
+addSbtPlugin("com.vmunier" % "sbt-web-scalajs" % "1.0.7") // 1.0.8 depends on scalaJs 1.0.0-M3
+addSbtPlugin("se.marcuslonnberg" % "sbt-docker" % "1.5.0")

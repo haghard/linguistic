@@ -2,7 +2,7 @@ package linguistic
 
 import japgolly.scalajs.react._
 import japgolly.scalajs.react.vdom.prefix_<^._
-import linguistic.ReactJs.AppSessionBackend
+import linguistic.ReactJsApp.AppSessionBackend
 import linguistic.gateaway.{SignInMode, UiSession}
 import org.scalajs.dom
 
@@ -26,7 +26,7 @@ object SignUpModule {
       e.preventDefaultCB >>
         Callback {
           val (h, v) = linguistic.gateaway.signUpHeader(login, password, photo)
-          linguistic.gateaway.signUpAjax(shared.Routes.clientSignUp, Map((h, v)))
+          linguistic.gateaway.signUp(shared.Routes.clientSignUp, Map((h, v)))
             .map { response =>
               val token = response.getResponseHeader(shared.Headers.fromServer)
               scope.modState(_.copy(token = Option(token))).runNow()

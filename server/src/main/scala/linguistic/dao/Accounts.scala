@@ -29,6 +29,9 @@ object Accounts {
     }
   }
 
+  val selectUser = "SELECT login, password, photo FROM users where login = ?"
+  val insertUsers = "INSERT INTO users(login, password, photo, created_at) VALUES (?, ?, ?, ?) IF NOT EXISTS"
+
   def props = Props(new Accounts).withDispatcher("shard-dispatcher")
 }
 
@@ -37,9 +40,6 @@ class Accounts extends Actor with ActorLogging {
   import linguistic._
   //https://datastax.github.io/java-driver/manual/custom_codecs/extras/
   import com.datastax.driver.extras.codecs.jdk8.InstantCodec
-
-  val selectUser = "SELECT login, password, photo FROM users where login = ?"
-  val insertUsers = "INSERT INTO users(login, password, photo, created_at) VALUES (?, ?, ?, ?) IF NOT EXISTS"
 
   val cassandraPort = context.system.settings.config.getInt("cassandra-journal.port")
   val keySpace = context.system.settings.config.getString("cassandra-journal.keyspace")
@@ -66,11 +66,10 @@ class Accounts extends Actor with ActorLogging {
       insertStmt.setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL)
       insertStmt.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 
-      val selectStmt = (session prepare selectUser)
+      val selectStmt = session prepare selectUser
       selectStmt.setConsistencyLevel(ConsistencyLevel.SERIAL)
       selectStmt.enableTracing
-
-      (context become active(session, selectStmt, insertStmt))
+      context become active(session, selectStmt, insertStmt)
   }
 
   override def receive = idle
@@ -83,9 +82,8 @@ class Accounts extends Actor with ActorLogging {
         log.info("Trace id: {}", queryTrace.getTraceId)
         val row = r.one
         if (row eq null) Left(s"Couldn't find user $login")
-        else if (BCrypt.checkpw(password, row.getString("password"))) {
+        else if (BCrypt.checkpw(password, row.getString("password")))
           Right(SignInResponse(row.getString("login"), row.getString("photo")))
-        }
         else Left("Something went wrong. Password mismatches")
       }.pipeTo(replyTo)
 

@@ -1,18 +1,16 @@
 import _root_.sbtdocker.DockerPlugin.autoImport._
 import sbt._
-import com.typesafe.sbt.packager.docker.Dockerfile
 import sbtdocker.ImageName
 
+import scala.sys.process.Process
+
 val scalaV = "2.12.1"
-val akkaVersion = "2.5.0"
-val version = "0.2"
+val akkaVersion = "2.5.14"
+val version = "0.3"
 
 name := "linguistic"
 
-resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/"
-
-//val appStage = settingKey[String]("stage")
-//appStage := sys.props.getOrElse("stage", "development")
+//resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/"
 
 updateOptions in Global := updateOptions.in(Global).value.withCachedResolution(true)
 
@@ -28,7 +26,7 @@ lazy val server = (project in file("server")).settings(
   scalaJSProjects := Seq(ui),
   pipelineStages in Assets := Seq(scalaJSPipeline),
   // triggers scalaJSPipeline when using compile or continuous compilation
-  compile in Compile <<= (compile in Compile).dependsOn(scalaJSPipeline/*,cpCss*/),
+  compile in Compile := (compile in Compile).dependsOn(scalaJSPipeline, cpCss).value,
 
   name := "server",
 
@@ -38,16 +36,15 @@ lazy val server = (project in file("server")).settings(
   javaOptions in run ++= Seq("-Xms128m", "-Xmx1024m"),
 
   libraryDependencies ++= Seq(
-    //"com.iheart"      %%  "ficus"           % "1.1.3",
     "ch.qos.logback"  %   "logback-classic" % "1.1.2",
     "org.mindrot"     %   "jbcrypt"         % "0.3m",
 
     "com.vmunier"     %%  "scalajs-scripts" % "1.1.0", //Twirl templates to link Scala.js output scripts into a HTML page.
 
-    "com.lihaoyi"     %%  "scalatags"       % "0.6.2",
+    "com.lihaoyi"     %%  "scalatags"       % "0.6.7",
     "org.webjars"     %   "bootstrap"       % "3.3.6",
 
-    "com.datastax.cassandra" % "cassandra-driver-extras" % "3.1.0",
+    "com.datastax.cassandra" % "cassandra-driver-extras" % "3.4.0",
 
     "com.jsuereth"     %% "scala-arm"       % "2.0",
     "org.openjdk.jol"  %  "jol-core"        % "0.6",
@@ -55,23 +52,21 @@ lazy val server = (project in file("server")).settings(
 
     "org.scalatest"    %% "scalatest"       % "3.0.1" % "test"
   ) ++ Seq(
-    ("com.softwaremill.akka-http-session" %% "core" % "0.4.0").exclude("com.typesafe.akka", "akka-http"),
-    "com.typesafe.akka" %% "akka-http" % "10.0.5",
+    ("com.softwaremill.akka-http-session" %% "core" % "0.5.5").exclude("com.typesafe.akka", "akka-http"),
+    //"com.typesafe.akka" %% "akka-http" % "10.0.10",
+    "com.typesafe.akka" %% "akka-stream" % akkaVersion,
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
     "com.typesafe.akka" %% "akka-persistence" % akkaVersion,
-    "com.typesafe.akka" %% "akka-persistence-cassandra" % "0.50",
     "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion,
-    "com.lightbend.akka" %% "akka-management-cluster-http" % "0.3"
-  ) ++ Seq(
-    "de.heikoseeberger" %%  "constructr"                   %  "0.17.0",
-    "de.heikoseeberger" %%  "constructr-coordination-etcd" %  "0.17.0"
+    "com.typesafe.akka" %% "akka-persistence-cassandra" % "0.85",
+    //"com.lightbend.akka.management" %% "akka-management-cluster-http" % "0.10.0",
+    "de.heikoseeberger" %%  "constructr"                   %  "0.19.0",
+    "de.heikoseeberger" %%  "constructr-coordination-etcd" %  "0.19.0"  //(depends on akka-http:10.0.10)
   ),
 
   //javaOptions in runMain += "-DENV=prod",
-
-  //exclude("com.typesafe.akka", "akka-http")
 
   /*
   javaOptions in Universal ++= Seq(
@@ -85,11 +80,8 @@ lazy val server = (project in file("server")).settings(
 */
 
   WebKeys.packagePrefix in Assets := "public/",
-
   (managedClasspath in Runtime) += (packageBin in Assets).value,
-
   mainClass in assembly := Some("linguistic.Application"),
-
   assemblyJarName in assembly := s"linguistic-${version}.jar",
 
   // Resolve duplicates for Sbt Assembly
@@ -114,10 +106,9 @@ lazy val server = (project in file("server")).settings(
   ),
   */
 
-
   //docker -Denv="development"
   dockerfile in docker := {
-    //development | production
+    //possible envs: development | production
     val appEnv = sys.props.getOrElse("env", "production")
 
     println(s"★ ★ ★ ★ ★ ★ ★ ★ ★ Build Docker image for Env:$appEnv ★ ★ ★ ★ ★ ★ ★ ★ ★")
@@ -140,12 +131,12 @@ lazy val server = (project in file("server")).settings(
     val prodConfigSrc = baseDir / "conf" / "production.conf"
     val devConfigSrc =  baseDir / "conf" / "development.conf"
 
-
     val appProdConfTarget = s"$imageAppBaseDir/$configDir/production.conf"
     val appDevConfTarget = s"$imageAppBaseDir/$configDir/development.conf"
 
     new sbtdocker.mutable.Dockerfile {
       from("openjdk:8-jre")
+      //from("openjdk:8u131")
       maintainer("haghard")
 
       env("VERSION", version)
@@ -162,7 +153,6 @@ lazy val server = (project in file("server")).settings(
 
       copy(baseDir / "data" / "words.txt", s"$imageAppBaseDir/words.txt")
       copy(baseDir / "data" / "homophones.txt", s"$imageAppBaseDir/homophones.txt")
-
 
       if(prodConfigSrc.exists)
         copy(prodConfigSrc, appProdConfTarget) //Copy the prod config
@@ -182,19 +172,16 @@ lazy val server = (project in file("server")).settings(
       entryPoint(s"${dockerResourcesTargetPath}docker-entrypoint.sh")
     }
   }
-
-).enablePlugins(SbtWeb, SbtTwirl, JavaAppPackaging, sbtdocker.DockerPlugin).dependsOn(sharedJvm)
+).enablePlugins(SbtWeb, sbtdocker.DockerPlugin).dependsOn(sharedJvm)
 
 //for debugging
 def cpCss() = (baseDirectory) map { dir =>
   def execute() = {
-    //IO.copyFile(dir / "src" / "main" / "twirl" / "linguistic" / "main.css", dir / "target" /"web"/"web-modules"/"main"/"webjars"/"lib"/"bootstrap"/"css"/"main.css")
-    //IO.copyFile(dir /"src"/"main"/"resources"/"chat.css", dir/"target"/"web"/"web-modules"/"main"/"webjars"/"lib"/"bootstrap"/"css"/"chat.css")
-
-    Process(s"cp ${dir}/src/main/twirl/linguistic/main.css ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/css/").!
+    //IO.copyFile(dir / "src" / "main" / "resources" / "main.css", dir / "target" /"web"/"web-modules"/"main"/"webjars"/"lib"/"bootstrap"/"css"/"main.css")
+    //IO.copyFile(dir / "src" / "main" / "resources" / "chat.css", dir / "target"/"web"/"web-modules"/"main"/"webjars"/"lib"/"bootstrap"/"css"/"chat.css")
+    Process(s"cp ${dir}/src/main/resources/main.css ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/css/").!
     Process(s"cp ${dir}/src/main/resources/chat.css ${dir}/target/web/web-modules/main/webjars/lib/bootstrap/css/").!
   }
-
   println("Coping resources ...")
   haltOnCmdResultError(execute())
 }
@@ -204,11 +191,10 @@ def haltOnCmdResultError(result: Int) {
 }
 
 lazy val ui = (project in file("ui")).settings(
-
   resolvers += "Sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
   scalaVersion := scalaV,
-  persistLauncher := true,
-  persistLauncher in Test := false,
+  scalaJSUseMainModuleInitializer := false,
+  scalaJSUseMainModuleInitializer in Test := false,
 
   libraryDependencies ++= Seq(
     "org.singlespaced" %%% "scalajs-d3" % "0.3.4",
@@ -221,19 +207,19 @@ lazy val ui = (project in file("ui")).settings(
   ),
 
   jsDependencies ++= Seq(
-    "org.webjars" % "jquery" % "2.1.3" / "2.1.3/jquery.js",
-    "org.webjars.bower" % "react" % "15.3.2"
+    "org.webjars" % "jquery" % "2.1.4" / "2.1.4/jquery.js",
+    "org.webjars.bower" % "react" % "15.6.1"
         /        "react-with-addons.js"
         minified "react-with-addons.min.js"
         commonJSName "React",
 
-      "org.webjars.bower" % "react" % "15.3.2"
+      "org.webjars.bower" % "react" % "15.6.1"
         /         "react-dom.js"
         minified  "react-dom.min.js"
         dependsOn "react-with-addons.js"
         commonJSName "ReactDOM",
 
-      "org.webjars.bower" % "react" % "15.3.2"
+      "org.webjars.bower" % "react" % "15.6.1"
         /         "react-dom-server.js"
         minified  "react-dom-server.min.js"
         dependsOn "react-dom.js"
@@ -244,13 +230,10 @@ lazy val ui = (project in file("ui")).settings(
 lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared")).
   settings(
     scalaVersion := scalaV,
-    libraryDependencies ++= Seq("com.lihaoyi" %%% "upickle" % "0.4.4")
+    libraryDependencies ++= Seq("com.lihaoyi" %%% "upickle" % "0.6.0")
   ).jsConfigure(_ enablePlugins ScalaJSWeb)
 
 lazy val sharedJvm = shared.jvm
 lazy val sharedJs = shared.js
 
-// loads the server project at sbt startup
-onLoad in Global := (Command.process("project server", _: State)) compose (onLoad in Global).value
-
-//cancelable in Global := true
+onLoad in Global := (onLoad in Global).value andThen {s: State => "project server" :: s}

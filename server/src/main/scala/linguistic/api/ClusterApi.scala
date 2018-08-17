@@ -18,21 +18,21 @@ class ClusterApi(http: ActorRef, searchMaster: ActorRef, regions: Set[ActorRef])
   implicit val timeout = akka.util.Timeout(10 seconds)
 
   val route = pathPrefix("cluster") {
-    (get & path(Segment / "regions")) { seq =>
+    (get & path(Segment / "regions")) { shardName =>
       complete {
-        (searchMaster ?(seq, ShardRegion.GetCurrentRegions)).mapTo[CurrentRegions].map { r =>
+        (searchMaster ? (shardName, ShardRegion.GetCurrentRegions)).mapTo[CurrentRegions].map { r =>
           HttpResponse(entity = r.regions.mkString(","))
         }
       }
-    } ~ (get & path(Segment / "shards")) { seq =>
+    } ~ (get & path(Segment / "shards")) { shardName =>
       complete {
-        (searchMaster ? (seq, ShardRegion.GetShardRegionState)).mapTo[CurrentShardRegionState].map { r =>
+        (searchMaster ? (shardName, ShardRegion.GetShardRegionState)).mapTo[CurrentShardRegionState].map { r =>
           HttpResponse(entity = r.shards.mkString(","))
         }
       }
-    } ~ (get & path(Segment / "shards2")) { seq =>
+    } ~ (get & path(Segment / "shards2")) { shardName =>
       complete {
-        (searchMaster ? (seq, ShardRegion.GetClusterShardingStats(5 seconds))).mapTo[ClusterShardingStats].map { r =>
+        (searchMaster ? (shardName, ShardRegion.GetClusterShardingStats(5 seconds))).mapTo[ClusterShardingStats].map { r =>
           HttpResponse(entity = r.regions.mkString(","))
         }
       }

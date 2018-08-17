@@ -1,15 +1,14 @@
 package linguistic
 
 import org.scalajs.dom
-import scala.scalajs.js
 import scala.scalajs.js.annotation.JSExport
 
-object JsApplication extends js.JSApp {
+@JSExport
+object JsApplication {
 
   @JSExport
-  override def main(): Unit = {
-    val content = dom.document.getElementById("content")
-    content.removeChild(content.firstChild)
-    ReactJs(content)
+  def main(where: String): Unit = {
+    val content = dom.document.getElementById(where)
+    ReactJsApp(content)
   }
 }
