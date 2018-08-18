@@ -4,13 +4,11 @@ import sbtdocker.ImageName
 
 import scala.sys.process.Process
 
-val scalaV = "2.12.1"
+val scalaV = "2.12.6"
 val akkaVersion = "2.5.14"
 val version = "0.3"
 
 name := "linguistic"
-
-//resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/"
 
 updateOptions in Global := updateOptions.in(Global).value.withCachedResolution(true)
 

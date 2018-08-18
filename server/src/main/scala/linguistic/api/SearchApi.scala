@@ -3,8 +3,6 @@ package linguistic.api
 import akka.actor.{ActorRef, ActorSystem}
 import akka.http.scaladsl.model.HttpEntity.{Chunked, Strict}
 import akka.http.scaladsl.model._
-import akka.http.scaladsl.model.headers.CacheDirectives.`no-cache`
-import akka.http.scaladsl.model.headers.`Cache-Control`
 import akka.pattern.ask
 import akka.util.ByteString
 import linguistic.AuthTokenSupport
@@ -20,11 +18,15 @@ final class SearchApi(search: ActorRef)(implicit val system: ActorSystem) extend
 
   //withRequestTimeout(usersTimeout) {
 
-  /*((pathPrefix("assets" / Remaining) & respondWithHeader(`Cache-Control`(`no-cache`)))) { file =>
-              // optionally compresses the response with Gzip or Deflate
-              // if the client accepts compressed responses
-              getFromResource("public/" + file)
-   }*/
+  /*
+    import akka.http.scaladsl.model.headers.CacheDirectives.`no-cache`
+    import akka.http.scaladsl.model.headers.`Cache-Control`
+    ((pathPrefix("assets" / Remaining) & respondWithHeader(`Cache-Control`(`no-cache`)))) { file =>
+      // optionally compresses the response with Gzip or Deflate
+      // if the client accepts compressed responses
+      getFromResource("public/" + file)
+    }
+  */
 
   //http --verify=no https://192.168.0.62:9443/api/v1.0/wordslist/search"?q=aa"
   val route =
@@ -69,5 +71,6 @@ final class SearchApi(search: ActorRef)(implicit val system: ActorSystem) extend
       }
     }
 
-  def searchDomain(q: Search) = (search ? q).mapTo[SearchResults]
+  def searchDomain(q: Search) =
+    (search ? q).mapTo[SearchResults]
 }
