@@ -1,25 +1,21 @@
 package linguistic
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import akka.cluster.sharding.ShardRegion
+import akka.util.Timeout
 import akka.pattern.{ask, pipe}
 import akka.stream.ActorMaterializer
-import akka.util.Timeout
+import akka.cluster.sharding.ShardRegion
+import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+import linguistic.protocol.{HomophonesQuery, WordsQuery}
 import linguistic.ps.{HomophonesSubTreeShardEntity, WordShardEntity}
 import akka.cluster.sharding.ShardRegion.{ClusterShardingStats, CurrentShardRegionState}
-import linguistic.protocol.{HomophonesQuery, WordsQuery}
-
 import scala.concurrent.duration._
 
 object Searches {
-
   def props(mat: ActorMaterializer, wordslist: ActorRef, homophones: ActorRef) =
     Props(new Searches(mat, wordslist, homophones)).withDispatcher("shard-dispatcher")
 }
 
-class Searches(mat: ActorMaterializer, wordslist: ActorRef, homophones: ActorRef) extends Actor
-  with ActorLogging {
-
+class Searches(mat: ActorMaterializer, wordslist: ActorRef, homophones: ActorRef) extends Actor with ActorLogging {
   import context.dispatcher
 
   implicit val timeout = Timeout(10.seconds)
