@@ -110,7 +110,6 @@ class HomophonesSubTreeShardEntity(implicit val mat: ActorMaterializer) extends 
   def searchable(index: SubTree): Receive = {
     case HomophonesQuery(prefix, maxResults) =>
       val decodedPrefix = URLDecoder.decode(prefix, encoding)
-
       val results =
         index
           .filterPrefix(decodedPrefix).entries.take(maxResults)

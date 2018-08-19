@@ -248,6 +248,4 @@ lazy val protocol = (project in file("protocol"))
     )
   )
 
-//libraryDependencies += "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf"
-
 //onLoad in Global := (onLoad in Global).value andThen {s: State => "project server" :: s}

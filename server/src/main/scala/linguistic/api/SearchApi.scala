@@ -42,21 +42,18 @@ final class SearchApi(search: ActorRef)(implicit val system: ActorSystem) extend
               requiredHttpSession(mat.executionContext) { _ ⇒
                 parameters('q.as[String], 'n ? 30) { (q, limit) =>
                   complete {
-
-                    if(!q.isEmpty) {
+                    if (q.isEmpty)
+                      HttpResponse(entity = Chunked.fromData(`text/plain(UTF-8)`,
+                        chunks = SearchResults(immutable.Seq.empty[String]).source.map(ByteString(_))))
+                    else {
                       val searchQ = seq match {
-                        case shared.Routes.searchWordsPath =>
-                          WordsQuery(q, limit)
-                        case shared.Routes.searchHomophonesPath =>
-                          HomophonesQuery(q, limit)
+                        case shared.Routes.searchWordsPath => WordsQuery(q, limit)
+                        case shared.Routes.searchHomophonesPath => HomophonesQuery(q, limit)
                       }
                       runSearch(searchQ)(mat.executionContext).map { res =>
                         HttpResponse(entity = Chunked.fromData(`text/plain(UTF-8)`,
                           chunks = res.source.map(word => ByteString(s"$word,"))))
                       }(mat.executionContext)
-                    } else {
-                      HttpResponse(entity = Chunked.fromData(`text/plain(UTF-8)`,
-                        chunks = SearchResults(immutable.Seq.empty[String]).source.map(ByteString(_))))
                     }
                   }
                 }
@@ -68,5 +65,5 @@ final class SearchApi(search: ActorRef)(implicit val system: ActorSystem) extend
     }
 
   private def runSearch(q: SearchQuery)(implicit ex: ExecutionContext) =
-    ((search ? q)(askTimeout)).mapTo[SearchResults]
+    ((search ? q) (askTimeout)).mapTo[SearchResults]
 }

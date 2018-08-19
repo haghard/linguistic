@@ -5,7 +5,7 @@ import akka.serialization.SerializerWithStringManifest
 import linguistic.protocol._
 import linguistic.serialization._
 
-class LinguisticSerializer(val system: ExtendedActorSystem) extends SerializerWithStringManifest {
+class LinguisticsSerializer(val system: ExtendedActorSystem) extends SerializerWithStringManifest {
   override val identifier: Int = 99999
 
   override def manifest(obj: AnyRef): String = obj.getClass.getName
