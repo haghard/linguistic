@@ -3,31 +3,36 @@ package linguistic.ps
 import java.io.File
 import java.net.URLDecoder
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 import akka.actor.{ActorLogging, Props, Stash}
+import akka.cluster.sharding.ShardRegion
 import akka.cluster.sharding.ShardRegion._
 import akka.persistence.{PersistentActor, RecoveryCompleted, SnapshotOffer}
 import akka.stream.ActorMaterializer
 import com.rklaehn.radixtree.RadixTree
-import linguistic.WordsSearchProtocol.{IndexingCompleted, SearchResults, SearchWord}
+import linguistic.WordsSearchProtocol.{IndexingCompleted, SearchResults}
+import linguistic.protocol.{Words, WordsQuery}
 import linguistic.ps.WordShardEntity._
 
-import scala.concurrent.duration._
-
 object WordShardEntity {
+
+  val Name      = "words"
   val mbDivider = (1024 * 1024).toFloat
 
   case class RestoredIndex[T](index: RadixTree[String, T])
 
   val extractShardId: ExtractShardId = {
-    case x: SearchWord => x.keyword.toLowerCase(Locale.ROOT).take(1)
+    case x: WordsQuery =>
+      x.keyword.toLowerCase(Locale.ROOT).take(1)
+    case ShardRegion.StartEntity(id) =>
+      id
   }
 
   val extractEntityId: ExtractEntityId = {
-    case x: SearchWord => (x.keyword.toLowerCase(Locale.ROOT).take(1), x)
+    case x: WordsQuery =>
+      (x.keyword.toLowerCase(Locale.ROOT).take(1), x)
   }
-
-  val Name = "wordslist"
 
   def props(mat: ActorMaterializer): Props =
     Props(new WordShardEntity()(mat)).withDispatcher("shard-dispatcher")
@@ -45,17 +50,16 @@ class WordShardEntity(implicit val mat: ActorMaterializer) extends PersistentAct
   with ActorLogging with Indexing[Unit] with Stash with Passivation {
 
   val path = "./words.txt"
+
   override val key = self.path.name
 
-  val passivationTimeout = 15.minutes
   context.setReceiveTimeout(passivationTimeout)
 
   override def persistenceId = key
 
   override def preStart() = {
     val file = new File(path)
-    log.info("Pre-start ShardEntity:[{}] from:{} exists:{}",
-      key, file.getAbsolutePath, file.exists)
+    log.info("Start ShardEntity:[{}] from:{} exists:{}", key, file.getAbsolutePath, file.exists)
   }
 
   override def postStop() =
@@ -66,24 +70,27 @@ class WordShardEntity(implicit val mat: ActorMaterializer) extends PersistentAct
 
   def indexing(index: SubTree): Receive = {
     case word: String =>
-      context.become(indexing(index merge RadixTree[String, Unit](word ->())))
+      context.become(indexing(index merge RadixTree[String, Unit](word -> ())))
 
     case IndexingCompleted =>
       log.info("IndexingCompleted for key [{}] (entries: {}), create snapshot now...", key, index.count)
-      val indSeq = index.keys.to[collection.immutable.Seq]
-      saveSnapshot(indSeq)
+      val words = index.keys.to[collection.immutable.Seq]
+
+      if(words.size > 0)
+        saveSnapshot(Words(words))
+
       unstashAll()
-      context become passivate(active(index))
+      context become passivate(searchable(index))
 
     case m: RestoredIndex[Unit]@unchecked =>
       if (m.index.count == 0) buildIndex(key, path)
       else {
         unstashAll()
         log.info("Index has been recovered from snapshot with size {} for key [{}]", m.index.count, key)
-        context become passivate(active(m.index))
+        context become passivate(searchable(m.index))
       }
 
-    case SearchWord(prefix, _) =>
+    case WordsQuery(prefix, _) =>
       log.info("ShardEntity [{}] is indexing right now. Stashing request for key [{}]", key, prefix)
       stash()
   }
@@ -97,8 +104,9 @@ class WordShardEntity(implicit val mat: ActorMaterializer) extends PersistentAct
     var recoveredIndex = RadixTree.empty[String, Unit]
 
     {
-      case SnapshotOffer(meta, seq: collection.immutable.Seq[String]@unchecked) =>
-        recoveredIndex = RadixTree(seq.map(name => name -> (())): _*)
+      case SnapshotOffer(meta, w: Words) =>
+        recoveredIndex = RadixTree(w.entry.map(name => name -> (())): _*)
+        log.info("SnapshotOffer {}: count: {}", meta.sequenceNr, recoveredIndex.count)
       //val mb = GraphLayout.parseInstance(recoveredIndex).totalSize.toFloat / mbDivider
       //log.info("SnapshotOffer {}: count:{}", meta, recoveredIndex.count)
       case RecoveryCompleted =>
@@ -108,11 +116,13 @@ class WordShardEntity(implicit val mat: ActorMaterializer) extends PersistentAct
     }
   }
 
-  def active(index: SubTree): Receive = {
-    case SearchWord(prefix, maxResults) =>
-      val decodedKeyword = URLDecoder.decode(prefix, encoding)
-      val results = index.filterPrefix(decodedKeyword).keys.take(maxResults).to[collection.immutable.Seq]
-      log.info("Search for: [{}], resulted in [{}] results on [{}]", prefix, results.size, decodedKeyword)
+  def searchable(index: SubTree): Receive = {
+    case WordsQuery(prefix, maxResults) =>
+      val decodedPrefix = URLDecoder.decode(prefix, encoding)
+      val start = System.nanoTime
+      val results = index.filterPrefix(decodedPrefix).keys.take(maxResults).to[collection.immutable.Seq]
+      log.info("Search for: [{}], resulted in [{}] results. Latency:{} millis", prefix, results.size,
+        TimeUnit.NANOSECONDS.toMillis(System.nanoTime - start))
       sender() ! SearchResults(results)
   }
 }

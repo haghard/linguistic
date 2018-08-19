@@ -10,8 +10,6 @@ val version = "0.3"
 
 name := "linguistic"
 
-updateOptions in Global := updateOptions.in(Global).value.withCachedResolution(true)
-
 lazy val server = (project in file("server")).settings(
   resolvers ++= Seq(
     "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/",
@@ -31,6 +29,7 @@ lazy val server = (project in file("server")).settings(
   //javaOptions in runMain := Seq("ENV=development", "CONFIG=./server/conf"),
 
   fork in runMain := true,
+  fork in run := true,
   javaOptions in run ++= Seq("-Xms128m", "-Xmx1024m"),
 
   libraryDependencies ++= Seq(
@@ -58,10 +57,11 @@ lazy val server = (project in file("server")).settings(
     "com.typesafe.akka" %% "akka-persistence" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion,
-    "com.typesafe.akka" %% "akka-persistence-cassandra" % "0.85",
+    "com.typesafe.akka" %% "akka-persistence-cassandra" % "0.89",
     //"com.lightbend.akka.management" %% "akka-management-cluster-http" % "0.10.0",
     "de.heikoseeberger" %%  "constructr"                   %  "0.19.0",
-    "de.heikoseeberger" %%  "constructr-coordination-etcd" %  "0.19.0"  //(depends on akka-http:10.0.10)
+    "de.heikoseeberger" %%  "constructr-coordination-etcd" %  "0.19.0" //(depends on akka-http:10.0.10)
+    //"com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf"
   ),
 
   //javaOptions in runMain += "-DENV=prod",
@@ -170,7 +170,7 @@ lazy val server = (project in file("server")).settings(
       entryPoint(s"${dockerResourcesTargetPath}docker-entrypoint.sh")
     }
   }
-).enablePlugins(SbtWeb, sbtdocker.DockerPlugin).dependsOn(sharedJvm)
+).enablePlugins(SbtWeb, sbtdocker.DockerPlugin).dependsOn(sharedJvm, protocol)
 
 //for debugging
 def cpCss() = (baseDirectory) map { dir =>
@@ -198,7 +198,7 @@ lazy val ui = (project in file("ui")).settings(
     "org.singlespaced" %%% "scalajs-d3" % "0.3.4",
     "com.github.japgolly.scalajs-react" %%% "core"    % "0.11.3",
     "com.github.japgolly.scalajs-react" %%% "extra"   % "0.11.3"
-    //"com.github.yoeluk"                 %%% "raphael-scala-js" % "0.2-SNAPSHOT"
+    //"com.github.yoeluk"               %%% "raphael-scala-js" % "0.2-SNAPSHOT"
     //"com.github.chandu0101.scalajs-react-components" %%%  "core"      % "0.5.0",
     //"com.github.chandu0101.scalajs-react-components" %%%  "macros"    % "0.5.0"
     //"com.github.japgolly.scalacss"                   %%%  "ext-react" % "0.5.1"
@@ -234,4 +234,20 @@ lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared")).
 lazy val sharedJvm = shared.jvm
 lazy val sharedJs = shared.js
 
-onLoad in Global := (onLoad in Global).value andThen {s: State => "project server" :: s}
+
+lazy val protocol = (project in file("protocol"))
+  .settings(
+    name := "protocol",
+    libraryDependencies ++= Seq(
+      "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf"
+    )
+  )
+  .settings(
+    PB.targets in Compile := Seq(
+      scalapb.gen(flatPackage = true) -> (sourceManaged in Compile).value / "protobuf"
+    )
+  )
+
+//libraryDependencies += "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf"
+
+//onLoad in Global := (onLoad in Global).value andThen {s: State => "project server" :: s}

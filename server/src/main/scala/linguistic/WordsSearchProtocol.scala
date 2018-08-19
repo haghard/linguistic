@@ -7,12 +7,6 @@ import scala.collection.immutable
 
 object WordsSearchProtocol {
 
-  trait Search {
-    def keyword: String
-  }
-  case class SearchWord(keyword: String, maxResults: Int) extends Search
-  case class SearchHomophones(keyword: String, maxResults: Int) extends Search
-
   abstract class Results {
     def strict: immutable.Seq[String]
     def source: Source[String, NotUsed] = Source(strict)

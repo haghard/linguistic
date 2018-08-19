@@ -3,13 +3,14 @@ package linguistic.js
 import scalatags.Text.all._
 
 object AppScript {
-  val where = "content"
+  val divName = "content"
 
   def apply() =
     html(
       head(
         link(rel := "stylesheet", href := "/assets/lib/bootstrap/css/bootstrap.css"),
         link(rel := "stylesheet", href := "/assets/lib/bootstrap/css/main.css"),
+        link(rel := "stylesheet", href := "/assets/lib/bootstrap/css/chat.css"),
 
         script(`type` := "text/javascript", src := "/assets/lib/jquery/jquery.js"),
         script(`type` := "text/javascript", src := "/assets/lib/bootstrap/js/bootstrap.js"),
@@ -19,7 +20,7 @@ object AppScript {
       ),
 
       body(
-        div(id := where, style := "position:relative"),
-        script(s"""linguistic.JsApplication().main('$where')"""))
+        div(id := divName, style := "position:relative"),
+        script(s"""linguistic.JsApplication().main('$divName')"""))
     )
 }

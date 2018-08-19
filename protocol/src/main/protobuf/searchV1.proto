@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package linguistic.serialization;
+
+import "scalapb/scalapb.proto";
+
+
+message WordsQueryPB {
+    string keyword = 1;
+    int32 maxResults = 2;
+}
+
+message HomophonesQueryPB {
+    string keyword = 1;
+    int32  maxResults = 2;
+}
+
+message HomophonePB {
+    string key  = 1;
+    repeated string homophones = 2;
+}
+
+message HomophonesPB {
+    repeated HomophonePB homophones = 1;
+}
+
+
+message WordsPB {
+    repeated string entry = 1;
+}

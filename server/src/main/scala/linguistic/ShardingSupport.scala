@@ -7,24 +7,22 @@ import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings}
 
 trait ShardingSupport {
 
-  def startRegions(system: ActorSystem, mat: ActorMaterializer) = {
+  def startSharding(system: ActorSystem)(implicit mat: ActorMaterializer) = {
 
-    ClusterSharding(system).start(
+    val words = ClusterSharding(system).start(
       typeName = WordShardEntity.Name,
       entityProps = WordShardEntity.props(mat),
-      settings = ClusterShardingSettings(system),
+      settings = ClusterShardingSettings(system).withRememberEntities(true),
       extractShardId = WordShardEntity.extractShardId,
       extractEntityId = WordShardEntity.extractEntityId)
 
-    ClusterSharding(system).start(
+    val homophones = ClusterSharding(system).start(
       typeName = HomophonesSubTreeShardEntity.Name,
       entityProps = HomophonesSubTreeShardEntity.props(mat),
-      settings = ClusterShardingSettings(system),
+      settings = ClusterShardingSettings(system).withRememberEntities(true),
       extractShardId = HomophonesSubTreeShardEntity.extractShardId,
       extractEntityId = HomophonesSubTreeShardEntity.extractEntityId)
-      /*
-      allocationStrategy = new LeastShardAllocationStrategy(3, 2),
-      handOffStopMessage = Stop)
-      */
+
+    (words, homophones)
   }
 }

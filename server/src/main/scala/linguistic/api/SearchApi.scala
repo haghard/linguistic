@@ -1,20 +1,23 @@
 package linguistic.api
 
 import akka.actor.{ActorRef, ActorSystem}
-import akka.http.scaladsl.model.HttpEntity.{Chunked, Strict}
+import akka.http.scaladsl.model.HttpEntity.Chunked
 import akka.http.scaladsl.model._
 import akka.pattern.ask
 import akka.util.ByteString
 import linguistic.AuthTokenSupport
-import linguistic.WordsSearchProtocol.{Search, SearchHomophones, SearchResults, SearchWord}
-import linguistic.js.AppScript
+import linguistic.WordsSearchProtocol.SearchResults
 
 import scala.concurrent.duration._
+import ContentTypes._
+import linguistic.protocol.{HomophonesQuery, SearchQuery, WordsQuery}
+
+import scala.collection.immutable
+import scala.concurrent.ExecutionContext
 
 final class SearchApi(search: ActorRef)(implicit val system: ActorSystem) extends BaseApi
   with AuthTokenSupport {
-  implicit val askTimeout = akka.util.Timeout(7.seconds)
-  implicit val ec = system.dispatchers.lookup("akka.http.dispatcher")
+  implicit val askTimeout = akka.util.Timeout(5.seconds)
 
   //withRequestTimeout(usersTimeout) {
 
@@ -28,49 +31,42 @@ final class SearchApi(search: ActorRef)(implicit val system: ActorSystem) extend
     }
   */
 
-  //http --verify=no https://192.168.0.62:9443/api/v1.0/wordslist/search"?q=aa"
+  //http --verify=no https://192.168.0.62:9443/api/v1.0/words/search"?q=aa"
   val route =
     extractMaterializer { implicit mat =>
       //extractExecutionContext { implicit ec =>
       extractLog { _ =>
-        pathSingleSlash {
+        pathPrefix(apiPrefix) {
           get {
-            complete {
-              HttpResponse(entity = Strict(ContentTypes.`text/html(UTF-8)`,
-                ByteString(AppScript().render)))
-              //linguistic.html.indexTemplate.render("main")
-            }
-          }
-        } ~ path("chat") {
-          getFromResource("web/chat-demo.html")
-          //getFromResourceDirectory("web")
-        } ~ {
-          pathPrefix("assets" / Remaining) { file =>
-            encodeResponse(getFromResource("public/" + file))
-          }
-        } ~ pathPrefix(apiPrefix) {
-            get {
-              path(Segment / shared.Routes.search) { seq =>
-                requiredHttpSession(ec) { session ⇒
-                  parameters('q.as[String], 'n ? 30) { (q, max) =>
-                    complete {
+            path(Segment / shared.Routes.search) { seq =>
+              requiredHttpSession(mat.executionContext) { _ ⇒
+                parameters('q.as[String], 'n ? 30) { (q, limit) =>
+                  complete {
+
+                    if(!q.isEmpty) {
                       val searchQ = seq match {
-                        case shared.Routes.searchWordsPath => SearchWord(q, max)
-                        case shared.Routes.searchHomophonesPath => SearchHomophones(q, max)
+                        case shared.Routes.searchWordsPath =>
+                          WordsQuery(q, limit)
+                        case shared.Routes.searchHomophonesPath =>
+                          HomophonesQuery(q, limit)
                       }
-                      searchDomain(searchQ).map { res =>
-                        HttpResponse(entity = Chunked.fromData(ContentTypes.`text/plain(UTF-8)`,
+                      runSearch(searchQ)(mat.executionContext).map { res =>
+                        HttpResponse(entity = Chunked.fromData(`text/plain(UTF-8)`,
                           chunks = res.source.map(word => ByteString(s"$word,"))))
-                      }
+                      }(mat.executionContext)
+                    } else {
+                      HttpResponse(entity = Chunked.fromData(`text/plain(UTF-8)`,
+                        chunks = SearchResults(immutable.Seq.empty[String]).source.map(ByteString(_))))
                     }
                   }
                 }
               }
             }
+          }
         }
       }
     }
 
-  def searchDomain(q: Search) =
-    (search ? q).mapTo[SearchResults]
+  private def runSearch(q: SearchQuery)(implicit ex: ExecutionContext) =
+    ((search ? q)(askTimeout)).mapTo[SearchResults]
 }

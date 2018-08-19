@@ -1,9 +1,10 @@
 package linguistic
 
 import java.io.File
-import akka.actor.ActorSystem
-import com.typesafe.config.{Config, ConfigFactory}
 
+import akka.actor.ActorSystem
+import akka.cluster.Cluster
+import com.typesafe.config.{Config, ConfigFactory}
 import scala.collection._
 
 //-Duser.timezone=UTC
@@ -19,6 +20,7 @@ object Application extends App with AppSupport {
   val confPath = System.getProperty("CONFIG")
   val discHost = System.getProperty("DISCOVERY")
   val dbHosts = System.getProperty("cassandra.hosts")
+  val env     = Option(System.getProperty("ENV")).getOrElse(throw new Exception("ENV is expected"))
 
   val httpConf =
     s"""
@@ -71,9 +73,10 @@ object Application extends App with AppSupport {
     .replaceAll("%hostName%", hostName).replaceAll("%interface%", hostName)
 
 
-  //for alias
-  val env = Option(System.getProperty("ENV")).getOrElse(throw new Exception("ENV is expected"))
   val configFile = new File(s"${new File(confPath).getAbsolutePath}/" + env + ".conf")
+
+  println("configFile:  " + configFile.getAbsoluteFile)
+
 
   val config: Config =
     ConfigFactory.parseString(effectedHttpConf)
@@ -82,6 +85,9 @@ object Application extends App with AppSupport {
       .withFallback(ConfigFactory.parseFile(configFile).resolve())
       .withFallback(ConfigFactory.load()) //for read seeds from env vars
 
-  val coreSystem: ActorSystem = ActorSystem("linguistics", config)
-  coreSystem.actorOf(DiscoveryGuardian.props(env, httpPort.toInt, hostName), "guardian")
+  val system = ActorSystem("linguistics", config)
+
+  Cluster(system).registerOnMemberUp {
+    system.actorOf(Guardian.props(env, httpPort.toInt, hostName), "guardian")
+  }
 }

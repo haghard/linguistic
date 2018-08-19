@@ -1,3 +1,4 @@
+/*
 package linguistic.utils
 
 import java.time.Clock
@@ -5,7 +6,7 @@ import java.time.Clock
 import akka.actor._
 import akka.cluster.Cluster
 import akka.cluster.sharding.ShardRegion
-import linguistic.HttpServer
+import linguistic.Bootstrap
 
 import scala.concurrent.Await
 import scala.concurrent.duration.FiniteDuration
@@ -64,7 +65,7 @@ object ShutdownCoordinator {
     system.log.info("1 - Jvm gets the shutdown signal")
     val nodeShutdown = system.actorOf(Props(new GracefulShutdownCoordinator(shutdownOpts))
       .withDispatcher("shard-dispatcher"), "shutdown-coord")
-    http ! HttpServer.Stop
+    http ! Bootstrap.Stop
     nodeShutdown ! StartNodeShutdown(shardRegions)
     system.log.info("Awaiting node shutdown ...")
     Await.result(system.whenTerminated, shutdownOpts.actorSystemShutdownTimeout)
@@ -144,3 +145,4 @@ class GracefulShutdownCoordinator(shutdownOpts: NodeShutdownOpts)(implicit syste
 
   initialize()
 }
+*/
