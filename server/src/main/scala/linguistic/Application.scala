@@ -50,7 +50,7 @@ object Application extends App with AppSupport {
        |  }
        |  max-nr-of-seed-nodes = 2
        |  coordination-timeout = 5 seconds
-       |  nr-of-retries        = 3
+       |  nr-of-retries        = 10
        |  join-timeout = 15 seconds
        |}
     """.stripMargin
