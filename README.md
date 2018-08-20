@@ -137,55 +137,58 @@ Run docker container
   
   To run it with `--net=host` is necessary because you are passing env val   
   
-  `docker run --net=host -it -p 2551:2551 -e HOSTNAME=78.155.219.177 -e AKKA_PORT=2551 -e DISCOVERY=80.93.177.253 -e HTTP_PORT=9443 -e CASSANDRA=80.93.177.253,78.155.207.129 -e JMX_PORT=1089 -e TZ="Europe/Moscow" haghard/linguistic:0.3`
+  `docker run --net=host -it -p 2551:2551 -e HOSTNAME=78.155.219.177 -e AKKA_PORT=2551 -e ETCD=80.93.177.253 -e HTTP_PORT=9443 -e CASSANDRA=80.93.177.253,78.155.207.129 -e JMX_PORT=1089 -e TZ="Europe/Moscow" haghard/linguistic:0.3`
 
 
 1GB
 
 https://doc.akka.io/docs/akka/current/remoting.html#remote-configuration-nat
-docker run --net=host -it -p 2551:2551 -p 9443:9443 -e HOSTNAME=192.168.77.10 -e AKKA_PORT=2551 -e DISCOVERY=192.168.77.85 -e HTTP_PORT=9443 -e CASSANDRA=192.168.77.85,192.168.77.42 -e JMX_PORT=1089 -e TZ="Europe/Moscow" -m 500MB haghard/linguistic:0.3
+docker run --net=host -it -p 2551:2551 -p 9443:9443 -e HOSTNAME=192.168.77.10 -e AKKA_PORT=2551 -e ETCD=192.168.77.85 -e HTTP_PORT=9443 -e CASSANDRA=192.168.77.85,192.168.77.42 -e JMX_PORT=1089 -e TZ="Europe/Moscow" -m 500MB haghard/linguistic:0.3
 
 
-Suppose we have 2 machines 212.92.98.127,95.213.236.24
+Suppose we have 2 machines 95.213.199.95,95.213.235.117
 
 
-docker run -d -e CASSANDRA_BROADCAST_ADDRESS=212.92.98.127 -e CASSANDRA_SEEDS=212.92.98.127,95.213.236.24 \
+docker run -d -e CASSANDRA_BROADCAST_ADDRESS=95.213.199.95 -e CASSANDRA_SEEDS=95.213.199.95,95.213.235.117 \
       -e CASSANDRA_CLUSTER_NAME="linguistic" -e CASSANDRA_HOME="/var/lib/cassandra"  \
       -e CASSANDRA_START_RPC="true" -e CASSANDRA_RACK="wr1" -e CASSANDRA_DC="spb"  \
       -e CASSANDRA_ENDPOINT_SNITCH="GossipingPropertyFileSnitch"  \
       -p 7000:7000 -p 7001:7001 -p 9042:9042 -p 9160:9160 -p 7199:7199  \
       -v /media/haghard/data/linguistic-db:/var/lib/cassandra cassandra:3.11.3
     
-docker run -d -e CASSANDRA_BROADCAST_ADDRESS=95.213.236.24 -e CASSANDRA_SEEDS=212.92.98.127,95.213.236.24  \
+docker run -d -e CASSANDRA_BROADCAST_ADDRESS=95.213.235.117 -e CASSANDRA_SEEDS=95.213.199.95,95.213.235.117  \
     -e CASSANDRA_CLUSTER_NAME="linguistic" -e CASSANDRA_HOME="/var/lib/cassandra"  \
     -e CASSANDRA_START_RPC="true" -e CASSANDRA_RACK="wr2" -e CASSANDRA_DC="spb" \
     -e CASSANDRA_ENDPOINT_SNITCH="GossipingPropertyFileSnitch"  \
     -p 7000:7000 -p 7001:7001 -p 9042:9042 -p 9160:9160 -p 7199:7199  \
     -v /media/haghard/data/linguistic-db:/var/lib/cassandra cassandra:3.11.3
 
+
+
+
 docker run -d -p 2380:2380 -p 2379:2379 quay.io/coreos/etcd:v2.3.7 \
   -name etcd0 \
-  -advertise-client-urls http://212.92.98.127:2379 \
+  -advertise-client-urls http://95.213.199.95:2379 \
   -listen-client-urls http://0.0.0.0:2379 \
-  -initial-advertise-peer-urls http://212.92.98.127:2380 \
+  -initial-advertise-peer-urls http://95.213.199.95:2380 \
   -listen-peer-urls http://0.0.0.0:2380 \
-  -initial-cluster etcd0=http://212.92.98.127:2380,etcd1=http://95.213.236.24:2380 \
+  -initial-cluster etcd0=http://95.213.199.95:2380,etcd1=http://95.213.235.117:2380 \
   -initial-cluster-state new
       
 docker run -d -p 2380:2380 -p 2379:2379 quay.io/coreos/etcd:v2.3.7 \
   -name etcd1 \
-  -advertise-client-urls http://95.213.236.24:2379 \
+  -advertise-client-urls http://95.213.235.117:2379 \
   -listen-client-urls http://0.0.0.0:2379 \
-  -initial-advertise-peer-urls http://95.213.236.24:2380 \
+  -initial-advertise-peer-urls http://95.213.235.117:2380 \
   -listen-peer-urls http://0.0.0.0:2380 \
-  -initial-cluster etcd0=http://212.92.98.127:2380,etcd1=http://95.213.236.24:2380 \
+  -initial-cluster etcd0=http://95.213.199.95:2380,etcd1=http://95.213.235.117:2380 \
   -initial-cluster-state new        
 
 
 Check Etcd registry   
   curl http://212.92.98.127:2379/v2/keys/constructr/linguistics/nodes  
     
-docker run --net=host -it -p 2551:2551 -p 9443:9443 -e HOSTNAME=95.213.236.24 -e AKKA_PORT=2551 -e DISCOVERY=95.213.236.24 -e HTTP_PORT=9443 -e CASSANDRA=212.92.98.127,95.213.236.24 -e JMX_PORT=1089 -m 750MB haghard/linguistic:0.3
+docker run --net=host -it -p 2551:2551 -p 9443:9443 -e HOSTNAME=95.213.199.95 -e AKKA_PORT=2551 -e ETCD=95.213.199.95 -e HTTP_PORT=9443 -e CASSANDRA=95.213.199.95,95.213.235.117 -e JMX_PORT=1089 -m 650MB haghard/linguistic:0.3
 
 
 http --verify=no https://212.92.98.127:9443/cluster/words/regions
