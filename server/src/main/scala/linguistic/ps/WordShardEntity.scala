@@ -11,8 +11,7 @@ import akka.cluster.sharding.ShardRegion._
 import akka.persistence.{PersistentActor, RecoveryCompleted, SnapshotOffer}
 import akka.stream.ActorMaterializer
 import com.rklaehn.radixtree.RadixTree
-import linguistic.WordsSearchProtocol.{IndexingCompleted, SearchResults}
-import linguistic.protocol.{Words, WordsQuery}
+import linguistic.protocol.{IndexingCompleted, SearchResults, Words, WordsQuery}
 import linguistic.ps.WordShardEntity._
 
 object WordShardEntity {

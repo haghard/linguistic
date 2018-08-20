@@ -6,11 +6,10 @@ import akka.http.scaladsl.model._
 import akka.pattern.ask
 import akka.util.ByteString
 import linguistic.AuthTokenSupport
-import linguistic.WordsSearchProtocol.SearchResults
 
 import scala.concurrent.duration._
 import ContentTypes._
-import linguistic.protocol.{HomophonesQuery, SearchQuery, WordsQuery}
+import linguistic.protocol.{HomophonesQuery, SearchQuery, SearchResults, WordsQuery}
 
 import scala.collection.immutable
 import scala.concurrent.ExecutionContext

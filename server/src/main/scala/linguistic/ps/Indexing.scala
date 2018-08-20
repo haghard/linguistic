@@ -10,7 +10,7 @@ import akka.stream.scaladsl.StreamConverters.fromInputStream
 import akka.stream.scaladsl.{Framing, Sink, Source}
 import akka.util.ByteString
 import com.rklaehn.radixtree.RadixTree
-import linguistic.WordsSearchProtocol.IndexingCompleted
+import linguistic.protocol.IndexingCompleted
 
 import scala.concurrent.Future
 

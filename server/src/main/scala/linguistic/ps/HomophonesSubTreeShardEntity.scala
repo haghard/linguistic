@@ -11,8 +11,7 @@ import akka.cluster.sharding.ShardRegion._
 import akka.persistence.{PersistentActor, RecoveryCompleted, SnapshotOffer}
 import akka.stream.ActorMaterializer
 import com.rklaehn.radixtree.RadixTree
-import linguistic.WordsSearchProtocol.{IndexingCompleted, SearchResults}
-import linguistic.protocol.{Homophone, Homophones, HomophonesQuery}
+import linguistic.protocol._
 import linguistic.ps.WordShardEntity.RestoredIndex
 
 object HomophonesSubTreeShardEntity {

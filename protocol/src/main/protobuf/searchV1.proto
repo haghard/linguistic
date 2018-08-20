@@ -28,3 +28,7 @@ message HomophonesPB {
 message WordsPB {
     repeated string entry = 1;
 }
+
+message SearchResultsPB {
+    repeated string strict = 1;
+}

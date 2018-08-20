@@ -189,6 +189,7 @@ Check Etcd registry
   curl http://212.92.98.127:2379/v2/keys/constructr/linguistics/nodes  
     
 docker run --net=host -it -p 2551:2551 -p 9443:9443 -e HOSTNAME=95.213.199.95 -e AKKA_PORT=2551 -e ETCD=95.213.199.95 -e HTTP_PORT=9443 -e CASSANDRA=95.213.199.95,95.213.235.117 -e JMX_PORT=1089 -m 650MB haghard/linguistic:0.3
+docker run --net=host -it -p 2551:2551 -p 9443:9443 -e HOSTNAME=95.213.235.117 -e AKKA_PORT=2551 -e ETCD=95.213.235.117 -e HTTP_PORT=9443 -e CASSANDRA=95.213.199.95,95.213.235.117 -e JMX_PORT=1089 -m 650MB haghard/linguistic:0.3
 
 
 http --verify=no https://212.92.98.127:9443/cluster/words/regions

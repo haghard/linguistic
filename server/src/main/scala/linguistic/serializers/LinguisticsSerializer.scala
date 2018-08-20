@@ -5,6 +5,8 @@ import akka.serialization.SerializerWithStringManifest
 import linguistic.protocol._
 import linguistic.serialization._
 
+import scala.collection.immutable
+
 class LinguisticsSerializer(val system: ExtendedActorSystem) extends SerializerWithStringManifest {
   override val identifier: Int = 99999
 
@@ -16,6 +18,8 @@ class LinguisticsSerializer(val system: ExtendedActorSystem) extends SerializerW
         WordsQueryPB(q.keyword, q.maxResults).toByteArray
       case q: HomophonesQuery =>
         HomophonesQueryPB(q.keyword, q.maxResults).toByteArray
+      case r: SearchResults =>
+        SearchResultsPB(r.strict).toByteArray
       case h: Homophone =>
         HomophonePB(h.key, h.homophones).toByteArray
       case h: Homophones =>
@@ -34,7 +38,10 @@ class LinguisticsSerializer(val system: ExtendedActorSystem) extends SerializerW
     } else if (manifest == classOf[HomophonesQuery].getName) {
       val pb = HomophonesQueryPB.parseFrom(bytes)
       HomophonesQuery(pb.keyword, pb.maxResults)
-    } else if (manifest == classOf[Homophone].getName) {
+    } else if (manifest == classOf[SearchResults].getName) {
+      val r = SearchResultsPB.parseFrom(bytes)
+      SearchResults(r.strict.to[immutable.Seq])
+    }else if (manifest == classOf[Homophone].getName) {
       val pb = HomophonePB.parseFrom(bytes)
       Homophone(pb.key, pb.homophones)
     } else if (manifest == classOf[Homophones].getName) {
