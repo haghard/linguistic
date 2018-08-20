@@ -34,7 +34,6 @@ final class SearchApi(search: ActorRef)(implicit val system: ActorSystem) extend
   //http --verify=no https://192.168.0.62:9443/api/v1.0/words/search"?q=aa"
   val route =
     extractMaterializer { implicit mat =>
-      //extractExecutionContext { implicit ec =>
       extractLog { _ =>
         pathPrefix(apiPrefix) {
           get {

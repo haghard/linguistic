@@ -31,9 +31,9 @@ class Searches(mat: ActorMaterializer, wordslist: ActorRef, homophones: ActorRef
     case (name: String, m @ ShardRegion.GetCurrentRegions) =>
       name match {
         case WordShardEntity.Name =>
-          (wordslist forward  m)
+          wordslist forward  m
         case HomophonesSubTreeShardEntity.Name =>
-          (homophones forward  m)
+          homophones forward m
         case _ => //
       }
 

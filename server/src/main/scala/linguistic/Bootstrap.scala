@@ -3,8 +3,9 @@ package linguistic
 import linguistic.dao.Accounts
 import linguistic.dao.Accounts.Activate
 import akka.stream.ActorMaterializerSettings
-import akka.actor.{Actor, ActorLogging, ActorRef, Props, Status}
+import akka.actor.{Actor, ActorLogging, ActorRef, CoordinatedShutdown, Props, Status}
 import Bootstrap._
+import akka.Done
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.server.RouteConcatenation._
@@ -55,23 +56,33 @@ class Bootstrap(port: Int, address: String, keypass: String, storepass: String) 
   }
 
   def awaitHttpBinding(users: ActorRef, search: ActorRef): Receive = {
-    case ServerBinding(localAddress) =>
-      log.info("Binding on {}", localAddress)
+    case b: ServerBinding =>
+      log.info("Binding on {}", b.localAddress)
       //warm up
       users ! Activate
       search ! WordsQuery("average", 1)
       search ! HomophonesQuery("rose", 1)
-      context.become(warmUp)
+      context.become(warmUp(b))
 
     case Status.Failure(ex) =>
       log.error(ex, s"Can't bind to $address:$port")
       context stop self
   }
 
-  def warmUp: Receive = {
+  def warmUp(bind: ServerBinding): Receive = {
     case Status.Failure(ex) =>
       log.error(ex, "Warm up error")
-      context stop self
+      bind.unbind().foreach { _ =>
+        context stop self
+      }
+
+      //https://discuss.lightbend.com/t/graceful-termination-on-sigterm-using-akka-http/1619
+      /*CoordinatedShutdown(system).addTask(
+        CoordinatedShutdown.PhaseServiceUnbind, "http_shutdown") { () =>
+        bind.unbind().flatMap(_.terminate(hardDeadline = 1.minute)).map { _ =>
+          Done
+        }
+      }*/
     case _ =>
   }
 
