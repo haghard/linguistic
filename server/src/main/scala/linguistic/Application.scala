@@ -1,10 +1,10 @@
 package linguistic
 
 import java.io.File
-
-import akka.actor.ActorSystem
 import akka.cluster.Cluster
+import akka.actor.ActorSystem
 import com.typesafe.config.{Config, ConfigFactory}
+
 import scala.collection._
 
 //-Duser.timezone=UTC
@@ -18,7 +18,7 @@ object Application extends App with AppSupport {
   val httpPort = System.getProperty("akka.http.port")
   val hostName = System.getProperty("HOSTNAME")
   val confPath = System.getProperty("CONFIG")
-  val discHost = System.getProperty("DISCOVERY")
+  val discHost = System.getProperty("ETCD")
   val dbHosts = System.getProperty("cassandra.hosts")
   val env     = Option(System.getProperty("ENV")).getOrElse(throw new Exception("ENV is expected"))
 

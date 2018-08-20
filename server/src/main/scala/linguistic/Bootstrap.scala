@@ -60,10 +60,10 @@ class Bootstrap(port: Int, address: String, keypass: String, storepass: String) 
       search ! HomophonesQuery("rose", 1)
       
       //https://discuss.lightbend.com/t/graceful-termination-on-sigterm-using-akka-http/1619
-      CoordinatedShutdown(system).addTask(
+      /*CoordinatedShutdown(system).addTask(
         CoordinatedShutdown.PhaseServiceUnbind, "http_shutdown") { () =>
         b.unbind()
-      }
+      }*/
       context.become(warmUp(b))
 
     case Status.Failure(ex) =>
@@ -74,7 +74,7 @@ class Bootstrap(port: Int, address: String, keypass: String, storepass: String) 
   def warmUp(bind: ServerBinding): Receive = {
     case Status.Failure(ex) =>
       log.error(ex, "Warm up error")
-      bind.unbind().foreach(_ => context stop self)
+      bind.unbind().foreach(_ => context stop self)(scala.concurrent.ExecutionContext.global)
     case _ =>
   }
 

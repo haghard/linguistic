@@ -3,8 +3,7 @@
 set -e
 set -x
 
-APP_OPTS="-d64 \
-          -server \
+APP_OPTS="-server \
           -XX:MaxGCPauseMillis=400 \
           -XX:+UseStringDeduplication \
           -XX:+UseG1GC \
@@ -26,7 +25,7 @@ APP_OPTS="-d64 \
           -DHOSTNAME=${HOSTNAME} \
           -DCONFIG=${CONFIG} \
           -Dcassandra.hosts=${CASSANDRA} \
-          -DDISCOVERY="${DISCOVERY}
+          -DETCD="${ETCD}
 
 #production, development
 

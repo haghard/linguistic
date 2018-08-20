@@ -41,7 +41,7 @@ lazy val server = (project in file("server")).settings(
     "com.lihaoyi"     %%  "scalatags"       % "0.6.7",
     "org.webjars"     %   "bootstrap"       % "3.3.6",
 
-    "com.datastax.cassandra" % "cassandra-driver-extras" % "3.4.0",
+    "com.datastax.cassandra" % "cassandra-driver-extras" % "3.5.0",
 
     "com.jsuereth"     %% "scala-arm"       % "2.0",
     "org.openjdk.jol"  %  "jol-core"        % "0.6",
@@ -58,7 +58,7 @@ lazy val server = (project in file("server")).settings(
     "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion,
     "com.typesafe.akka" %% "akka-persistence-cassandra" % "0.89",
-    //"com.lightbend.akka.management" %% "akka-management-cluster-http" % "0.10.0",
+    //"com.lightbend.akka.management" %% "akka-management-cluster-http" % "0.17.0",
     "de.heikoseeberger" %%  "constructr"                   %  "0.19.0",
     "de.heikoseeberger" %%  "constructr-coordination-etcd" %  "0.19.0" //(depends on akka-http:10.0.10)
     //"com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf"
@@ -133,7 +133,8 @@ lazy val server = (project in file("server")).settings(
     val appDevConfTarget = s"$imageAppBaseDir/$configDir/development.conf"
 
     new sbtdocker.mutable.Dockerfile {
-      from("openjdk:8-jre")
+      from("openjdk:10-jre")
+      //from("openjdk:8-jre")
       //from("openjdk:8u131")
       maintainer("haghard")
 
@@ -198,10 +199,6 @@ lazy val ui = (project in file("ui")).settings(
     "org.singlespaced" %%% "scalajs-d3" % "0.3.4",
     "com.github.japgolly.scalajs-react" %%% "core"    % "0.11.3",
     "com.github.japgolly.scalajs-react" %%% "extra"   % "0.11.3"
-    //"com.github.yoeluk"               %%% "raphael-scala-js" % "0.2-SNAPSHOT"
-    //"com.github.chandu0101.scalajs-react-components" %%%  "core"      % "0.5.0",
-    //"com.github.chandu0101.scalajs-react-components" %%%  "macros"    % "0.5.0"
-    //"com.github.japgolly.scalacss"                   %%%  "ext-react" % "0.5.1"
   ),
 
   jsDependencies ++= Seq(
