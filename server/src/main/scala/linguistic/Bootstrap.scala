@@ -5,7 +5,6 @@ import linguistic.dao.Accounts.Activate
 import akka.stream.ActorMaterializerSettings
 import akka.actor.{Actor, ActorLogging, ActorRef, CoordinatedShutdown, Props, Status}
 import Bootstrap._
-import akka.Done
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.server.RouteConcatenation._
@@ -31,9 +30,6 @@ class Bootstrap(port: Int, address: String, keypass: String, storepass: String) 
   implicit val ex = system.dispatchers.lookup(HttpDispatcher)
   implicit val mat = akka.stream.ActorMaterializer(
     ActorMaterializerSettings.create(system).withDispatcher(HttpDispatcher))(system)
-
-  //val wordShard = ClusterSharding(system).shardRegion(WordShardEntity.Name)
-  //val homophonesShard = ClusterSharding(system).shardRegion(HomophonesSubTreeShardEntity.Name)
 
   override def preStart() =
     self ! InitSharding
@@ -62,6 +58,12 @@ class Bootstrap(port: Int, address: String, keypass: String, storepass: String) 
       users ! Activate
       search ! WordsQuery("average", 1)
       search ! HomophonesQuery("rose", 1)
+      
+      //https://discuss.lightbend.com/t/graceful-termination-on-sigterm-using-akka-http/1619
+      CoordinatedShutdown(system).addTask(
+        CoordinatedShutdown.PhaseServiceUnbind, "http_shutdown") { () =>
+        b.unbind()
+      }
       context.become(warmUp(b))
 
     case Status.Failure(ex) =>
@@ -72,17 +74,7 @@ class Bootstrap(port: Int, address: String, keypass: String, storepass: String) 
   def warmUp(bind: ServerBinding): Receive = {
     case Status.Failure(ex) =>
       log.error(ex, "Warm up error")
-      bind.unbind().foreach { _ =>
-        context stop self
-      }
-
-      //https://discuss.lightbend.com/t/graceful-termination-on-sigterm-using-akka-http/1619
-      /*CoordinatedShutdown(system).addTask(
-        CoordinatedShutdown.PhaseServiceUnbind, "http_shutdown") { () =>
-        bind.unbind().flatMap(_.terminate(hardDeadline = 1.minute)).map { _ =>
-          Done
-        }
-      }*/
+      bind.unbind().foreach(_ => context stop self)
     case _ =>
   }
 
