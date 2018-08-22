@@ -196,7 +196,7 @@ lazy val ui = (project in file("ui")).settings(
   scalaJSUseMainModuleInitializer in Test := false,
 
   libraryDependencies ++= Seq(
-    "org.singlespaced" %%% "scalajs-d3" % "0.3.4",
+    //"org.singlespaced" %%% "scalajs-d3" % "0.3.4",
     "com.github.japgolly.scalajs-react" %%% "core"    % "0.11.3",
     "com.github.japgolly.scalajs-react" %%% "extra"   % "0.11.3"
   ),
