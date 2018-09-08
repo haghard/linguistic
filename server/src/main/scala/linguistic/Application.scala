@@ -75,9 +75,6 @@ object Application extends App with AppSupport {
 
   val configFile = new File(s"${new File(confPath).getAbsolutePath}/" + env + ".conf")
 
-  println("configFile:  " + configFile.getAbsoluteFile)
-
-
   val config: Config =
     ConfigFactory.parseString(effectedHttpConf)
       .withFallback(ConfigFactory.parseString(constructrConf))

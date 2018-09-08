@@ -24,7 +24,7 @@ object ReactJsApp {
       e.preventDefaultCB >> scope.modState(s => s.copy(mode = SignUpMode))
     }
 
-    def signIn(e: ReactEventI): CallbackTo[Unit] = {
+    def login(e: ReactEventI): CallbackTo[Unit] = {
       import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
       e.preventDefaultCB >>
         CallbackTo {
@@ -50,7 +50,7 @@ object ReactJsApp {
         case UiSession(None, _, SignInMode, error) =>
           <.div(
             topPanelComponent(session, oauthProviders, signUp, signOut)(),
-            SignInFormArea(signIn),
+            SignInFormArea(login),
             ErrorSignInFormArea(error)
           )
 

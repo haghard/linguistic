@@ -25,7 +25,7 @@ object Search {
 
         val q = e.target.value
         Ajax.get(
-          shared.Routes.search(searchType, q, 50),
+          shared.Routes.search(searchType, q, 30),
           headers = Map(shared.Headers.fromClient -> token)
         ).onComplete {
           case Success(r) =>
@@ -118,7 +118,7 @@ object Search {
         ^.cls := "container-fluid",
         <.div(
           ReactCssTransitionGroup("search-output", component = "h5") {
-            state.words.map { word => <.div(^.key := word, word)  }
+            state.words.map(word => <.div(^.key := word, word))
           }
         )
       )

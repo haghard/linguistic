@@ -22,7 +22,8 @@ lazy val server = (project in file("server")).settings(
   scalaJSProjects := Seq(ui),
   pipelineStages in Assets := Seq(scalaJSPipeline),
   // triggers scalaJSPipeline when using compile or continuous compilation
-  compile in Compile := (compile in Compile).dependsOn(scalaJSPipeline, cpCss).value,
+  compile in Compile := (compile in Compile)
+    .dependsOn(scalaJSPipeline, cpCss).value,
 
   name := "server",
 
