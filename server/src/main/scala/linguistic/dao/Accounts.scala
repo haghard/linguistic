@@ -67,6 +67,7 @@ class Accounts extends Actor with ActorLogging {
       insertStmt.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 
       val selectStmt = session prepare selectUser
+      selectStmt.setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL)
       selectStmt.setConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL)
       selectStmt.enableTracing
       context become active(session, selectStmt, insertStmt)

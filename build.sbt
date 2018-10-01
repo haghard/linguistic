@@ -4,8 +4,8 @@ import sbtdocker.ImageName
 
 import scala.sys.process.Process
 
-val scalaV = "2.12.6"
-val akkaVersion = "2.5.14"
+val scalaV = "2.12.7"
+val akkaVersion = "2.5.17"
 val version = "0.3"
 
 name := "linguistic"
@@ -35,14 +35,14 @@ lazy val server = (project in file("server")).settings(
 
   libraryDependencies ++= Seq(
     "ch.qos.logback"  %   "logback-classic" % "1.1.2",
-    "org.mindrot"     %   "jbcrypt"         % "0.3m",
+    "org.mindrot"     %   "jbcrypt"         % "0.4",
 
     "com.vmunier"     %%  "scalajs-scripts" % "1.1.0", //Twirl templates to link Scala.js output scripts into a HTML page.
 
     "com.lihaoyi"     %%  "scalatags"       % "0.6.7",
     "org.webjars"     %   "bootstrap"       % "3.3.6",
 
-    "com.datastax.cassandra" % "cassandra-driver-extras" % "3.5.0",
+    "com.datastax.cassandra" % "cassandra-driver-extras" % "3.6.0",
 
     "com.jsuereth"     %% "scala-arm"       % "2.0",
     "org.openjdk.jol"  %  "jol-core"        % "0.6",
@@ -58,7 +58,7 @@ lazy val server = (project in file("server")).settings(
     "com.typesafe.akka" %% "akka-persistence" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion,
-    "com.typesafe.akka" %% "akka-persistence-cassandra" % "0.89",
+    "com.typesafe.akka" %% "akka-persistence-cassandra" % "0.90",
     //"com.lightbend.akka.management" %% "akka-management-cluster-http" % "0.17.0",
     "de.heikoseeberger" %%  "constructr"                   %  "0.19.0",
     "de.heikoseeberger" %%  "constructr-coordination-etcd" %  "0.19.0" //(depends on akka-http:10.0.10)
