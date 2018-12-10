@@ -23,7 +23,7 @@ lazy val server = (project in file("server")).settings(
   pipelineStages in Assets := Seq(scalaJSPipeline),
   // triggers scalaJSPipeline when using compile or continuous compilation
   compile in Compile := (compile in Compile)
-    .dependsOn(scalaJSPipeline, cpCss).value,
+    .dependsOn(scalaJSPipeline/*, cpCss*/).value,
 
   name := "server",
 
@@ -89,7 +89,8 @@ lazy val server = (project in file("server")).settings(
     case other => (assemblyMergeStrategy in assembly).value(other)
   },
 
-  imageNames in docker := Seq(ImageName(namespace = Some("haghard"), repository = "linguistic", tag = Some(version))),
+  imageNames in docker := Seq(ImageName(namespace = Some("haghard"),
+    repository = "linguistic", tag = Some(version))),
 
   buildOptions in docker := BuildOptions(cache = false,
     removeIntermediateContainers = BuildOptions.Remove.Always,
