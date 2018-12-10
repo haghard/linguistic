@@ -21,16 +21,16 @@ object WordShardEntity {
 
   case class RestoredIndex[T](index: RadixTree[String, T])
 
+  val extractEntityId: ExtractEntityId = {
+    case x: WordsQuery =>
+      (x.keyword.toLowerCase(Locale.ROOT).take(1), x)
+  }
+
   val extractShardId: ExtractShardId = {
     case x: WordsQuery =>
       x.keyword.toLowerCase(Locale.ROOT).take(1)
     case ShardRegion.StartEntity(id) =>
       id
-  }
-
-  val extractEntityId: ExtractEntityId = {
-    case x: WordsQuery =>
-      (x.keyword.toLowerCase(Locale.ROOT).take(1), x)
   }
 
   def props(mat: ActorMaterializer): Props =
