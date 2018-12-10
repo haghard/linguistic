@@ -50,7 +50,7 @@ lazy val server = (project in file("server")).settings(
 
     "org.scalatest"    %% "scalatest"       % "3.0.1" % "test"
   ) ++ Seq(
-    ("com.softwaremill.akka-http-session" %% "core" % "0.5.5").exclude("com.typesafe.akka", "akka-http"),
+    ("com.softwaremill.akka-http-session" %% "core" % "0.5.6").exclude("com.typesafe.akka", "akka-http"),
     //"com.typesafe.akka" %% "akka-http" % "10.0.10",
     "com.typesafe.akka" %% "akka-stream" % akkaVersion,
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
