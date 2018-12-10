@@ -227,7 +227,7 @@ lazy val ui = (project in file("ui")).settings(
 lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared")).
   settings(
     scalaVersion := scalaV,
-    libraryDependencies ++= Seq("com.lihaoyi" %%% "upickle" % "0.6.0")
+    libraryDependencies ++= Seq("com.lihaoyi" %%% "upickle" % "0.6.6")
   ).jsConfigure(_ enablePlugins ScalaJSWeb)
 
 lazy val sharedJvm = shared.jvm
