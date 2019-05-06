@@ -189,7 +189,10 @@ def haltOnCmdResultError(result: Int) {
 }
 
 lazy val ui = (project in file("ui")).settings(
-  resolvers += "Sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
+  resolvers ++= Seq(
+    "Sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
+    Resolver.bintrayRepo("tanukkii007", "maven")
+  ),
   scalaVersion := scalaV,
   scalaJSUseMainModuleInitializer := false,
   scalaJSUseMainModuleInitializer in Test := false,
