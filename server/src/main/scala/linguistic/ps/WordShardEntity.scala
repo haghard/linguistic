@@ -2,6 +2,7 @@ package linguistic.ps
 
 import java.io.File
 import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
@@ -117,7 +118,7 @@ class WordShardEntity(implicit val mat: ActorMaterializer) extends PersistentAct
 
   def searchable(index: SubTree): Receive = {
     case WordsQuery(prefix, maxResults) =>
-      val decodedPrefix = URLDecoder.decode(prefix, encoding)
+      val decodedPrefix = URLDecoder.decode(prefix, StandardCharsets.UTF_8.name)
       val start = System.nanoTime
       val results = index.filterPrefix(decodedPrefix).keys.take(maxResults).to[collection.immutable.Seq]
       log.info("Search for: [{}], resulted in [{}] results. Latency:{} millis", prefix, results.size,

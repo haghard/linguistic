@@ -41,9 +41,10 @@ class Accounts extends Actor with ActorLogging {
   //https://datastax.github.io/java-driver/manual/custom_codecs/extras/
   import com.datastax.driver.extras.codecs.jdk8.InstantCodec
 
-  val cassandraPort = context.system.settings.config.getInt("cassandra-journal.port")
-  val keySpace = context.system.settings.config.getString("cassandra-journal.keyspace")
-  val cassandraHosts = context.system.settings.config.getStringList("cassandra-journal.contact-points")
+  val conf = context.system.settings.config
+  val cassandraPort = conf.getInt("cassandra-journal.port")
+  val keySpace = conf.getString("cassandra-journal.keyspace")
+  val cassandraHosts = conf.getStringList("cassandra-journal.contact-points")
     .asScala.map(new InetSocketAddress(_, cassandraPort))
 
   implicit val ex = context.system.dispatchers.lookup("shard-dispatcher")
@@ -52,6 +53,9 @@ class Accounts extends Actor with ActorLogging {
     case Activate =>
       val cluster = Cluster.builder()
         .addContactPointsWithPorts(cassandraHosts.asJava)
+        .withCredentials(
+          conf.getString("cassandra-journal.authentication.username"),
+          conf.getString("cassandra-journal.authentication.password"))
         //.withLoadBalancingPolicy(DCAwareRoundRobinPolicy.builder().withLocalDc(localDC).build())
         .withQueryOptions(new QueryOptions().setConsistencyLevel(ConsistencyLevel.ONE))
         .build

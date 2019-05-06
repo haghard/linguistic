@@ -21,8 +21,6 @@ trait Indexing[T] {
 
   type SubTree = RadixTree[String, T]
 
-  val encoding = "utf-8"
-
   def key: String
 
   def keywordsSource(path: String): Source[ByteString, Future[IOResult]] =

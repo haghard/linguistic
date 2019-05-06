@@ -2,6 +2,7 @@ package linguistic.ps
 
 import java.io.File
 import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
@@ -108,7 +109,7 @@ class HomophonesSubTreeShardEntity(implicit val mat: ActorMaterializer) extends 
 
   def searchable(index: SubTree): Receive = {
     case HomophonesQuery(prefix, maxResults) =>
-      val decodedPrefix = URLDecoder.decode(prefix, encoding)
+      val decodedPrefix = URLDecoder.decode(prefix, StandardCharsets.UTF_8.name)
       val results =
         index
           .filterPrefix(decodedPrefix).entries.take(maxResults)

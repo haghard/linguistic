@@ -5,6 +5,8 @@ import linguistic.dao.Accounts.Activate
 import akka.stream.ActorMaterializerSettings
 import akka.actor.{Actor, ActorLogging, ActorRef, CoordinatedShutdown, Props, Status}
 import Bootstrap._
+import akka.Done
+import akka.actor.CoordinatedShutdown.{PhaseServiceRequestsDone, PhaseServiceUnbind, Reason}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.ServerBinding
 import akka.http.scaladsl.server.RouteConcatenation._
@@ -13,9 +15,13 @@ import akka.pattern.pipe
 import linguistic.api.WebAssets
 import linguistic.protocol.{HomophonesQuery, WordsQuery}
 
+import scala.concurrent.Promise
+import scala.concurrent.duration._
+
 object Bootstrap {
 
-  case object InitSharding
+  private final case object InitSharding
+  private final case object BindFailure extends Reason
 
   val HttpDispatcher = "akka.http.dispatcher"
 
@@ -31,14 +37,16 @@ class Bootstrap(port: Int, address: String, keypass: String, storepass: String) 
   implicit val mat = akka.stream.ActorMaterializer(
     ActorMaterializerSettings.create(system).withDispatcher(HttpDispatcher))(system)
 
+  val shutdown = CoordinatedShutdown(system)
+
   override def preStart() =
     self ! InitSharding
 
   def idle: Receive = {
     case InitSharding =>
       val (wordRegion, homophonesRegion) = startSharding(system)
-      val users = system.actorOf(Accounts.props, "users")
-      val search = system.actorOf(Searches.props(mat, wordRegion, homophonesRegion), "search")
+      val users = context.actorOf(Accounts.props, "users")
+      val search = context.actorOf(Searches.props(mat, wordRegion, homophonesRegion), "search")
 
       val routes = new WebAssets().route ~ new api.SearchApi(search).route ~
         new api.UsersApi(users).route ~ new api.ClusterApi(self, search,
@@ -53,23 +61,32 @@ class Bootstrap(port: Int, address: String, keypass: String, storepass: String) 
 
   def awaitHttpBinding(users: ActorRef, search: ActorRef): Receive = {
     case b: ServerBinding =>
-      log.info("Binding on {}", b.localAddress)
-      //warm up
+      //warm up search
       users ! Activate
       search ! WordsQuery("average", 1)
       search ! HomophonesQuery("rose", 1)
-      context.become(warmUp(b))
+
+      shutdown.addTask(PhaseServiceUnbind, "api.unbind") { () ⇒
+        log.info("api.unbind")
+        // No new connections are accepted
+        // Existing connections are still allowed to perform request/response cycles
+        b.terminate(3.seconds).map(_ ⇒ Done)
+      }
+
+      shutdown.addTask(PhaseServiceRequestsDone, "requests-done") { () ⇒
+        log.info("requests-done")
+        // Wait 2 seconds until all HTTP requests have been processed
+        val p = Promise[Done]()
+        system.scheduler.scheduleOnce(2.seconds) {
+          p.success(Done)
+        }
+        p.future
+      }
 
     case Status.Failure(ex) =>
       log.error(ex, s"Can't bind to $address:$port")
-      context stop self
-  }
-
-  def warmUp(bind: ServerBinding): Receive = {
-    case Status.Failure(ex) =>
-      log.error(ex, "Warm up error")
-      bind.unbind().foreach(_ => context stop self)(scala.concurrent.ExecutionContext.global)
-    case _ =>
+      //graceful stop logic
+      shutdown.run(Bootstrap.BindFailure)
   }
 
   override def receive = idle

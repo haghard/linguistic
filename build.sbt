@@ -23,7 +23,7 @@ lazy val server = (project in file("server")).settings(
   pipelineStages in Assets := Seq(scalaJSPipeline),
   // triggers scalaJSPipeline when using compile or continuous compilation
   compile in Compile := (compile in Compile)
-    .dependsOn(scalaJSPipeline/*, cpCss*/).value,
+    .dependsOn(scalaJSPipeline, cpCss).value,
 
   name := "server",
 
@@ -51,17 +51,15 @@ lazy val server = (project in file("server")).settings(
     "org.scalatest"    %% "scalatest"       % "3.0.1" % "test"
   ) ++ Seq(
     ("com.softwaremill.akka-http-session" %% "core" % "0.5.6").exclude("com.typesafe.akka", "akka-http"),
-    //"com.typesafe.akka" %% "akka-http" % "10.0.10",
     "com.typesafe.akka" %% "akka-stream" % akkaVersion,
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
-    "com.typesafe.akka" %% "akka-persistence" % akkaVersion,
+    "com.typesafe.akka" %% "akka-persistence-query" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion,
     "com.typesafe.akka" %% "akka-persistence-cassandra" % "0.93",
-    "de.heikoseeberger" %%  "constructr"                   %  "0.19.0",
-    "de.heikoseeberger" %%  "constructr-coordination-etcd" %  "0.19.0" //(depends on akka-http:10.0.10)
-    //"com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf"
+    "com.lightbend.akka.management" %% "akka-management-cluster-http" % "1.0.0",
+    "com.github.TanUkkii007" %% "akka-cluster-custom-downing" % "0.0.12"
   ),
 
   //javaOptions in runMain += "-DENV=prod",

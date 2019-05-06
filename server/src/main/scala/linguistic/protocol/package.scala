@@ -26,7 +26,7 @@ package object protocol {
   case class SearchResults(strict: immutable.Seq[String]) extends Results
   
 
-  //These goes to cassandra
+
   case class Words(entry: Seq[String])
 
   case class Homophones(homophones: Seq[Homophone])

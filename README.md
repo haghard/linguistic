@@ -197,3 +197,6 @@ http --verify=no https://212.92.98.127:9443/cluster/homophones/regions
 
 http --verify=no https://212.92.98.127:9443/cluster/homophones/shards
 http --verify=no https://95.213.236.24:9443/cluster/homophones/shards
+
+
+sbt -Dcassandra.username=... -Dcassandra.password=...

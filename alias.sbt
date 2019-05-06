@@ -6,8 +6,9 @@ addCommandAlias(
   "-Dakka.remote.netty.tcp.port=2551 " +
   "-Dakka.http.port=9443 " +
   "-DHOSTNAME=192.168.77.10 " +
-  "-DETCD=192.168.77.85 " +
-  "-Dcassandra.hosts=192.168.77.85,192.168.77.42 "
+  "-Dakka.cluster.seed-nodes.0=akka.tcp://linguistics@192.168.77.10:2551\n" +
+  "-Dakka.cluster.seed-nodes.1=akka.tcp://linguistics@192.168.77.83:2551\n" +
+  "-Dcassandra.hosts=130.193.44.21,130.193.44.47"
 )
 
 addCommandAlias(
@@ -17,21 +18,8 @@ addCommandAlias(
   "-DCONFIG=./conf " +
   "-Dakka.remote.netty.tcp.port=2551 " +
   "-Dakka.http.port=9443 " +
-  "-DHOSTNAME=192.168.77.11 " +
-  "-DETCD=192.168.77.85 " +
-  "-Dcassandra.hosts=192.168.77.85,192.168.77.42 "
-)
-
-addCommandAlias(
-  "engine-2",
-  "runMain/runMain linguistic.Application " +
-  "-DENV=development " +
-  "-DCONFIG=./server/conf " +
-  "-Dakka.remote.netty.tcp.port=2551 " +
-  "-Dakka.http.port=9443 " +
-  "-DHOSTNAME=185.143.173.41 " +
-  "-DETCD=192.168.77.85 " +
-  "-Dcassandra.hosts=192.168.77.85,192.168.77.42 " +
-  "-Dakka.cluster.seed-nodes.0=akka.tcp://linguistics@78.155.207.122:2551 " +
-  "-Dakka.cluster.seed-nodes.1=akka.tcp://linguistics@78.155.207.123:2551 "
+  "-DHOSTNAME=192.168.77.83 " +
+  "-Dakka.cluster.seed-nodes.0=akka.tcp://linguistics@192.168.77.10:2551\n" +
+  "-Dakka.cluster.seed-nodes.1=akka.tcp://linguistics@192.168.77.83:2551\n" +
+  "-Dcassandra.hosts=130.193.44.21,130.193.44.47 "
 )
