@@ -78,13 +78,11 @@ object Application extends App with AppSupport {
   val system = ActorSystem("linguistics", config)
 
   Cluster(system).registerOnMemberUp {
-    //system.actorOf(Guardian.props(env, httpPort.toInt, hostName), "guardian")
-    val tz = TimeZone.getDefault.getID
     val greeting = new StringBuilder()
       .append('\n')
       .append("=================================================================================================")
       .append('\n')
-      .append(s"★ ★ ★  Environment: ${env} TimeZone: $tz Started at ${LocalDateTime.now}  ★ ★ ★")
+      .append(s"★ ★ ★  Environment: ${env} TimeZone: ${TimeZone.getDefault.getID} Started at ${LocalDateTime.now}  ★ ★ ★")
       .append('\n')
       .append(s"★ ★ ★  Akka cluster: ${config.getInt("akka.remote.netty.tcp.port")}  ★ ★ ★")
       .append('\n')
@@ -99,7 +97,7 @@ object Application extends App with AppSupport {
 
     system.actorOf(Bootstrap.props(httpPort.toInt, hostName,
       config.getString("akka.http.ssl.keypass"),
-      config.getString("akka.http.ssl.storepass")), "http-server")
+      config.getString("akka.http.ssl.storepass")), "bootstrap")
 
   }
 }

@@ -56,10 +56,10 @@ class Bootstrap(port: Int, address: String, keypass: String, storepass: String) 
         .bindAndHandle(routes, address, port, connectionContext = https(keypass, storepass))
         .pipeTo(self)
 
-      context.become(awaitHttpBinding(users, search))
+      context.become(awaitBinding(users, search))
   }
 
-  def awaitHttpBinding(users: ActorRef, search: ActorRef): Receive = {
+  def awaitBinding(users: ActorRef, search: ActorRef): Receive = {
     case b: ServerBinding =>
       //warm up search
       users ! Activate
