@@ -58,12 +58,6 @@ class Bootstrap(port: Int, address: String, keypass: String, storepass: String) 
       users ! Activate
       search ! WordsQuery("average", 1)
       search ! HomophonesQuery("rose", 1)
-      
-      //https://discuss.lightbend.com/t/graceful-termination-on-sigterm-using-akka-http/1619
-      /*CoordinatedShutdown(system).addTask(
-        CoordinatedShutdown.PhaseServiceUnbind, "http_shutdown") { () =>
-        b.unbind()
-      }*/
       context.become(warmUp(b))
 
     case Status.Failure(ex) =>

@@ -4,8 +4,8 @@ import sbtdocker.ImageName
 
 import scala.sys.process.Process
 
-val scalaV = "2.12.7"
-val akkaVersion = "2.5.17"
+val scalaV = "2.12.8"
+val akkaVersion = "2.5.22"
 val version = "0.3"
 
 name := "linguistic"
@@ -58,7 +58,7 @@ lazy val server = (project in file("server")).settings(
     "com.typesafe.akka" %% "akka-persistence" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion,
-    "com.typesafe.akka" %% "akka-persistence-cassandra" % "0.90",
+    "com.typesafe.akka" %% "akka-persistence-cassandra" % "0.91",
     //"com.lightbend.akka.management" %% "akka-management-cluster-http" % "0.17.0",
     "de.heikoseeberger" %%  "constructr"                   %  "0.19.0",
     "de.heikoseeberger" %%  "constructr-coordination-etcd" %  "0.19.0" //(depends on akka-http:10.0.10)
