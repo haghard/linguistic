@@ -1,14 +1,10 @@
-import akka.actor.ActorDSL._
-import akka.actor.{ActorRef, ActorRefFactory, ReceiveTimeout, Terminated}
-import akka.cluster.sharding.ShardRegion
+
 import akka.http.scaladsl.marshalling.{Marshaller, _}
 import akka.http.scaladsl.model.MediaType
 import akka.http.scaladsl.model.MediaTypes._
-import com.google.common.util.concurrent.{FutureCallback, Futures, ListenableFuture}
+import com.google.common.util.concurrent.{FutureCallback, Futures, ListenableFuture, MoreExecutors}
 import play.twirl.api.{Html, Txt, Xml}
-
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.concurrent.{Future, Promise}
 
 package object linguistic {
 
@@ -31,24 +27,8 @@ package object linguistic {
       Futures.addCallback(lf, new FutureCallback[T] {
         def onFailure(th: Throwable) = p failure th
         def onSuccess(result: T) = p success result
-      })
+      }, MoreExecutors.directExecutor())
       p.future
     }
-  }
-
-  import akka.pattern.ask
-  def gracefulShutdown(shardRegion: ActorRef)
-    (implicit timeout: FiniteDuration, factory: ActorRefFactory, ec: ExecutionContext): Future[Unit] = {
-    val p = Promise[Unit]()
-    actor(new Act {
-      context watch shardRegion
-      context setReceiveTimeout timeout
-      shardRegion ! ShardRegion.GracefulShutdown
-      become {
-        case Terminated(`shardRegion`) => p.success(())
-        case ReceiveTimeout => p.failure(new Exception("Timeout to stop local shard region"))
-      }
-    })
-    p.future
   }
 }
