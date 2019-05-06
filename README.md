@@ -199,4 +199,14 @@ http --verify=no https://212.92.98.127:9443/cluster/homophones/shards
 http --verify=no https://95.213.236.24:9443/cluster/homophones/shards
 
 
-sbt -Dcassandra.username=... -Dcassandra.password=...
+
+
+How to run 2 node from sbt
+
+on 192.168.77.10
+sbt 
+engine-0 -Dcassandra.username=fsa -Dcassandra.password=...
+
+on 192.168.77.85
+sbt 
+engine-1 -Dcassandra.username=fsa -Dcassandra.password=...
