@@ -14,7 +14,8 @@ lazy val server = (project in file("server")).settings(
   resolvers ++= Seq(
     "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/",
     "isarn project" at "https://dl.bintray.com/isarn/maven/",
-    Resolver.bintrayRepo("hseeberger", "maven")
+    Resolver.bintrayRepo("hseeberger", "maven"),
+    Resolver.bintrayRepo("tanukkii007", "maven")
   ),
 
   scalacOptions in(Compile, console) := Seq("-feature", "-Xfatal-warnings", "-deprecation", "-unchecked"),
@@ -189,10 +190,7 @@ def haltOnCmdResultError(result: Int) {
 }
 
 lazy val ui = (project in file("ui")).settings(
-  resolvers ++= Seq(
-    "Sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
-    Resolver.bintrayRepo("tanukkii007", "maven")
-  ),
+  resolvers += "Sonatype snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/",
   scalaVersion := scalaV,
   scalaJSUseMainModuleInitializer := false,
   scalaJSUseMainModuleInitializer in Test := false,
