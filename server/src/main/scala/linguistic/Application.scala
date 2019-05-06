@@ -19,17 +19,14 @@ object Application extends App with AppSupport {
   val httpPort = System.getProperty("akka.http.port")
   val hostName = System.getProperty("HOSTNAME")
   val confPath = System.getProperty("CONFIG")
-
   val dbHosts = System.getProperty("cassandra.hosts")
   val username = System.getProperty("cassandra.username")
   val password = System.getProperty("cassandra.password")
-
 
   val env = Option(System.getProperty("ENV")).getOrElse(throw new Exception("ENV is expected"))
 
   val httpConf =
     s"""
-       |
        |akka.remote.netty.tcp.port=%port%
        |akka.http.port=%httpP%
        |akka.remote.netty.tcp.hostname=%hostName%
