@@ -224,8 +224,9 @@ lazy val ui = (project in file("ui")).settings(
   )
 ).enablePlugins(ScalaJSPlugin, ScalaJSWeb).dependsOn(sharedJs)
 
-lazy val shared = (crossProject.crossType(CrossType.Pure) in file("shared")).
-  settings(
+lazy val shared = sbtcrossproject.CrossPlugin.autoImport.crossProject(JSPlatform, JVMPlatform)
+ .crossType(sbtcrossproject.CrossType.Pure)
+  .settings(
     scalaVersion := scalaV,
     libraryDependencies ++= Seq("com.lihaoyi" %%% "upickle" % "0.6.6")
   ).jsConfigure(_ enablePlugins ScalaJSWeb)
