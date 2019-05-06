@@ -14,8 +14,7 @@ import linguistic.protocol.{HomophonesQuery, SearchQuery, SearchResults, WordsQu
 import scala.collection.immutable
 import scala.concurrent.ExecutionContext
 
-final class SearchApi(search: ActorRef)(implicit val system: ActorSystem) extends BaseApi
-  with AuthTokenSupport {
+final class SearchApi(search: ActorRef)(implicit val system: ActorSystem) extends BaseApi with AuthTokenSupport {
   implicit val askTimeout = akka.util.Timeout(5.seconds)
 
   //withRequestTimeout(usersTimeout) {
@@ -28,7 +27,7 @@ final class SearchApi(search: ActorRef)(implicit val system: ActorSystem) extend
       // if the client accepts compressed responses
       getFromResource("public/" + file)
     }
-  */
+   */
 
   //http --verify=no https://192.168.0.62:9443/api/v1.0/words/search"?q=aa"
   val route =
@@ -41,16 +40,22 @@ final class SearchApi(search: ActorRef)(implicit val system: ActorSystem) extend
                 parameters('q.as[String], 'n ? 30) { (q, limit) =>
                   complete {
                     if (q.isEmpty)
-                      HttpResponse(entity = Chunked.fromData(`text/plain(UTF-8)`,
-                        chunks = SearchResults(immutable.Seq.empty[String]).source.map(ByteString(_))))
+                      HttpResponse(
+                        entity = Chunked.fromData(
+                          `text/plain(UTF-8)`,
+                          chunks = SearchResults(immutable.Seq.empty[String]).source.map(ByteString(_))
+                        )
+                      )
                     else {
                       val searchQ = seq match {
-                        case shared.Routes.searchWordsPath => WordsQuery(q, limit)
+                        case shared.Routes.searchWordsPath      => WordsQuery(q, limit)
                         case shared.Routes.searchHomophonesPath => HomophonesQuery(q, limit)
                       }
                       runSearch(searchQ)(mat.executionContext).map { res =>
-                        HttpResponse(entity = Chunked.fromData(`text/plain(UTF-8)`,
-                          chunks = res.source.map(word => ByteString(s"$word,"))))
+                        HttpResponse(
+                          entity = Chunked
+                            .fromData(`text/plain(UTF-8)`, chunks = res.source.map(word => ByteString(s"$word,")))
+                        )
                       }(mat.executionContext)
                     }
                   }
@@ -63,5 +68,5 @@ final class SearchApi(search: ActorRef)(implicit val system: ActorSystem) extend
     }
 
   private def runSearch(q: SearchQuery)(implicit ex: ExecutionContext) =
-    ((search ? q) (askTimeout)).mapTo[SearchResults]
+    ((search ? q)(askTimeout)).mapTo[SearchResults]
 }

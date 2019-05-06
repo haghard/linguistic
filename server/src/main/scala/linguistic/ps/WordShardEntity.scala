@@ -46,8 +46,12 @@ object WordShardEntity {
   * Filtering by prefix will also benefit a lot from structural sharing.
   *
   */
-class WordShardEntity(implicit val mat: ActorMaterializer) extends PersistentActor
-  with ActorLogging with Indexing[Unit] with Stash with Passivation {
+class WordShardEntity(implicit val mat: ActorMaterializer)
+    extends PersistentActor
+    with ActorLogging
+    with Indexing[Unit]
+    with Stash
+    with Passivation {
 
   val path = "./words.txt"
 
@@ -76,13 +80,13 @@ class WordShardEntity(implicit val mat: ActorMaterializer) extends PersistentAct
       log.info("IndexingCompleted for key [{}] (entries: {}), create snapshot now...", key, index.count)
       val words = index.keys.to[collection.immutable.Seq]
 
-      if(words.size > 0)
+      if (words.size > 0)
         saveSnapshot(Words(words))
 
       unstashAll()
       context become passivate(searchable(index))
 
-    case m: RestoredIndex[Unit]@unchecked =>
+    case m: RestoredIndex[Unit] @unchecked =>
       if (m.index.count == 0) buildIndex(key, path)
       else {
         unstashAll()
@@ -119,10 +123,14 @@ class WordShardEntity(implicit val mat: ActorMaterializer) extends PersistentAct
   def searchable(index: SubTree): Receive = {
     case WordsQuery(prefix, maxResults) =>
       val decodedPrefix = URLDecoder.decode(prefix, StandardCharsets.UTF_8.name)
-      val start = System.nanoTime
-      val results = index.filterPrefix(decodedPrefix).keys.take(maxResults).to[collection.immutable.Seq]
-      log.info("Search for: [{}], resulted in [{}] results. Latency:{} millis", prefix, results.size,
-        TimeUnit.NANOSECONDS.toMillis(System.nanoTime - start))
+      val start         = System.nanoTime
+      val results       = index.filterPrefix(decodedPrefix).keys.take(maxResults).to[collection.immutable.Seq]
+      log.info(
+        "Search for: [{}], resulted in [{}] results. Latency:{} millis",
+        prefix,
+        results.size,
+        TimeUnit.NANOSECONDS.toMillis(System.nanoTime - start)
+      )
       sender() ! SearchResults(results)
   }
 }

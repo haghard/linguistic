@@ -18,22 +18,23 @@ trait SslSupport {
     keyManagerFactory.init(keyStore, keyPass.toCharArray)
 
     val tmf = TrustManagerFactory.getInstance(algorithm)
-    (tmf init keyStore)
+    tmf.init(keyStore)
 
     val sslContext = SSLContext.getInstance("TLS")
     sslContext.init(keyManagerFactory.getKeyManagers, tmf.getTrustManagers, new SecureRandom)
 
-    (ConnectionContext https sslContext)
+    ConnectionContext.https(sslContext)
   }
 
   def https(keyPass: String, storePass: String): HttpsConnectionContext = {
     val file = new File("./linguistic.jks")
-    if(file.exists) {
+    if (file.exists)
       create(new FileInputStream(file), keyPass, storePass)
-    } else {
-      resource.managed(getClass.getResourceAsStream("/linguistic.jks")).map { in =>
-        create(in, keyPass, storePass)
-      }.opt.fold(throw new Exception("jks hasn't been found"))(identity)
-    }
+    else
+      resource
+        .managed(getClass.getResourceAsStream("/linguistic.jks"))
+        .map(in => create(in, keyPass, storePass))
+        .opt
+        .fold(throw new Exception("jks hasn't been found"))(identity)
   }
 }

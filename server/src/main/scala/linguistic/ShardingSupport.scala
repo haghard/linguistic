@@ -14,14 +14,16 @@ trait ShardingSupport {
       entityProps = WordShardEntity.props(mat),
       settings = ClusterShardingSettings(system).withRememberEntities(true),
       extractShardId = WordShardEntity.extractShardId,
-      extractEntityId = WordShardEntity.extractEntityId)
+      extractEntityId = WordShardEntity.extractEntityId
+    )
 
     val homophones = ClusterSharding(system).start(
       typeName = HomophonesSubTreeShardEntity.Name,
       entityProps = HomophonesSubTreeShardEntity.props(mat),
       settings = ClusterShardingSettings(system).withRememberEntities(true),
       extractShardId = HomophonesSubTreeShardEntity.extractShardId,
-      extractEntityId = HomophonesSubTreeShardEntity.extractEntityId)
+      extractEntityId = HomophonesSubTreeShardEntity.extractEntityId
+    )
 
     (words, homophones)
   }

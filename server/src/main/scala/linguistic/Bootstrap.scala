@@ -20,8 +20,8 @@ import scala.concurrent.duration._
 
 object Bootstrap {
 
-  private final case object InitSharding
-  private final case object BindFailure extends Reason
+  final private case object InitSharding
+  final private case object BindFailure extends Reason
 
   val HttpDispatcher = "akka.http.dispatcher"
 
@@ -29,13 +29,16 @@ object Bootstrap {
     Props(new Bootstrap(port, address, keypass, storepass)).withDispatcher(HttpDispatcher)
 }
 
-class Bootstrap(port: Int, address: String, keypass: String, storepass: String) extends Actor
-  with ActorLogging with SslSupport with ShardingSupport {
+class Bootstrap(port: Int, address: String, keypass: String, storepass: String)
+    extends Actor
+    with ActorLogging
+    with SslSupport
+    with ShardingSupport {
 
   implicit val system = context.system
-  implicit val ex = system.dispatchers.lookup(HttpDispatcher)
-  implicit val mat = akka.stream.ActorMaterializer(
-    ActorMaterializerSettings.create(system).withDispatcher(HttpDispatcher))(system)
+  implicit val ex     = system.dispatchers.lookup(HttpDispatcher)
+  implicit val mat =
+    akka.stream.ActorMaterializer(ActorMaterializerSettings.create(system).withDispatcher(HttpDispatcher))(system)
 
   val shutdown = CoordinatedShutdown(system)
 
@@ -45,12 +48,15 @@ class Bootstrap(port: Int, address: String, keypass: String, storepass: String) 
   def idle: Receive = {
     case InitSharding =>
       val (wordRegion, homophonesRegion) = startSharding(system)
-      val users = context.actorOf(Accounts.props, "users")
-      val search = context.actorOf(Searches.props(mat, wordRegion, homophonesRegion), "search")
+      val users                          = context.actorOf(Accounts.props, "users")
+      val search                         = context.actorOf(Searches.props(mat, wordRegion, homophonesRegion), "search")
 
       val routes = new WebAssets().route ~ new api.SearchApi(search).route ~
-        new api.UsersApi(users).route ~ new api.ClusterApi(self, search,
-        scala.collection.immutable.Set(wordRegion, homophonesRegion)).route
+        new api.UsersApi(users).route ~ new api.ClusterApi(
+          self,
+          search,
+          scala.collection.immutable.Set(wordRegion, homophonesRegion)
+        ).route
 
       Http()
         .bindAndHandle(routes, address, port, connectionContext = https(keypass, storepass))
@@ -59,12 +65,12 @@ class Bootstrap(port: Int, address: String, keypass: String, storepass: String) 
       context.become(awaitBinding(users, search))
   }
 
-  def awaitBinding(users: ActorRef, search: ActorRef): Receive = {
+  def awaitBinding(users: ActorRef, searchShardRegion: ActorRef): Receive = {
     case b: ServerBinding =>
       //warm up search
       users ! Activate
-      search ! WordsQuery("average", 1)
-      search ! HomophonesQuery("rose", 1)
+      searchShardRegion ! WordsQuery("average", 1)
+      searchShardRegion ! HomophonesQuery("rose", 1)
 
       shutdown.addTask(PhaseServiceUnbind, "api.unbind") { () ⇒
         log.info("api.unbind")

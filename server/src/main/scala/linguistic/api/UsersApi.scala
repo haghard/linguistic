@@ -16,10 +16,8 @@ import shared.protocol.SignInResponse
 class UsersApi(users: ActorRef)(implicit val system: ActorSystem) extends BaseApi with AuthTokenSupport {
   val Ch = StandardCharsets.UTF_8
 
-  private def respondWithUserError(error: String) = {
+  private def respondWithUserError(error: String) =
     complete(HttpResponse(InternalServerError, entity = s"""{ "error": "${error}" }"""))
-  }
-
 
   import scala.concurrent.duration._
   implicit val t = akka.util.Timeout(5.seconds)
@@ -34,11 +32,12 @@ class UsersApi(users: ActorRef)(implicit val system: ActorSystem) extends BaseAp
             path(shared.Routes.signUp) {
               headerValueByName(shared.Headers.SignUpHeader) { credentials =>
                 extractHost { host =>
-                  val decoded = new String(Base64.getDecoder.decode(credentials.stripPrefix(shared.HttpSettings.salt)), Ch)
+                  val decoded =
+                    new String(Base64.getDecoder.decode(credentials.stripPrefix(shared.HttpSettings.salt)), Ch)
                   val profile = decoded.split(shared.Routes.Separator)
                   if (profile.length == 3) {
                     val login = profile(0)
-                    val pas = profile(1)
+                    val pas   = profile(1)
                     val photo = profile(2)
                     log.info(s"signup request from: $host login: $login")
                     onSuccess((users ask Accounts.SignUp(login, pas, photo)).mapTo[String Either Boolean]) {
@@ -46,7 +45,7 @@ class UsersApi(users: ActorRef)(implicit val system: ActorSystem) extends BaseAp
                         setSession(oneOff, usingHeaders, ServerSession(login)) {
                           complete(HttpResponse(StatusCodes.OK))
                         }
-                      case Right(false) => respondWithUserError(s"Login ${login} isn't unique")
+                      case Right(false)   => respondWithUserError(s"Login ${login} isn't unique")
                       case Left(errorMsg) => respondWithUserError(errorMsg)
                     }
                   } else respondWithUserError("Invalid credentials. Expected login, password and photo")
@@ -57,11 +56,15 @@ class UsersApi(users: ActorRef)(implicit val system: ActorSystem) extends BaseAp
             path(shared.Routes.signIn) {
               headerValueByName(shared.Headers.SignInHeader) { credentials =>
                 extractHost { host =>
-                  val decoded = new String(Base64.getDecoder.decode(credentials.stripPrefix(shared.HttpSettings.salt)), Ch)
+                  val decoded =
+                    new String(Base64.getDecoder.decode(credentials.stripPrefix(shared.HttpSettings.salt)), Ch)
                   val loginPassword = decoded.split(shared.Routes.Separator)
                   if (loginPassword.length == 2) {
                     log.info(s"sign-in request from: $host login: ${loginPassword(0)} ")
-                    onSuccess((users ask Accounts.SignIn(loginPassword(0), loginPassword(1))).mapTo[String Either SignInResponse]) {
+                    onSuccess(
+                      (users ask Accounts.SignIn(loginPassword(0), loginPassword(1)))
+                        .mapTo[String Either SignInResponse]
+                    ) {
                       case Right(response) =>
                         setSession(oneOff, usingHeaders, ServerSession(response.login)) {
                           import upickle.default._

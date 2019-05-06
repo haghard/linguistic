@@ -12,8 +12,12 @@ object gateaway {
   case object SignInMode extends LoginMode
   case object SignUpMode extends LoginMode
 
-  case class UiSession(user: Option[SignInResponse] = None, token: Option[String] = None,
-    mode: LoginMode = SignInMode, error: Option[String] = None)
+  case class UiSession(
+    user: Option[SignInResponse] = None,
+    token: Option[String] = None,
+    mode: LoginMode = SignInMode,
+    error: Option[String] = None
+  )
 
   import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
 

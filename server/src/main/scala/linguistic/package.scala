@@ -1,4 +1,3 @@
-
 import akka.http.scaladsl.marshalling.{Marshaller, _}
 import akka.http.scaladsl.model.MediaType
 import akka.http.scaladsl.model.MediaTypes._
@@ -10,12 +9,11 @@ package object linguistic {
 
   /** Twirl marshallers for Xml, Html and Txt mediatypes */
   implicit val twirlHtmlMarshaller = twirlMarshaller[Html](`text/html`)
-  implicit val twirlTxtMarshaller = twirlMarshaller[Txt](`text/plain`)
-  implicit val twirlXmlMarshaller = twirlMarshaller[Xml](`text/xml`)
+  implicit val twirlTxtMarshaller  = twirlMarshaller[Txt](`text/plain`)
+  implicit val twirlXmlMarshaller  = twirlMarshaller[Xml](`text/xml`)
 
-  def twirlMarshaller[A](contentType: MediaType): ToEntityMarshaller[A] = {
+  def twirlMarshaller[A](contentType: MediaType): ToEntityMarshaller[A] =
     Marshaller.StringMarshaller.wrap(contentType)(_.toString)
-  }
 
   case class ServerSession(login: String)
 
@@ -26,7 +24,7 @@ package object linguistic {
       val p = Promise[T]()
       Futures.addCallback(lf, new FutureCallback[T] {
         def onFailure(th: Throwable) = p failure th
-        def onSuccess(result: T) = p success result
+        def onSuccess(result: T)     = p success result
       }, MoreExecutors.directExecutor())
       p.future
     }

@@ -16,7 +16,6 @@ package object protocol {
 
   case class HomophonesQuery(keyword: String, maxResults: Int) extends SearchQuery
 
-
   abstract class Results {
     def strict: immutable.Seq[String]
 
@@ -24,8 +23,6 @@ package object protocol {
   }
 
   case class SearchResults(strict: immutable.Seq[String]) extends Results
-  
-
 
   case class Words(entry: Seq[String])
 

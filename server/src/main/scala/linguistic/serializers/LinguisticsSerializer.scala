@@ -27,9 +27,10 @@ class LinguisticsSerializer(val system: ExtendedActorSystem) extends SerializerW
       case w: Words =>
         WordsPB(w.entry).toByteArray
       case _ =>
-        throw new IllegalStateException(s"Serialization for $obj not supported. Check toBinary in ${this.getClass.getName}.")
+        throw new IllegalStateException(
+          s"Serialization for $obj not supported. Check toBinary in ${this.getClass.getName}."
+        )
     }
-
 
   override def fromBinary(bytes: Array[Byte], manifest: String): AnyRef =
     if (manifest == classOf[WordsQuery].getName) {
@@ -41,7 +42,7 @@ class LinguisticsSerializer(val system: ExtendedActorSystem) extends SerializerW
     } else if (manifest == classOf[SearchResults].getName) {
       val r = SearchResultsPB.parseFrom(bytes)
       SearchResults(r.strict.to[immutable.Seq])
-    }else if (manifest == classOf[Homophone].getName) {
+    } else if (manifest == classOf[Homophone].getName) {
       val pb = HomophonePB.parseFrom(bytes)
       Homophone(pb.key, pb.homophones)
     } else if (manifest == classOf[Homophones].getName) {
@@ -50,7 +51,8 @@ class LinguisticsSerializer(val system: ExtendedActorSystem) extends SerializerW
     } else if (manifest == classOf[Words].getName) {
       val pb = WordsPB.parseFrom(bytes)
       Words(pb.entry)
-    }
-    else throw new IllegalStateException(
-      s"Deserialization for $manifest not supported. Check fromBinary method in ${this.getClass.getName} class.")
+    } else
+      throw new IllegalStateException(
+        s"Deserialization for $manifest not supported. Check fromBinary method in ${this.getClass.getName} class."
+      )
 }

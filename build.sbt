@@ -222,6 +222,9 @@ lazy val ui = (project in file("ui")).settings(
   )
 ).enablePlugins(ScalaJSPlugin, ScalaJSWeb).dependsOn(sharedJs)
 
+
+addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt")
+
 lazy val shared = sbtcrossproject.CrossPlugin.autoImport.crossProject(JSPlatform, JVMPlatform)
  .crossType(sbtcrossproject.CrossType.Pure)
   .settings(

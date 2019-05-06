@@ -18,18 +18,17 @@ object Accounts {
   case class SignIn(login: String, password: String)
   case class SignUp(login: String, password: String, photo: String)
 
-  def retry(f: () => Session, n: Int): Session = {
+  def retry(f: () => Session, n: Int): Session =
     Try(f()) match {
-      case Success(r) =>  r
+      case Success(r) => r
       case Failure(ex) =>
-        if(n > 0) {
+        if (n > 0) {
           Thread.sleep(3000)
           retry(f, n - 1)
         } else throw ex
     }
-  }
 
-  val selectUser = "SELECT login, password, photo FROM users where login = ?"
+  val selectUser  = "SELECT login, password, photo FROM users where login = ?"
   val insertUsers = "INSERT INTO users(login, password, photo, created_at) VALUES (?, ?, ?, ?) IF NOT EXISTS"
 
   def props = Props(new Accounts).withDispatcher("shard-dispatcher")
@@ -41,21 +40,23 @@ class Accounts extends Actor with ActorLogging {
   //https://datastax.github.io/java-driver/manual/custom_codecs/extras/
   import com.datastax.driver.extras.codecs.jdk8.InstantCodec
 
-  val conf = context.system.settings.config
+  val conf          = context.system.settings.config
   val cassandraPort = conf.getInt("cassandra-journal.port")
-  val keySpace = conf.getString("cassandra-journal.keyspace")
-  val cassandraHosts = conf.getStringList("cassandra-journal.contact-points")
-    .asScala.map(new InetSocketAddress(_, cassandraPort))
+  val keySpace      = conf.getString("cassandra-journal.keyspace")
+  val cassandraHosts =
+    conf.getStringList("cassandra-journal.contact-points").asScala.map(new InetSocketAddress(_, cassandraPort))
 
   implicit val ex = context.system.dispatchers.lookup("shard-dispatcher")
 
   def idle: Receive = {
     case Activate =>
-      val cluster = Cluster.builder()
+      val cluster = Cluster
+        .builder()
         .addContactPointsWithPorts(cassandraHosts.asJava)
         .withCredentials(
           conf.getString("cassandra-journal.authentication.username"),
-          conf.getString("cassandra-journal.authentication.password"))
+          conf.getString("cassandra-journal.authentication.password")
+        )
         //.withLoadBalancingPolicy(DCAwareRoundRobinPolicy.builder().withLocalDc(localDC).build())
         .withQueryOptions(new QueryOptions().setConsistencyLevel(ConsistencyLevel.ONE))
         .build
@@ -63,7 +64,11 @@ class Accounts extends Actor with ActorLogging {
       val session = retry(() => (cluster connect keySpace), 5)
 
       cluster.getConfiguration().getCodecRegistry().register(InstantCodec.instance)
-      session.execute(s"CREATE TABLE IF NOT EXISTS ${keySpace}.users(login text, created_at timestamp, password text, photo text, PRIMARY KEY (login))").one()
+      session
+        .execute(
+          s"CREATE TABLE IF NOT EXISTS ${keySpace}.users(login text, created_at timestamp, password text, photo text, PRIMARY KEY (login))"
+        )
+        .one()
 
       //for 1 dc
       val insertStmt = (session prepare insertUsers)
@@ -82,20 +87,24 @@ class Accounts extends Actor with ActorLogging {
   def active(session: Session, selectStmt: PreparedStatement, insertStmt: PreparedStatement): Receive = {
     case SignIn(login, password) =>
       val replyTo = sender()
-      session.executeAsync(selectStmt.bind(login)).asScala.map { r =>
-        val queryTrace = r.getExecutionInfo.getQueryTrace
-        log.info("Trace id: {}", queryTrace.getTraceId)
-        val row = r.one
-        if (row eq null) Left(s"Couldn't find user $login")
-        else if (BCrypt.checkpw(password, row.getString("password")))
-          Right(SignInResponse(row.getString("login"), row.getString("photo")))
-        else Left("Something went wrong. Password mismatches")
-      }.pipeTo(replyTo)
+      session
+        .executeAsync(selectStmt.bind(login))
+        .asScala
+        .map { r =>
+          val row = r.one
+          if (row eq null) Left(s"Couldn't find user $login")
+          else if (BCrypt.checkpw(password, row.getString("password")))
+            Right(SignInResponse(row.getString("login"), row.getString("photo")))
+          else Left("Something went wrong. Password mismatches")
+        }
+        .pipeTo(replyTo)
 
     case SignUp(login, password, photo) =>
       val createdAt = Instant.now()
-      val replyTo = sender()
-      session.executeAsync(insertStmt.bind(login, BCrypt.hashpw(password, BCrypt.gensalt), photo, createdAt)).asScala
+      val replyTo   = sender()
+      session
+        .executeAsync(insertStmt.bind(login, BCrypt.hashpw(password, BCrypt.gensalt), photo, createdAt))
+        .asScala
         .map(r => Right(r.wasApplied))
         .recover {
           case e: WriteTimeoutException =>
@@ -112,6 +121,7 @@ class Accounts extends Actor with ActorLogging {
           case ex: Exception =>
             log.error(ex, "Cassandra error :")
             Left(s"Db access error: ${ex.getMessage}")
-        }.pipeTo(replyTo)
+        }
+        .pipeTo(replyTo)
   }
 }

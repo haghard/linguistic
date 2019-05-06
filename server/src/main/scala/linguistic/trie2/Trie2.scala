@@ -13,9 +13,9 @@ package object trie2 {
     }
 
     private var value: Option[V] = None
-    private var nodes = new TreeMap[Char, Trie[V]]
+    private var nodes            = new TreeMap[Char, Trie[V]]
 
-    def put(k: String, v: V): Trie[V] = {
+    def put(k: String, v: V): Trie[V] =
       normalise(k) match {
         case Seq() =>
           this.value = Some(v)
@@ -32,46 +32,55 @@ package object trie2 {
           node.put(t, v)
         }
       }
-    }
 
-    private def normalise(s: String): WrappedString = {
+    private def normalise(s: String): WrappedString =
       new WrappedString(s.toLowerCase.replaceAll("""\W+""", ""))
-    }
 
-    def get(k: String): Option[V] = {
-      nodeFor(k).flatMap { (n) => n.value }
-    }
+    def get(k: String): Option[V] =
+      nodeFor(k).flatMap { (n) =>
+        n.value
+      }
 
-    def getAllWithPrefix(k: String): Seq[V] = {
-      nodeFor(k).toList.flatMap { (n) => n.getAll }
-    }
+    def getAllWithPrefix(k: String): Seq[V] =
+      nodeFor(k).toList.flatMap { (n) =>
+        n.getAll
+      }
 
-    def getAll: Seq[V] = {
-      this.value.toList ++ this.nodes.values.flatMap { n => n.getAll }
-    }
+    def getAll: Seq[V] =
+      this.value.toList ++ this.nodes.values.flatMap { n =>
+        n.getAll
+      }
 
-    override def toString = {
-      key.toString ++ ":" ++ value.toString ++ "\n" ++ nodes.values.map { n => n.toString.split("\n")
-        .map { l => "  " + l }.mkString("\n") }.mkString("\n")
-    }
+    override def toString =
+      key.toString ++ ":" ++ value.toString ++ "\n" ++ nodes.values
+        .map { n =>
+          n.toString
+            .split("\n")
+            .map { l =>
+              "  " + l
+            }
+            .mkString("\n")
+        }
+        .mkString("\n")
 
-    private def nodeFor(k: String): Option[Trie[V]] = {
+    private def nodeFor(k: String): Option[Trie[V]] =
       normalise(k) match {
         case Seq() => Some(this)
-        case Seq(h, t @ _*) => nodes.get(h).flatMap { n => n.nodeFor(t) }
+        case Seq(h, t @ _*) =>
+          nodes.get(h).flatMap { n =>
+            n.nodeFor(t)
+          }
       }
-    }
 
-    implicit def charSeq2WrappedString(s: Seq[Char]): WrappedString = {
+    implicit def charSeq2WrappedString(s: Seq[Char]): WrappedString =
       new WrappedString(s.mkString)
-    }
 
-    implicit def charSeq2String(s: Seq[Char]): String = {
+    implicit def charSeq2String(s: Seq[Char]): String =
       s.mkString
-    }
 
-    implicit def catOptions[A](xs: Seq[Option[A]]): Seq[A] = {
-      xs.flatMap { (x) => x.toList }
-    }
+    implicit def catOptions[A](xs: Seq[Option[A]]): Seq[A] =
+      xs.flatMap { (x) =>
+        x.toList
+      }
   }
 }

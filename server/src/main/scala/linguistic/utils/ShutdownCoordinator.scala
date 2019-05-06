@@ -19,7 +19,7 @@ import scala.concurrent.duration._
   3 Node leaves cluster
   4 Coordinator gives singletons a grace period to migrate
   5 Actor System & JVM Termination
-*/
+ */
 object ShutdownCoordinator {
 
   // Shutdown options
@@ -145,4 +145,4 @@ class GracefulShutdownCoordinator(shutdownOpts: NodeShutdownOpts)(implicit syste
 
   initialize()
 }
-*/
+ */

@@ -17,8 +17,7 @@ final class WebAssets extends akka.http.scaladsl.server.Directives {
           pathSingleSlash {
             get {
               complete {
-                HttpResponse(entity = Strict(`text/html(UTF-8)`,
-                  ByteString(AppScript().render)))
+                HttpResponse(entity = Strict(`text/html(UTF-8)`, ByteString(AppScript().render)))
               }
             }
           } ~ {
@@ -30,4 +29,3 @@ final class WebAssets extends akka.http.scaladsl.server.Directives {
       }
     }
 }
-

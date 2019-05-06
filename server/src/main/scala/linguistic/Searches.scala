@@ -23,15 +23,15 @@ class Searches(mat: ActorMaterializer, wordslist: ActorRef, homophones: ActorRef
     case (name: String, m @ ShardRegion.GetShardRegionState) =>
       name match {
         case WordShardEntity.Name =>
-          wordslist forward  m
+          wordslist forward m
         case HomophonesSubTreeShardEntity.Name =>
-          homophones forward  m
+          homophones forward m
       }
 
     case (name: String, m @ ShardRegion.GetCurrentRegions) =>
       name match {
         case WordShardEntity.Name =>
-          wordslist forward  m
+          wordslist forward m
         case HomophonesSubTreeShardEntity.Name =>
           homophones forward m
         case _ => //
@@ -40,7 +40,7 @@ class Searches(mat: ActorMaterializer, wordslist: ActorRef, homophones: ActorRef
     case (name: String, m @ ShardRegion.GetClusterShardingStats) =>
       name match {
         case WordShardEntity.Name =>
-          wordslist forward  m
+          wordslist forward m
         case HomophonesSubTreeShardEntity.Name =>
           homophones forward m
         case _ => //

@@ -15,11 +15,11 @@ object Application extends App with AppSupport {
   val opts: Map[String, String] = argsToOpts(args.toList)
   applySystemProperties(opts)
 
-  val tcpPort = System.getProperty("akka.remote.netty.tcp.port")
+  val tcpPort  = System.getProperty("akka.remote.netty.tcp.port")
   val httpPort = System.getProperty("akka.http.port")
   val hostName = System.getProperty("HOSTNAME")
   val confPath = System.getProperty("CONFIG")
-  val dbHosts = System.getProperty("cassandra.hosts")
+  val dbHosts  = System.getProperty("cassandra.hosts")
   val username = System.getProperty("cassandra.username")
   val password = System.getProperty("cassandra.password")
 
@@ -59,15 +59,17 @@ object Application extends App with AppSupport {
        |
     """.stripMargin
 
-
-  val effectedHttpConf = httpConf.replaceAll("%port%", tcpPort).replaceAll("%httpP%", httpPort)
-    .replaceAll("%hostName%", hostName).replaceAll("%interface%", hostName)
-
+  val effectedHttpConf = httpConf
+    .replaceAll("%port%", tcpPort)
+    .replaceAll("%httpP%", httpPort)
+    .replaceAll("%hostName%", hostName)
+    .replaceAll("%interface%", hostName)
 
   val configFile = new File(s"${new File(confPath).getAbsolutePath}/" + env + ".conf")
 
   val config: Config =
-    ConfigFactory.parseString(effectedHttpConf)
+    ConfigFactory
+      .parseString(effectedHttpConf)
       .withFallback(ConfigFactory.parseString(dbConf))
       .withFallback(ConfigFactory.parseFile(configFile).resolve())
       .withFallback(ConfigFactory.load()) //for read seeds from env vars
@@ -79,7 +81,9 @@ object Application extends App with AppSupport {
       .append('\n')
       .append("=================================================================================================")
       .append('\n')
-      .append(s"★ ★ ★  Environment: ${env} TimeZone: ${TimeZone.getDefault.getID} Started at ${LocalDateTime.now}  ★ ★ ★")
+      .append(
+        s"★ ★ ★  Environment: ${env} TimeZone: ${TimeZone.getDefault.getID} Started at ${LocalDateTime.now}  ★ ★ ★"
+      )
       .append('\n')
       .append(s"★ ★ ★  Akka cluster: ${config.getInt("akka.remote.netty.tcp.port")}  ★ ★ ★")
       .append('\n')
@@ -92,9 +96,15 @@ object Application extends App with AppSupport {
       .append("=================================================================================================")
     system.log.info(greeting.toString)
 
-    system.actorOf(Bootstrap.props(httpPort.toInt, hostName,
-      config.getString("akka.http.ssl.keypass"),
-      config.getString("akka.http.ssl.storepass")), "bootstrap")
+    system.actorOf(
+      Bootstrap.props(
+        httpPort.toInt,
+        hostName,
+        config.getString("akka.http.ssl.keypass"),
+        config.getString("akka.http.ssl.storepass")
+      ),
+      "bootstrap"
+    )
 
   }
 }

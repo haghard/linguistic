@@ -34,8 +34,12 @@ object HomophonesSubTreeShardEntity {
     Props(new HomophonesSubTreeShardEntity()(mat)).withDispatcher("shard-dispatcher")
 }
 
-class HomophonesSubTreeShardEntity(implicit val mat: ActorMaterializer) extends PersistentActor
-  with ActorLogging with Indexing[Seq[String]] with Stash with Passivation {
+class HomophonesSubTreeShardEntity(implicit val mat: ActorMaterializer)
+    extends PersistentActor
+    with ActorLogging
+    with Indexing[Seq[String]]
+    with Stash
+    with Passivation {
 
   val path = "./homophones.txt"
 
@@ -73,7 +77,7 @@ class HomophonesSubTreeShardEntity(implicit val mat: ActorMaterializer) extends 
   def indexing(index: SubTree): Receive = {
     case line: String =>
       val words = line.split(',')
-      val word = words(0)
+      val word  = words(0)
       val other = words.slice(1, words.length)
       context become indexing(index.merge(RadixTree[String, Seq[String]](word -> other)))
 
@@ -89,7 +93,7 @@ class HomophonesSubTreeShardEntity(implicit val mat: ActorMaterializer) extends 
       unstashAll()
       context become passivate(searchable(index))
 
-    case m: RestoredIndex[Seq[String]]@unchecked =>
+    case m: RestoredIndex[Seq[String]] @unchecked =>
       if (m.index.count == 0) buildIndex(key, path)
       else {
         unstashAll()
@@ -112,18 +116,22 @@ class HomophonesSubTreeShardEntity(implicit val mat: ActorMaterializer) extends 
       val decodedPrefix = URLDecoder.decode(prefix, StandardCharsets.UTF_8.name)
       val results =
         index
-          .filterPrefix(decodedPrefix).entries.take(maxResults)
+          .filterPrefix(decodedPrefix)
+          .entries
+          .take(maxResults)
           .map { case (key, hs) => s"$key\t${hs.mkString("\t")}" }
           .to[collection.immutable.Seq]
 
       val start = System.nanoTime
-      log.info("Search for homophones: [{}] resulted in [{}] results. Latency: {} millis", prefix,
-        results.size, TimeUnit.NANOSECONDS.toMillis(System.nanoTime - start))
+      log.info(
+        "Search for homophones: [{}] resulted in [{}] results. Latency: {} millis",
+        prefix,
+        results.size,
+        TimeUnit.NANOSECONDS.toMillis(System.nanoTime - start)
+      )
       sender() ! SearchResults(results)
   }
 }
-
-
 /*
 def loop(words: Array[String], index: SubTree, n: Int): SubTree =
   if (n < words.length) {
@@ -133,4 +141,4 @@ def loop(words: Array[String], index: SubTree, n: Int): SubTree =
     val right = words.slice(i, words.length)
     loop(words, index.merge(RadixTree[String, Array[String]](word -> (left ++ right))), n + 1)
   } else index
-*/
+ */
