@@ -59,11 +59,11 @@ class WordShardEntity(implicit val mat: ActorMaterializer) extends PersistentAct
 
   override def preStart() = {
     val file = new File(path)
-    log.info("Start ShardEntity:[{}] from:{} exists:{}", key, file.getAbsolutePath, file.exists)
+    log.info("Start ShardEntity:{} from:{} exists:{}", key, file.getAbsolutePath, file.exists)
   }
 
   override def postStop() =
-    log.info("ShardEntity has been stopped")
+    log.info("ShardEntity:{} has been stopped", key)
 
   override def receiveCommand =
     indexing(RadixTree.empty[String, Unit])
