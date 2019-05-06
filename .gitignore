@@ -36,3 +36,4 @@ bin/
 /linguistic.log
 server/lib/
 server/src/test/
+server/linguistic.log
