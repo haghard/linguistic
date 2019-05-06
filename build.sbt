@@ -133,7 +133,8 @@ lazy val server = (project in file("server")).settings(
     val appDevConfTarget = s"$imageAppBaseDir/$configDir/development.conf"
 
     new sbtdocker.mutable.Dockerfile {
-      from("openjdk:10-jre")
+      from("adoptopenjdk/openjdk11:jdk-11.0.2.9")
+      //from("openjdk:10-jre")
       //from("openjdk:8-jre")
       //from("openjdk:8u131")
       maintainer("haghard")

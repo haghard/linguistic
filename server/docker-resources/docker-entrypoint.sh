@@ -8,8 +8,8 @@ APP_OPTS="-server \
           -XX:+UseStringDeduplication \
           -XX:+UseG1GC \
           -XX:ConcGCThreads=4 -XX:ParallelGCThreads=4 \
-          -XX:+UnlockExperimentalVMOptions \
-          -XX:+UseCGroupMemoryLimitForHeap \
+          -XX:+UseContainerSupport \
+          -XX:+PreferContainerQuotaForCPUCount \
           -XX:MaxRAMFraction=1 \
           -XshowSettings \
           -Dcom.sun.management.jmxremote.port=${JMX_PORT} \
@@ -24,8 +24,7 @@ APP_OPTS="-server \
           -DENV=${ENV} \
           -DHOSTNAME=${HOSTNAME} \
           -DCONFIG=${CONFIG} \
-          -Dcassandra.hosts=${CASSANDRA} \
-          -DETCD="${ETCD}
+          -Dcassandra.hosts="${CASSANDRA}
 
 #production, development
 
