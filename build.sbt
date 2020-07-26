@@ -15,7 +15,6 @@ lazy val server = (project in file("server")).settings(
     "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/",
     "isarn project" at "https://dl.bintray.com/isarn/maven/",
     Resolver.bintrayRepo("hseeberger", "maven"),
-    //Resolver.bintrayRepo("tanukkii007", "maven")
   ),
 
   scalacOptions in(Compile, console) := Seq("-feature", "-Xfatal-warnings", "-deprecation", "-unchecked"),
@@ -58,15 +57,10 @@ lazy val server = (project in file("server")).settings(
     "com.typesafe.akka" %% "akka-persistence-query" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion,
-
-    //"com.typesafe.akka" %% "akka-persistence-cassandra" % "0.98",
-
     ("com.typesafe.akka" %% "akka-persistence-cassandra" % "1.0.1")
         .excludeAll(ExclusionRule(organization = "io.netty", name="netty-all")), //to exclude netty-all-4.1.39.Final.jar
 
     "com.lightbend.akka.management" %% "akka-management-cluster-http" % "1.0.8",
-    //"com.github.TanUkkii007" %% "akka-cluster-custom-downing" % "0.0.12"
-
     ("com.lihaoyi" % "ammonite" % "2.2.0" % "test").cross(CrossVersion.full)
   ),
 
@@ -206,8 +200,8 @@ lazy val ui = (project in file("ui")).settings(
 
   libraryDependencies ++= Seq(
     //"org.singlespaced" %%% "scalajs-d3" % "0.3.4",
-    "com.github.japgolly.scalajs-react" %%% "core"    % "0.11.3", //"1.4.2", //"0.11.3",
-    "com.github.japgolly.scalajs-react" %%% "extra"   % "0.11.3" //"0.11.3"
+    "com.github.japgolly.scalajs-react" %%% "core"    % "0.11.5", //"1.4.2", //"0.11.3",
+    "com.github.japgolly.scalajs-react" %%% "extra"   % "0.11.5" //"0.11.5"
   ),
 
   jsDependencies ++= Seq(
@@ -230,9 +224,6 @@ lazy val ui = (project in file("ui")).settings(
         commonJSName "ReactDOMServer"
   )
 ).enablePlugins(ScalaJSPlugin, ScalaJSWeb).dependsOn(sharedJs)
-
-
-//addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt")
 
 scalafmtOnCompile := true
 
