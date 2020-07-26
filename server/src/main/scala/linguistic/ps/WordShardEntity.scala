@@ -24,12 +24,12 @@ object WordShardEntity {
 
   val extractEntityId: ExtractEntityId = {
     case x: WordsQuery =>
-      (x.keyword.toLowerCase(Locale.ROOT).take(1), x)
+      (x.keyword.toLowerCase(Locale.ROOT).take(2), x) // entities [ab, ac, ad, .. az]
   }
 
   val extractShardId: ExtractShardId = {
     case x: WordsQuery =>
-      x.keyword.toLowerCase(Locale.ROOT).take(1)
+      x.keyword.toLowerCase(Locale.ROOT).take(1) // shards: [a,...,z]
     case ShardRegion.StartEntity(id) =>
       id
   }

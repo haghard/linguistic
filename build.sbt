@@ -4,8 +4,8 @@ import sbtdocker.ImageName
 
 import scala.sys.process.Process
 
-val scalaV = "2.12.8"
-val akkaVersion = "2.5.22"
+val scalaV = "2.12.10"
+val akkaVersion = "2.6.8"
 val version = "0.3"
 
 name := "linguistic"
@@ -15,7 +15,7 @@ lazy val server = (project in file("server")).settings(
     "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/",
     "isarn project" at "https://dl.bintray.com/isarn/maven/",
     Resolver.bintrayRepo("hseeberger", "maven"),
-    Resolver.bintrayRepo("tanukkii007", "maven")
+    //Resolver.bintrayRepo("tanukkii007", "maven")
   ),
 
   scalacOptions in(Compile, console) := Seq("-feature", "-Xfatal-warnings", "-deprecation", "-unchecked"),
@@ -43,24 +43,31 @@ lazy val server = (project in file("server")).settings(
     "com.lihaoyi"     %%  "scalatags"       % "0.6.7",
     "org.webjars"     %   "bootstrap"       % "3.3.6",
 
-    "com.datastax.cassandra" % "cassandra-driver-extras" % "3.6.0",
+    "com.datastax.cassandra" % "cassandra-driver-extras" % "3.7.2",
 
     "com.jsuereth"     %% "scala-arm"       % "2.0",
-    "org.openjdk.jol"  %  "jol-core"        % "0.6",
-    "com.rklaehn"      %% "radixtree"       % "0.5.0",
+    //"org.openjdk.jol"  %  "jol-core"        % "0.9",
+    "com.rklaehn"      %% "radixtree"       % "0.5.1",
 
-    "org.scalatest"    %% "scalatest"       % "3.0.1" % "test"
+    "org.scalatest"    %% "scalatest"       % "3.0.4" % "test"
   ) ++ Seq(
-    ("com.softwaremill.akka-http-session" %% "core" % "0.5.6").exclude("com.typesafe.akka", "akka-http"),
+    ("com.softwaremill.akka-http-session" %% "core" % "0.5.11").exclude("com.typesafe.akka", "akka-http"),
     "com.typesafe.akka" %% "akka-stream" % akkaVersion,
     "com.typesafe.akka" %% "akka-slf4j" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster" % akkaVersion,
     "com.typesafe.akka" %% "akka-persistence-query" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-sharding" % akkaVersion,
     "com.typesafe.akka" %% "akka-cluster-metrics" % akkaVersion,
-    "com.typesafe.akka" %% "akka-persistence-cassandra" % "0.93",
-    "com.lightbend.akka.management" %% "akka-management-cluster-http" % "1.0.0",
-    "com.github.TanUkkii007" %% "akka-cluster-custom-downing" % "0.0.12"
+
+    //"com.typesafe.akka" %% "akka-persistence-cassandra" % "0.98",
+
+    ("com.typesafe.akka" %% "akka-persistence-cassandra" % "1.0.1")
+        .excludeAll(ExclusionRule(organization = "io.netty", name="netty-all")), //to exclude netty-all-4.1.39.Final.jar
+
+    "com.lightbend.akka.management" %% "akka-management-cluster-http" % "1.0.8",
+    //"com.github.TanUkkii007" %% "akka-cluster-custom-downing" % "0.0.12"
+
+    ("com.lihaoyi" % "ammonite" % "2.2.0" % "test").cross(CrossVersion.full)
   ),
 
   //javaOptions in runMain += "-DENV=prod",
@@ -133,7 +140,8 @@ lazy val server = (project in file("server")).settings(
     val appDevConfTarget = s"$imageAppBaseDir/$configDir/development.conf"
 
     new sbtdocker.mutable.Dockerfile {
-      from("adoptopenjdk/openjdk11:jdk-11.0.2.9")
+      from("adoptopenjdk:11")
+      //from("adoptopenjdk/openjdk11:jdk-11.0.2.9")
       //from("openjdk:10-jre")
       //from("openjdk:8-jre")
       //from("openjdk:8u131")
@@ -198,8 +206,8 @@ lazy val ui = (project in file("ui")).settings(
 
   libraryDependencies ++= Seq(
     //"org.singlespaced" %%% "scalajs-d3" % "0.3.4",
-    "com.github.japgolly.scalajs-react" %%% "core"    % "0.11.3",
-    "com.github.japgolly.scalajs-react" %%% "extra"   % "0.11.3"
+    "com.github.japgolly.scalajs-react" %%% "core"    % "0.11.3", //"1.4.2", //"0.11.3",
+    "com.github.japgolly.scalajs-react" %%% "extra"   % "0.11.3" //"0.11.3"
   ),
 
   jsDependencies ++= Seq(
@@ -224,7 +232,9 @@ lazy val ui = (project in file("ui")).settings(
 ).enablePlugins(ScalaJSPlugin, ScalaJSWeb).dependsOn(sharedJs)
 
 
-addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt")
+//addCommandAlias("fmt", "all scalafmtSbt scalafmt test:scalafmt")
+
+scalafmtOnCompile := true
 
 lazy val shared = sbtcrossproject.CrossPlugin.autoImport.crossProject(JSPlatform, JVMPlatform)
  .crossType(sbtcrossproject.CrossType.Pure)
