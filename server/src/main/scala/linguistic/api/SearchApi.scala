@@ -14,6 +14,9 @@ import linguistic.protocol.{HomophonesQuery, SearchQuery, SearchResults, WordsQu
 import scala.collection.immutable
 import scala.concurrent.ExecutionContext
 
+
+//Similar to
+//https://github.com/ktoso/akka-codepot-workshop/blob/master/src/main/scala/akka/codepot/service/SearchService.scala
 final class SearchApi(search: ActorRef)(implicit val system: ActorSystem) extends BaseApi with AuthTokenSupport {
   implicit val askTimeout = akka.util.Timeout(5.seconds)
 

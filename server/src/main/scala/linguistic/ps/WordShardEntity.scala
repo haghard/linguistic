@@ -20,18 +20,18 @@ object WordShardEntity {
   val Name      = "words"
   val mbDivider = (1024 * 1024).toFloat
 
-  case class RestoredIndex[T](index: RadixTree[String, T])
-
-  val extractEntityId: ExtractEntityId = {
-    case x: WordsQuery =>
-      (x.keyword.toLowerCase(Locale.ROOT).take(2), x) // entities [ab, ac, ad, .. az]
-  }
+  final case class RestoredIndex[T](index: RadixTree[String, T]) extends AnyVal
 
   val extractShardId: ExtractShardId = {
     case x: WordsQuery =>
       x.keyword.toLowerCase(Locale.ROOT).take(1) // shards: [a,...,z]
     case ShardRegion.StartEntity(id) =>
       id
+  }
+
+  val extractEntityId: ExtractEntityId = {
+    case x: WordsQuery =>
+      (x.keyword.toLowerCase(Locale.ROOT).take(2), x) // entities [ab, ac, ad, .. az]
   }
 
   def props(mat: ActorMaterializer): Props =

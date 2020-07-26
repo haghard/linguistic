@@ -71,7 +71,7 @@ class Accounts extends Actor with ActorLogging {
         .one()
 
       //for 1 dc
-      val insertStmt = (session prepare insertUsers)
+      val insertStmt = session prepare insertUsers
       insertStmt.setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL)
       insertStmt.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 

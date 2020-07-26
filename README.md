@@ -210,3 +210,19 @@ engine-0 -Dcassandra.username=fsa -Dcassandra.password=...
 on 192.168.77.85
 sbt 
 engine-1 -Dcassandra.username=fsa -Dcassandra.password=...
+
+
+
+
+
+
+
+
+
+https://github.com/ktoso/akka-codepot-workshop
+
+
+
+
+
+
