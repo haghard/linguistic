@@ -21,7 +21,7 @@ package object protocol {
   abstract class Results {
     def strict: immutable.Seq[String]
 
-    def source: Source[String, NotUsed] = Source(strict)
+    def source: Source[String, NotUsed] = Source.fromIterator(() => strict.iterator)
   }
 
   final case class SearchResults(strict: immutable.Seq[String]) extends Results

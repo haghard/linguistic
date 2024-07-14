@@ -41,8 +41,7 @@ case class Bootstrap(port: Int, hostName: String, keypass: String, storepass: St
   val users                          = classicSystem.actorOf(Accounts.props, "users")
   val search                         = classicSystem.actorOf(Searches.props(wordRegion, homophonesRegion), "search")
 
-  classicSystem.scheduler.scheduleOnce(5.seconds) {
-    //warm up search
+  classicSystem.scheduler.scheduleOnce(2.seconds) {
     users ! Activate
 
     // to build full index

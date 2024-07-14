@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import scala.util.control.NonFatal
-import scala.collection.{immutable, mutable}
+import scala.collection.mutable
 
 object SuffixTreeEntity {
 
@@ -56,7 +56,6 @@ class SuffixTreeEntity(isPrefixBasedSearch: Boolean)
     with Indexing[Unit]
     with Stash
     with Passivation {
-
 
   override val key = self.path.name
 
