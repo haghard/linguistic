@@ -95,6 +95,13 @@ Useful Links
     http://bl.ocks.org/mbostock/4063550
     https://ochrons.github.io/scalajs-spa-tutorial/en/routing.html
 
+
+Akka links
+
+CPU considerations for Java applications running in Docker and Kubernetes:
+    https://www.lightbend.com/blog/cpu-considerations-for-java-applications-running-in-docker-and-kubernetes
+
+
 WebUi
   
   https://getbootstrap.com/components/#navbar
@@ -214,15 +221,33 @@ engine-1 -Dcassandra.username=fsa -Dcassandra.password=...
 
 
 
-
-
-
-
-
 https://github.com/ktoso/akka-codepot-workshop
+https://github.com/ktoso/akka-codepot-workshop/blob/aac84e3a5c1ca6edcdbaa2befd35cd161b2da69a/src/main/scala/akka/codepot/engine/search/SearchMaster.scala
 
 
+CREATE KEYSPACE IF NOT EXISTS linguistics WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3 };
+select * from linguistics.linguistics_journal where persistence_id='/sharding/wordsShard/a' and partition_nr=0;
+select * from linguistics.linguistics_journal where persistence_id='/sharding/wordsCoordinator' and partition_nr=0;
+                                    
+
+https://github.com/wolfgarbe/SymSpell#ports
+
+Blog Posts
+The Pruning Radix Trie — a Radix trie on steroids (https://seekstorm.com/blog/pruning-radix-trie/)
+1000x Faster Spelling Correction algorithm (https://seekstorm.com/blog/1000x-spelling-correction/)
+SymSpell vs. BK-tree: 100x faster fuzzy string search & spell checking (https://seekstorm.com/blog/symspell-vs-bk-tree/)
+
+https://github.com/wolfgarbe/symspell?tab=readme-ov-file
+https://wolfgarbe.medium.com/1000x-faster-spelling-correction-algorithm-2012-8701fcd87a5f
+https://github.com/MighTguY/customized-symspell
 
 
+Suggestion, autocompletion, and correction
+search_as_you_type
+                     
 
+docker-compose -f docker-compose5.yml up
+docker exec -it dc1a8598a31f cqlsh
 
+cqlsh> drop KEYSPACE linguistics ;
+cqlsh> CREATE KEYSPACE IF NOT EXISTS linguistics WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1 };

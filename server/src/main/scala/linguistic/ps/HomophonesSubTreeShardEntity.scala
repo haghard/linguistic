@@ -5,15 +5,14 @@ import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 import java.util.Locale
 import java.util.concurrent.TimeUnit
-
 import akka.actor.{ActorLogging, Props, Stash}
 import akka.cluster.sharding.ShardRegion
 import akka.cluster.sharding.ShardRegion._
 import akka.persistence.{PersistentActor, RecoveryCompleted, SnapshotOffer}
-import akka.stream.ActorMaterializer
 import com.rklaehn.radixtree.RadixTree
+import linguistic.protocol.SearchQuery.HomophonesQuery
 import linguistic.protocol._
-import linguistic.ps.WordShardEntity.RestoredIndex
+import linguistic.ps.RadixTreeShardEntity.RestoredIndex
 
 object HomophonesSubTreeShardEntity {
   val Name = "homophones"
@@ -30,13 +29,11 @@ object HomophonesSubTreeShardEntity {
       (x.keyword.toLowerCase(Locale.ROOT).take(1), x)
   }
 
-  def props(mat: ActorMaterializer): Props =
-    Props(new HomophonesSubTreeShardEntity()(mat)).withDispatcher("shard-dispatcher")
+  def props(): Props =
+    Props(new HomophonesSubTreeShardEntity()).withDispatcher("shard-dispatcher")
 }
 
-class HomophonesSubTreeShardEntity(implicit val mat: ActorMaterializer)
-    extends PersistentActor
-    with ActorLogging
+class HomophonesSubTreeShardEntity extends PersistentActor with ActorLogging
     with Indexing[Seq[String]]
     with Stash
     with Passivation {
@@ -91,14 +88,14 @@ class HomophonesSubTreeShardEntity(implicit val mat: ActorMaterializer)
         saveSnapshot(Homophones(homophones))
 
       unstashAll()
-      context become passivate(searchable(index))
+      context become passivate(availableForSearch(index))
 
     case m: RestoredIndex[Seq[String]] @unchecked =>
-      if (m.index.count == 0) buildIndex(key, path)
+      if (m.index.count == 0) buildIndex(???, key, path)
       else {
         unstashAll()
         log.info("Index has been recovered from snapshot with size {} for key [{}]", m.index.count, key)
-        context become passivate(searchable(m.index))
+        context become passivate(availableForSearch(m.index))
       }
 
     case HomophonesQuery(prefix, _) =>
@@ -111,9 +108,11 @@ class HomophonesSubTreeShardEntity(implicit val mat: ActorMaterializer)
     super.onPersistFailure(cause, event, seqNr)
   }
 
-  def searchable(index: SubTree): Receive = {
+  def availableForSearch(index: SubTree): Receive = {
     case HomophonesQuery(prefix, maxResults) =>
       val decodedPrefix = URLDecoder.decode(prefix, StandardCharsets.UTF_8.name)
+      val start = System.nanoTime
+
       val results =
         index
           .filterPrefix(decodedPrefix)
@@ -122,7 +121,6 @@ class HomophonesSubTreeShardEntity(implicit val mat: ActorMaterializer)
           .map { case (key, hs) => s"$key\t${hs.mkString("\t")}" }
           .to[collection.immutable.Seq]
 
-      val start = System.nanoTime
       log.info(
         "Search for homophones: [{}] resulted in [{}] results. Latency: {} millis",
         prefix,

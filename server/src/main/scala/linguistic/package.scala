@@ -1,8 +1,9 @@
 import akka.http.scaladsl.marshalling.{Marshaller, _}
 import akka.http.scaladsl.model.MediaType
 import akka.http.scaladsl.model.MediaTypes._
-import com.google.common.util.concurrent.{FutureCallback, Futures, ListenableFuture, MoreExecutors}
+import com.datastax.oss.driver.shaded.guava.common.util.concurrent.{FutureCallback, Futures, ListenableFuture, MoreExecutors}
 import play.twirl.api.{Html, Txt, Xml}
+
 import scala.concurrent.{Future, Promise}
 
 package object linguistic {

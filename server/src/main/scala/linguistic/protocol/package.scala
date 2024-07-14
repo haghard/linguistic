@@ -3,7 +3,7 @@ package linguistic
 import akka.NotUsed
 import akka.stream.scaladsl.Source
 
-import scala.collection.immutable
+import scala.collection.{immutable, mutable}
 
 package object protocol {
   case object IndexingCompleted
@@ -12,9 +12,11 @@ package object protocol {
     def keyword: String
   }
 
-  case class WordsQuery(keyword: String, maxResults: Int) extends SearchQuery
+  object SearchQuery {
+    final case class WordsQuery(keyword: String, maxResults: Int) extends SearchQuery
 
-  case class HomophonesQuery(keyword: String, maxResults: Int) extends SearchQuery
+    final case class HomophonesQuery(keyword: String, maxResults: Int) extends SearchQuery
+  }
 
   abstract class Results {
     def strict: immutable.Seq[String]
@@ -22,11 +24,19 @@ package object protocol {
     def source: Source[String, NotUsed] = Source(strict)
   }
 
-  case class SearchResults(strict: immutable.Seq[String]) extends Results
+  final case class SearchResults(strict: immutable.Seq[String]) extends Results
 
-  case class Words(entry: Seq[String])
 
-  case class Homophones(homophones: Seq[Homophone])
+  final case class Homophones(homophones: Seq[Homophone])
 
-  case class Homophone(key: String, homophones: Seq[String])
+  final case class Homophone(key: String, homophones: Seq[String])
+
+
+  final case class UniqueTermsByShard(terms: Seq[String])
+  final case class UniqueTermsByShard2(terms: mutable.HashSet[String])
+
+
+  final case class AddOneWord(w: String)
+  final case class OneWordAdded(w: String)
+
 }

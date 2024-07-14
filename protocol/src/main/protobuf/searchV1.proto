@@ -32,3 +32,11 @@ message WordsPB {
 message SearchResultsPB {
     repeated string strict = 1;
 }
+
+message AddOneWordPB {
+    string word  = 1;
+}
+
+message OneWordAddedPB {
+    string word  = 1;
+}

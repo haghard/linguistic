@@ -3,10 +3,12 @@ package linguistic
 import java.io.File
 import java.time.LocalDateTime
 import java.util.TimeZone
-
 import akka.cluster.Cluster
 import akka.actor.ActorSystem
+import akka.stream.SystemMaterializer
 import com.typesafe.config.{Config, ConfigFactory}
+import linguistic.dao.CassandraSessionExtension
+import linguistic.protocol.SearchQuery
 
 import scala.collection._
 
@@ -15,7 +17,7 @@ object Application extends App with AppSupport {
   val opts: Map[String, String] = argsToOpts(args.toList)
   applySystemProperties(opts)
 
-  val tcpPort  = System.getProperty("akka.remote.netty.tcp.port")
+  val tcpPort  = System.getProperty("akka.remote.artery.canonical.port")
   val httpPort = System.getProperty("akka.http.port")
   val hostName = System.getProperty("HOSTNAME")
   val confPath = System.getProperty("CONFIG")
@@ -27,9 +29,9 @@ object Application extends App with AppSupport {
 
   val httpConf =
     s"""
-       |akka.remote.netty.tcp.port=%port%
+       |akka.remote.artery.canonical.port=%port%
        |akka.http.port=%httpP%
-       |akka.remote.netty.tcp.hostname=%hostName%
+       |akka.remote.artery.canonical.hostname=%hostName%
        |akka.http.interface=%interface%
        |
        |akka.http.session {
@@ -70,11 +72,17 @@ object Application extends App with AppSupport {
   val config: Config =
     ConfigFactory
       .parseString(effectedHttpConf)
-      .withFallback(ConfigFactory.parseString(dbConf))
+      //.withFallback(ConfigFactory.parseString(dbConf))
       .withFallback(ConfigFactory.parseFile(configFile).resolve())
       .withFallback(ConfigFactory.load()) //for read seeds from env vars
 
-  val system = ActorSystem("linguistics", config)
+
+  implicit val system = ActorSystem("linguistics", config)
+  //actor system level Materializer
+  //implicit val mat = SystemMaterializer(system).materializer
+
+  //CREATE KEYSPACE IF NOT EXISTS linguistics WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1 };
+  CassandraSessionExtension(system).session
 
   Cluster(system).registerOnMemberUp {
     val greeting = new StringBuilder()
@@ -85,26 +93,18 @@ object Application extends App with AppSupport {
         s"★ ★ ★  Environment: ${env} TimeZone: ${TimeZone.getDefault.getID} Started at ${LocalDateTime.now}  ★ ★ ★"
       )
       .append('\n')
-      .append(s"★ ★ ★  Akka cluster: ${config.getInt("akka.remote.netty.tcp.port")}  ★ ★ ★")
+      .append(s"★ ★ ★  Akka cluster: ${config.getInt("akka.remote.artery.canonical.port")}  ★ ★ ★")
       .append('\n')
       .append(s"★ ★ ★  Akka seeds: ${config.getStringList("akka.cluster.seed-nodes")}  ★ ★ ★")
+      //.append('\n')
+      .append(s"★ ★ ★  Cassandra domain points: ${config.getStringList("datastax-java-driver.basic.contact-points")}  ★ ★ ★")
+      //.append(s"★ ★ ★  Cassandra domain points: ${config.getStringList("cassandra-journal.contact-points")}  ★ ★ ★")
       .append('\n')
-      .append(s"★ ★ ★  Cassandra domain points: ${config.getStringList("cassandra-journal.contact-points")}  ★ ★ ★")
-      .append('\n')
-      .append(s"★ ★ ★  Server online at https://${config.getString("akka.http.interface")}:${httpPort}   ★ ★ ★")
+      .append(s"★ ★ ★  Server online at http://${config.getString("akka.http.interface")}:$httpPort   ★ ★ ★")
       .append('\n')
       .append("=================================================================================================")
     system.log.info(greeting.toString)
 
-    system.actorOf(
-      Bootstrap.props(
-        httpPort.toInt,
-        hostName,
-        config.getString("akka.http.ssl.keypass"),
-        config.getString("akka.http.ssl.storepass")
-      ),
-      "bootstrap"
-    )
-
+    Bootstrap(httpPort.toInt, hostName, config.getString("akka.http.ssl.keypass"), config.getString("akka.http.ssl.storepass"))
   }
 }

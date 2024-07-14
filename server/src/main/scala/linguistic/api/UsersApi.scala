@@ -20,7 +20,7 @@ class UsersApi(users: ActorRef)(implicit val system: ActorSystem) extends BaseAp
     complete(HttpResponse(InternalServerError, entity = s"""{ "error": "${error}" }"""))
 
   import scala.concurrent.duration._
-  implicit val t = akka.util.Timeout(5.seconds)
+  implicit val t = akka.util.Timeout(10.seconds)
 
   import akka.pattern.ask
 

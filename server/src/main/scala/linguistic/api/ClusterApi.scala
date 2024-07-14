@@ -9,7 +9,7 @@ import akka.pattern._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-class ClusterApi(http: ActorRef, searchMaster: ActorRef, regions: Set[ActorRef])(
+class ClusterApi(searchMaster: ActorRef, regions: Set[ActorRef])(
   implicit ex: ExecutionContext,
   sys: ActorSystem
 ) extends BaseApi {

@@ -5,7 +5,11 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-//https://github.com/mauricio/scala-sandbox/blob/master/src/main/scala/trie/Trie.scala
+
+/*
+https://github.com/mauricio/scala-sandbox/blob/master/src/main/scala/trie/Trie.scala
+https://github.com/mauricio/scala-sandbox/blob/master/src/test/scala/trie/TrieSpec.scala
+*/
 package object trie {
 
   object Trie {
@@ -22,14 +26,18 @@ package object trie {
 
     def remove(word: String): Boolean
 
+    def pathTo(word: String): Option[ListBuffer[TrieNode]]
   }
 
-  private[trie] class TrieNode(val char: Option[Char] = None, var word: Option[String] = None) extends Trie {
+  private[trie] class TrieNode(
+    val char: Option[Char] = None,
+    var word: Option[String] = None
+  ) extends Trie {
 
     private[trie] val children: mutable.Map[Char, TrieNode] =
       new java.util.TreeMap[Char, TrieNode]().asScala
 
-    override def append(key: String) = {
+    override def append(key: String): Unit = {
       @tailrec def go(node: TrieNode, currentIndex: Int): Unit =
         if (currentIndex == key.length) node.word = Some(key)
         else {
@@ -121,7 +129,7 @@ package object trie {
 
     }
 
-    private[trie] def pathTo(word: String): Option[ListBuffer[TrieNode]] = {
+    /*private[trie] */def pathTo(word: String): Option[ListBuffer[TrieNode]] = {
       def go(buffer: ListBuffer[TrieNode], currentIndex: Int, node: TrieNode): Option[ListBuffer[TrieNode]] =
         if (currentIndex == word.length) {
           node.word.map(word => buffer += node)

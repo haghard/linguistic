@@ -1,24 +1,26 @@
 package linguistic.dao
 
-import java.net.InetSocketAddress
 import java.time.Instant
-
 import akka.actor.{Actor, ActorLogging, Props}
-import com.datastax.driver.core._
-import com.datastax.driver.core.exceptions.WriteTimeoutException
+import akka.pattern.pipe
 import org.mindrot.jbcrypt.BCrypt
 import shared.protocol.SignInResponse
 
-import scala.collection.JavaConverters._
 import scala.util.{Failure, Success, Try}
-import akka.pattern._
+import akka.stream.alpakka.cassandra.scaladsl.CassandraSession
+import com.datastax.oss.driver.api.core.{ConsistencyLevel, CqlSession}
+import com.datastax.oss.driver.api.core.cql.{PreparedStatement, SimpleStatement}
+import com.datastax.oss.driver.api.core.servererrors.{WriteTimeoutException, WriteType}
+
+import scala.compat.java8.FutureConverters.CompletionStageOps
+import scala.util.control.NonFatal
 
 object Accounts {
   case object Activate
   case class SignIn(login: String, password: String)
   case class SignUp(login: String, password: String, photo: String)
 
-  def retry(f: () => Session, n: Int): Session =
+  def retry(f: () => CassandraSession, n: Int): CassandraSession =
     Try(f()) match {
       case Success(r) => r
       case Failure(ex) =>
@@ -36,75 +38,72 @@ object Accounts {
 
 class Accounts extends Actor with ActorLogging {
   import Accounts._
-  import linguistic._
-  //https://datastax.github.io/java-driver/manual/custom_codecs/extras/
-  import com.datastax.driver.extras.codecs.jdk8.InstantCodec
-
-  val conf          = context.system.settings.config
-  val cassandraPort = conf.getInt("cassandra-journal.port")
-  val keySpace      = conf.getString("cassandra-journal.keyspace")
-  val cassandraHosts =
-    conf.getStringList("cassandra-journal.contact-points").asScala.map(new InetSocketAddress(_, cassandraPort))
-
   implicit val ex = context.system.dispatchers.lookup("shard-dispatcher")
+
+  //https://datastax.github.io/java-driver/manual/custom_codecs/extras/
+  //import com.datastax.driver.extras.codecs.jdk8.InstantCodec
+  
+  val session =
+    CassandraSessionExtension(context.system).session
+
 
   def idle: Receive = {
     case Activate =>
-      val cluster = Cluster
-        .builder()
-        .addContactPointsWithPorts(cassandraHosts.asJava)
-        .withCredentials(
-          conf.getString("cassandra-journal.authentication.username"),
-          conf.getString("cassandra-journal.authentication.password")
-        )
-        //.withLoadBalancingPolicy(DCAwareRoundRobinPolicy.builder().withLocalDc(localDC).build())
-        .withQueryOptions(new QueryOptions().setConsistencyLevel(ConsistencyLevel.ONE))
-        .build
 
-      val session = retry(() => (cluster connect keySpace), 5)
-
-      cluster.getConfiguration().getCodecRegistry().register(InstantCodec.instance)
-      session
-        .execute(
-          s"CREATE TABLE IF NOT EXISTS ${keySpace}.users(login text, created_at timestamp, password text, photo text, PRIMARY KEY (login))"
-        )
-        .one()
+      val insert = SimpleStatement
+        .builder(insertUsers)
+        //.setExecutionProfileName(profileName)
+        .setConsistencyLevel(ConsistencyLevel.ONE)
+        .build()
 
       //for 1 dc
-      val insertStmt = session prepare insertUsers
-      insertStmt.setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL)
-      insertStmt.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
+      val insertStmt = session.prepare(insert)
+      //insertStmt.setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL)
+      //insertStmt.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 
-      val selectStmt = session prepare selectUser
-      selectStmt.setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL)
-      selectStmt.setConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL)
-      selectStmt.enableTracing
+      val select = SimpleStatement
+        .builder(selectUser)
+        //.setExecutionProfileName(profileName)
+        .setConsistencyLevel(ConsistencyLevel.ONE)
+        .build()
+
+      val selectStmt = session.prepare(select)
+      //selectStmt.setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL)
+      //selectStmt.setConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL)
+      //selectStmt.enableTracing
       context become active(session, selectStmt, insertStmt)
   }
 
-  override def receive = idle
+  override def receive: Receive = idle
 
-  def active(session: Session, selectStmt: PreparedStatement, insertStmt: PreparedStatement): Receive = {
+  def active(session: CqlSession, selectStmt: PreparedStatement, insertStmt: PreparedStatement): Receive = {
+    case reply: Either[String, _] @unchecked =>
+       context.system.log.info(s"Got $reply")
+
     case SignIn(login, password) =>
       val replyTo = sender()
-      session
-        .executeAsync(selectStmt.bind(login))
-        .asScala
-        .map { r =>
-          val row = r.one
-          if (row eq null) Left(s"Couldn't find user $login")
-          else if (BCrypt.checkpw(password, row.getString("password")))
-            Right(SignInResponse(row.getString("login"), row.getString("photo")))
-          else Left("Something went wrong. Password mismatches")
+      new CompletionStageOps(session.executeAsync(selectStmt.bind(login))).toScala
+        .map { res =>
+          val row = res.one()
+           if(row ne null) {
+              if (BCrypt.checkpw(password, row.getString("password")))
+                Right(SignInResponse(row.getString("login"), row.getString("photo")))
+              else
+                Left("Something went wrong. Password mismatches")
+
+           } else Left(s"Couldn't find user $login")
+        }.recover {
+          case NonFatal(ex) =>
+            Left(ex.getMessage)
         }
         .pipeTo(replyTo)
 
     case SignUp(login, password, photo) =>
       val createdAt = Instant.now()
       val replyTo   = sender()
-      session
-        .executeAsync(insertStmt.bind(login, BCrypt.hashpw(password, BCrypt.gensalt), photo, createdAt))
-        .asScala
+      new CompletionStageOps(
+        session.executeAsync(insertStmt.bind(login, BCrypt.hashpw(password, BCrypt.gensalt), photo, createdAt))
+      ).toScala
         .map(r => Right(r.wasApplied))
         .recover {
           case e: WriteTimeoutException =>

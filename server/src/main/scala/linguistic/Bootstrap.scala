@@ -2,98 +2,120 @@ package linguistic
 
 import linguistic.dao.Accounts
 import linguistic.dao.Accounts.Activate
-import akka.stream.ActorMaterializerSettings
-import akka.actor.{Actor, ActorLogging, ActorRef, CoordinatedShutdown, Props, Status}
+import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, CoordinatedShutdown, Props, Status}
 import Bootstrap._
 import akka.Done
-import akka.actor.CoordinatedShutdown.{PhaseServiceRequestsDone, PhaseServiceUnbind, Reason}
+import akka.actor.CoordinatedShutdown.{PhaseActorSystemTerminate, PhaseBeforeServiceUnbind, PhaseServiceRequestsDone, PhaseServiceStop, PhaseServiceUnbind, Reason}
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.Http.ServerBinding
+import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.RouteConcatenation._
 import akka.http.scaladsl.server.RouteResult._
 import akka.pattern.pipe
 import linguistic.api.WebAssets
-import linguistic.protocol.{HomophonesQuery, WordsQuery}
+import linguistic.protocol.{AddOneWord, SearchQuery}
+import linguistic.ps.PruningRadixTrieEntity2
 
-import scala.concurrent.Promise
+import scala.concurrent.{Future, Promise}
 import scala.concurrent.duration._
+import scala.util.{Failure, Success}
 
 object Bootstrap {
 
-  final private case object InitSharding
   final private case object BindFailure extends Reason
-
-  val HttpDispatcher = "akka.http.dispatcher"
-
-  def props(port: Int, address: String, keypass: String, storepass: String) =
-    Props(new Bootstrap(port, address, keypass, storepass)).withDispatcher(HttpDispatcher)
 }
 
-class Bootstrap(port: Int, address: String, keypass: String, storepass: String)
-    extends Actor
-    with ActorLogging
-    with SslSupport
+case class Bootstrap(port: Int, hostName: String, keypass: String, storepass: String)(implicit
+  classicSystem: ActorSystem
+) extends SslSupport
     with ShardingSupport {
 
-  implicit val system = context.system
-  implicit val ex     = system.dispatchers.lookup(HttpDispatcher)
-  implicit val mat =
-    akka.stream.ActorMaterializer(ActorMaterializerSettings.create(system).withDispatcher(HttpDispatcher))(system)
+  val terminationDeadline = classicSystem.settings.config
+    .getDuration("akka.coordinated-shutdown.default-phase-timeout")
+    .getSeconds
+    .second
 
-  val shutdown = CoordinatedShutdown(system)
+  implicit val ex = classicSystem.dispatchers.lookup("akka.http.dispatcher")
 
-  override def preStart() =
-    self ! InitSharding
+  val (wordRegion , homophonesRegion) = startSharding(classicSystem)
+  val users                          = classicSystem.actorOf(Accounts.props, "users")
+  val search                         = classicSystem.actorOf(Searches.props(wordRegion, homophonesRegion), "search")
 
-  def idle: Receive = {
-    case InitSharding =>
-      val (wordRegion, homophonesRegion) = startSharding(system)
-      val users                          = context.actorOf(Accounts.props, "users")
-      val search                         = context.actorOf(Searches.props(mat, wordRegion, homophonesRegion), "search")
+  classicSystem.scheduler.scheduleOnce(5.seconds) {
+    //warm up search
+    users ! Activate
 
-      val routes = new WebAssets().route ~ new api.SearchApi(search).route ~
-        new api.UsersApi(users).route ~ new api.ClusterApi(
-          self,
-          search,
-          scala.collection.immutable.Set(wordRegion, homophonesRegion)
-        ).route
-
-      Http()
-        .bindAndHandle(routes, address, port, connectionContext = https(keypass, storepass))
-        .pipeTo(self)
-
-      context.become(awaitBinding(users, search))
+    // to build full index
+    /*('a' to 'z').foreach { letterA =>
+      //Thread.sleep(1000)
+      search ! SearchQuery.WordsQuery(letterA.toString, 1)
+    }*/
+    
+    //search ! AddOneWord("xyz")
   }
 
-  def awaitBinding(users: ActorRef, searchShardRegion: ActorRef): Receive = {
-    case b: ServerBinding =>
-      //warm up search
-      users ! Activate
-      searchShardRegion ! WordsQuery("average", 1)
-      searchShardRegion ! HomophonesQuery("rose", 1)
+  val routes = new WebAssets().route ~ new api.SearchApi(search).route ~ new api.UsersApi(users).route ~
+    new api.ClusterApi(search, scala.collection.immutable.Set(wordRegion, homophonesRegion)).route
 
-      shutdown.addTask(PhaseServiceUnbind, "api.unbind") { () ⇒
-        log.info("api.unbind")
-        // No new connections are accepted
-        // Existing connections are still allowed to perform request/response cycles
-        b.terminate(3.seconds).map(_ ⇒ Done)
-      }
+  Http()
+    //.bindAndHandle(routes, hostName, port, connectionContext = https(keypass, storepass))
+    .newServerAt(hostName, port).bind(routes)
+    //.bindAndHandle(routes, hostName, port)
+    .onComplete {
+      case Failure(ex) ⇒
+        classicSystem.log.error(s"Shutting down because can't bind on $hostName:$port", ex)
+        CoordinatedShutdown(classicSystem).run(Bootstrap.BindFailure)
+      case Success(binding) ⇒
+        classicSystem.log.info(s"★ ★ ★ Listening for HTTP connections on ${binding.localAddress} * * *")
 
-      shutdown.addTask(PhaseServiceRequestsDone, "requests-done") { () ⇒
-        log.info("requests-done")
-        // Wait 2 seconds until all HTTP requests have been processed
-        val p = Promise[Done]()
-        system.scheduler.scheduleOnce(2.seconds) {
-          p.success(Done)
+        CoordinatedShutdown(classicSystem).addTask(PhaseBeforeServiceUnbind, "before-unbind") { () ⇒
+          Future {
+            classicSystem.log.info("★ ★ ★ CoordinatedShutdown [before-unbind] ★ ★ ★")
+            Done
+          }
         }
-        p.future
-      }
 
-    case Status.Failure(ex) =>
-      log.error(ex, s"Can't bind to $address:$port")
-      //graceful stop logic
-      shutdown.run(Bootstrap.BindFailure)
-  }
+        CoordinatedShutdown(classicSystem).addTask(PhaseServiceUnbind, "http-api.unbind") { () ⇒
+          //No new connections are accepted. Existing connections are still allowed to perform request/response cycles
+          binding.unbind().map { done ⇒
+            classicSystem.log.info("★ ★ ★ CoordinatedShutdown [http-api.unbind] ★ ★ ★")
+            done
+          }
+        }
 
-  override def receive = idle
+        /*CoordinatedShutdown(classicSystem).addTask(PhaseServiceUnbind, "akka-management.stop") { () =>
+          AkkaManagement(classicSystem).stop().map { done =>
+            classicSystem.log.info("CoordinatedShutdown [akka-management.stop]")
+            done
+          }
+        }*/
+
+        //graceful termination request being handled on this connection
+        CoordinatedShutdown(classicSystem).addTask(PhaseServiceRequestsDone, "http-api.terminate") { () ⇒
+          /**
+            * It doesn't accept new connection but it drains the existing connections
+            * Until the `terminationDeadline` all the req that had been accepted will be completed
+            * and only than the shutdown will continue
+            */
+          binding.terminate(terminationDeadline).map { _ ⇒
+            classicSystem.log.info("★ ★ ★ CoordinatedShutdown [http-api.terminate]  ★ ★ ★")
+            Done
+          }
+        }
+
+        //forcefully kills connections that are still open
+        CoordinatedShutdown(classicSystem).addTask(PhaseServiceStop, "close.connections") { () ⇒
+          Http().shutdownAllConnectionPools().map { _ ⇒
+            classicSystem.log.info("CoordinatedShutdown [close.connections]")
+            Done
+          }
+        }
+
+        CoordinatedShutdown(classicSystem).addTask(PhaseActorSystemTerminate, "system.term") { () ⇒
+          Future.successful {
+            classicSystem.log.info("CoordinatedShutdown [system.term]")
+            Done
+          }
+        }
+    }
 }
