@@ -7,10 +7,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-
-//https://github.com/benldr/JPruningRadixTrie/blob/main/SourceCode/PruningRadixTrie.java
-//https://github.com/wolfgarbe/PruningRadixTrie?s=03
-//https://seekstorm.com/blog/pruning-radix-trie/
+/**
+ * https://github.com/benldr/JPruningRadixTrie/blob/main/SourceCode/PruningRadixTrie.java
+ * https://github.com/wolfgarbe/PruningRadixTrie?s=03
+ * https://seekstorm.com/blog/pruning-radix-trie/
+ */
 public class JPruningRadixTrie {
 
   public long termCount = 0;
@@ -84,8 +85,7 @@ public class JPruningRadixTrie {
                 (NodeChild e) -> e.getNode().getTermFrequencyCountChildMax()).reversed());
               //increment termcount by 1
               termCount++;
-            }
-            else if (common == key.length()) {
+            } else if (common == key.length()) {
               addTerm(node, term.substring(common), termFrequencyCount, id, level + 1, nodeList);
             } else {
               Node child = new Node(0);
@@ -228,13 +228,9 @@ public class JPruningRadixTrie {
     if (termCountLoaded == termCount) {
       return;
     }
-    //Replace BufferedWriter bw with scala.Vector
+
     try (BufferedWriter bw = new BufferedWriter(new FileWriter(path))) {
-
       findAllChildTerms("", trie, 0, "", null, bw, true);
-
-      bw.flush();
-      bw.close();
       System.out.println(termCount + " terms written.");
     } catch (Exception e) {
       System.out.println("Writing terms exception: " + e.getMessage());
@@ -274,9 +270,6 @@ public class JPruningRadixTrie {
   }
 
   public void addTopKSuggestion(String term, long termFrequencyCount, int topK, List<TermAndFrequency> results) {
-    //at the end/highest index is the lowest value
-    // >  : old take precedence for equal rank
-    // >= : new take precedence for equal rank
     if ((results.size() < topK) || (termFrequencyCount >= results.get(topK - 1).getTermFrequencyCount())) {
       TermAndFrequency termAndFrequency = new TermAndFrequency(term, termFrequencyCount);
       int index = Collections.binarySearch(results, termAndFrequency, Comparator.comparing(

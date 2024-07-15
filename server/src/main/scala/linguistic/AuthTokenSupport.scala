@@ -1,6 +1,5 @@
 package linguistic
 
-import akka.actor.ActorSystem
 import com.softwaremill.session.SessionDirectives._
 import com.softwaremill.session.SessionOptions._
 import com.softwaremill.session.{SessionConfig, SessionManager, SessionSerializer, SingleValueSessionSerializer}
@@ -9,7 +8,7 @@ import scala.concurrent.ExecutionContext
 import scala.util.Success
 
 trait AuthTokenSupport {
-  implicit def system: ActorSystem
+  implicit def system: akka.actor.typed.ActorSystem[_]
 
   private val sessionConfig   = SessionConfig.fromConfig(system.settings.config)
   implicit val sessionManager = new SessionManager[ServerSession](sessionConfig)

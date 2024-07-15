@@ -17,6 +17,15 @@ import java.nio.charset.StandardCharsets
 import java.util.Locale
 import scala.util.control.NonFatal
 
+
+/**
+ *
+ * Each PruningRadixTrieEntity uses [[JPruningRadixTrie]] to store his state.
+ * Filtering by prefix is extremely fast with a radix tree (worst case O(log(N)),
+ * whereas it is worse than O(N) with SortedMap and HashMap.
+ * Filtering by prefix will also benefit a lot from structural sharing.
+ *
+ */
 object PruningRadixTrieEntity {
 
   val Name      = "words"
@@ -127,11 +136,12 @@ class PruningRadixTrieEntity extends PersistentActor with ActorLogging with Inde
         context.become(active(index))
       }
 
-    case WordsQuery(prefix, maxResults) ⇒
+    case WordsQuery(prefix, maxResults, replyTo) ⇒
       val decodedPrefix = URLDecoder.decode(prefix, StandardCharsets.UTF_8.name)
 
       val startTs       = System.currentTimeMillis()
       val iter          = index.getTopkTermsForPrefix(decodedPrefix, maxResults).iterator()
+      //Thread.sleep(java.util.concurrent.ThreadLocalRandom.current().nextInt(200, 600))
       val latency       = System.currentTimeMillis() - startTs
       val buf           = Vector.newBuilder[String]
       while (iter.hasNext) {
@@ -140,13 +150,8 @@ class PruningRadixTrieEntity extends PersistentActor with ActorLogging with Inde
       }
       val results = buf.result()
 
-      log.info(
-        "Search for: [{}], resulted in [{}] results. {} millis",
-        prefix,
-        results.size,
-        latency
-      )
-      sender() ! SearchResults(results)
+      log.info(s"Search(${prefix}) over ${index.termCount}term resulted in [${results.size}]. $latency millis")
+      replyTo.tell(SearchResults(results))
   }
 
   override def onPersistFailure(cause: Throwable, event: Any, seqNr: Long): Unit = {

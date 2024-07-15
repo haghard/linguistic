@@ -1,16 +1,11 @@
 package linguistic
 
 import java.io.File
-import java.time.LocalDateTime
-import java.util.TimeZone
-import akka.cluster.Cluster
-import akka.actor.ActorSystem
-import akka.stream.SystemMaterializer
 import com.typesafe.config.{Config, ConfigFactory}
-import linguistic.dao.CassandraSessionExtension
-import linguistic.protocol.SearchQuery
+import linguistic.dao.Guardian
 
 import scala.collection._
+import scala.concurrent.duration.{FiniteDuration, NANOSECONDS}
 
 object Application extends App with AppSupport {
 
@@ -43,7 +38,7 @@ object Application extends App with AppSupport {
        |
     """.stripMargin
 
-  val contactPoints = dbHosts.split(",").map(h => s""" "$h" """).mkString(",").dropRight(1)
+  val contactPoints = dbHosts.split(",").map(h ⇒ s""" "$h" """).mkString(",").dropRight(1)
 
   val dbConf =
     s"""
@@ -76,35 +71,28 @@ object Application extends App with AppSupport {
       .withFallback(ConfigFactory.parseFile(configFile).resolve())
       .withFallback(ConfigFactory.load()) //for read seeds from env vars
 
-
-  implicit val system = ActorSystem("linguistics", config)
-  //actor system level Materializer
-  //implicit val mat = SystemMaterializer(system).materializer
-
-  //CREATE KEYSPACE IF NOT EXISTS linguistics WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1 };
-  CassandraSessionExtension(system).session
-
-  Cluster(system).registerOnMemberUp {
-    val greeting = new StringBuilder()
-      .append('\n')
-      .append("=================================================================================================")
-      .append('\n')
-      .append(
-        s"★ ★ ★  Environment: ${env} TimeZone: ${TimeZone.getDefault.getID} Started at ${LocalDateTime.now}  ★ ★ ★"
-      )
-      .append('\n')
-      .append(s"★ ★ ★  Akka cluster: ${config.getInt("akka.remote.artery.canonical.port")}  ★ ★ ★")
-      .append('\n')
-      .append(s"★ ★ ★  Akka seeds: ${config.getStringList("akka.cluster.seed-nodes")}  ★ ★ ★")
-      //.append('\n')
-      .append(s"★ ★ ★  Cassandra domain points: ${config.getStringList("datastax-java-driver.basic.contact-points")}  ★ ★ ★")
-      //.append(s"★ ★ ★  Cassandra domain points: ${config.getStringList("cassandra-journal.contact-points")}  ★ ★ ★")
-      .append('\n')
-      .append(s"★ ★ ★  Server online at http://${config.getString("akka.http.interface")}:$httpPort   ★ ★ ★")
-      .append('\n')
-      .append("=================================================================================================")
-    system.log.info(greeting.toString)
-
-    Bootstrap(httpPort.toInt, hostName, config.getString("akka.http.ssl.keypass"), config.getString("akka.http.ssl.storepass"))
-  }
+  implicit val system = akka.actor.typed.ActorSystem(
+    Guardian(
+      httpPort.toInt,
+      hostName,
+      config.getString("akka.http.ssl.keypass"),
+      config.getString("akka.http.ssl.storepass")
+    ),
+    "linguistics",
+    config
+  )
+  
+  /*
+  val _ = scala.io.StdIn.readLine()
+  system.log.warn("★ ★ ★ ★ ★ ★  Shutting down ... ★ ★ ★ ★ ★ ★")
+  system.terminate()
+  scala
+    .concurrent
+    .Await
+    .result(
+      system.whenTerminated,
+      FiniteDuration(
+        system.settings.config.getDuration("akka.coordinated-shutdown.default-phase-timeout").toNanos,
+        NANOSECONDS)
+    )*/
 }

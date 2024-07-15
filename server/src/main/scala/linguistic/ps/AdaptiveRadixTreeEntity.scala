@@ -13,4 +13,5 @@ object AdaptiveRadixTreeEntity {
   val art: util.NavigableMap[Integer, String] =
     new com.github.rohansuri.art.AdaptiveRadixTree[Integer, String](BinaryComparables.forInteger())
 
+  //art.tailMap("")
 }

@@ -46,7 +46,7 @@ lazy val server = (project in file("server"))
     //javaOptions in runMain := Seq("ENV=development", "CONFIG=./server/conf"),
     runMain / fork := true,
     run / fork := true,
-    run / javaOptions ++= /*java17Settings,*/ Seq("-XX:+PrintCommandLineFlags", "-XshowSettings:system -version", "-Xmx1500m", "-XX:+UseZGC"),
+    run / javaOptions ++= /*java17Settings,*/ Seq("-XX:+PrintCommandLineFlags", "-XshowSettings:system -version", "-Xmx1700m", "-XX:+UseZGC"),
     //javaOptions in runMain := Seq("-XX:+PrintFlagsFinal", "-Xms756m", "-Xmx1256m"),
     //javaOptions ++= java17Settings,
     libraryDependencies ++= Seq(
@@ -72,6 +72,7 @@ lazy val server = (project in file("server"))
         //https://github.com/edadma/b-tree/blob/master/src/test/scala/FileSpecificTests.scala
         //"xyz.hyperreal" %% "b-tree" % "0.5",
 
+        "org.wvlet.airframe" %% "airframe-ulid" % "24.6.0",
         "ru.odnoklassniki" % "one-nio" % "1.7.3",
         /*
           val map = new one.nio.mem.LongObjectHashMap[Array[Byte]](5) //5kv only possible
@@ -82,7 +83,7 @@ lazy val server = (project in file("server"))
         "com.graphhopper" % "graphhopper-core" % "8.0", //"7.0", 9.1
 
 
-        "net.openhft" % "chronicle-map" % "3.25ea6", //.8
+        //"net.openhft" % "chronicle-map" % "3.25ea6", //.8
 
 
         //https://github.com/rohansuri/adaptive-radix-tree

@@ -8,11 +8,13 @@ import "scalapb/scalapb.proto";
 message WordsQueryPB {
     string keyword = 1;
     int32 maxResults = 2;
+    string replyTo=3;
 }
 
 message HomophonesQueryPB {
     string keyword = 1;
     int32  maxResults = 2;
+    string replyTo=3;
 }
 
 message HomophonePB {

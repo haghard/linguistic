@@ -98,7 +98,7 @@ class HomophonesSubTreeShardEntity extends PersistentActor with ActorLogging
         context become passivate(availableForSearch(m.index))
       }
 
-    case HomophonesQuery(prefix, _) =>
+    case HomophonesQuery(prefix, _, _) =>
       log.info("ShardEntity [{}] is indexing right now. Stashing request for key [{}]", key, prefix)
       stash()
   }
@@ -109,7 +109,7 @@ class HomophonesSubTreeShardEntity extends PersistentActor with ActorLogging
   }
 
   def availableForSearch(index: SubTree): Receive = {
-    case HomophonesQuery(prefix, maxResults) =>
+    case HomophonesQuery(prefix, maxResults, replyTo) =>
       val decodedPrefix = URLDecoder.decode(prefix, StandardCharsets.UTF_8.name)
       val start = System.nanoTime
 
@@ -127,7 +127,7 @@ class HomophonesSubTreeShardEntity extends PersistentActor with ActorLogging
         results.size,
         TimeUnit.NANOSECONDS.toMillis(System.nanoTime - start)
       )
-      sender() ! SearchResults(results)
+      replyTo.tell(SearchResults(results))
   }
 }
 /*

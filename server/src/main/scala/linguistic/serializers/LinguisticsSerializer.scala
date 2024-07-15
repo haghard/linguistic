@@ -1,6 +1,8 @@
 package linguistic.serializers
 
 import akka.actor.ExtendedActorSystem
+import akka.actor.typed.ActorRefResolver
+import akka.actor.typed.scaladsl.adapter.ClassicActorSystemOps
 import akka.serialization.SerializerWithStringManifest
 import linguistic.protocol.SearchQuery
 import linguistic.protocol._
@@ -12,14 +14,16 @@ import scala.collection.immutable
 class LinguisticsSerializer(val system: ExtendedActorSystem) extends SerializerWithStringManifest {
   override val identifier: Int = 99999
 
+  val refResolver = ActorRefResolver(system.toTyped)
+
   override def manifest(obj: AnyRef): String = obj.getClass.getName
 
   override def toBinary(obj: AnyRef): Array[Byte] =
     obj match {
       case q: SearchQuery.WordsQuery =>
-        WordsQueryPB(q.keyword, q.maxResults).toByteArray
+        WordsQueryPB(q.keyword, q.maxResults, refResolver.toSerializationFormat(q.replyTo)).toByteArray
       case q: SearchQuery.HomophonesQuery =>
-        HomophonesQueryPB(q.keyword, q.maxResults).toByteArray
+        HomophonesQueryPB(q.keyword, q.maxResults, refResolver.toSerializationFormat(q.replyTo)).toByteArray
       case r: SearchResults =>
         SearchResultsPB(r.strict).toByteArray
       case h: Homophone =>
@@ -55,10 +59,10 @@ class LinguisticsSerializer(val system: ExtendedActorSystem) extends SerializerW
   override def fromBinary(bytes: Array[Byte], manifest: String): AnyRef =
     if (manifest == classOf[SearchQuery.WordsQuery].getName) {
       val pb = WordsQueryPB.parseFrom(bytes)
-      SearchQuery.WordsQuery(pb.keyword, pb.maxResults)
+      SearchQuery.WordsQuery(pb.keyword, pb.maxResults, refResolver.resolveActorRef[SearchResults](pb.replyTo))
     } else if (manifest == classOf[SearchQuery.HomophonesQuery].getName) {
       val pb = HomophonesQueryPB.parseFrom(bytes)
-      SearchQuery.HomophonesQuery(pb.keyword, pb.maxResults)
+      SearchQuery.HomophonesQuery(pb.keyword, pb.maxResults, refResolver.resolveActorRef[SearchResults](pb.replyTo))
     } else if (manifest == classOf[SearchResults].getName) {
       val r = SearchResultsPB.parseFrom(bytes)
       SearchResults(r.strict.to[immutable.Seq])

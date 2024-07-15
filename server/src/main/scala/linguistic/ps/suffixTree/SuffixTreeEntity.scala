@@ -145,7 +145,7 @@ class SuffixTreeEntity(isPrefixBasedSearch: Boolean)
         context.become(active(index, updatedShardUniqueWords))
       }
 
-    case SearchQuery.WordsQuery(prefix, maxResultSize) ⇒
+    case SearchQuery.WordsQuery(prefix, maxResultSize, replyTo) ⇒
       val decodedPrefix = URLDecoder.decode(prefix, StandardCharsets.UTF_8.name)
 
       val buf = Vector.newBuilder[String]
@@ -174,7 +174,7 @@ class SuffixTreeEntity(isPrefixBasedSearch: Boolean)
         s"Search($prefix) = [${searchRes.size}]. ${TimeUnit.NANOSECONDS
           .toMillis(System.nanoTime - startTs)} millis. ${uniqueWords.size}/${index.computeCount()}"
       )
-      sender() ! SearchResults(searchRes)
+      replyTo.tell(SearchResults(searchRes))
   }
 
   override def onPersistFailure(cause: Throwable, event: Any, seqNr: Long): Unit = {

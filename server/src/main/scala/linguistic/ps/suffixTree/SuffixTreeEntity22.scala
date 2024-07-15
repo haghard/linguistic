@@ -162,7 +162,7 @@ class SuffixTreeEntity22(isPrefixBasedSearch: Boolean)
         */
       }
 
-    case SearchQuery.WordsQuery(prefix, maxResultSize) ⇒
+    case SearchQuery.WordsQuery(prefix, maxResultSize, replyTo) ⇒
       val decodedPrefix = URLDecoder.decode(prefix, StandardCharsets.UTF_8.name)
       val startTs       = System.nanoTime
 
@@ -192,7 +192,8 @@ class SuffixTreeEntity22(isPrefixBasedSearch: Boolean)
         searchResult.size,
         TimeUnit.NANOSECONDS.toMillis(System.nanoTime - startTs)
       )
-      sender() ! SearchResults(searchResult)
+
+      replyTo.tell(SearchResults(searchResult))
   }
 
   override def onPersistFailure(cause: Throwable, event: Any, seqNr: Long): Unit = {

@@ -22,30 +22,22 @@ object RadixTreeShardEntity {
 
   final case class RestoredIndex[T](index: RadixTree[String, T]) extends AnyVal
 
-  /*
-    val id = 'f'.toInt
-                       //monolithic ordered keyspace is divided into contiguous ranges of keys ~ 64MB
-    val ranges       = Vector(97, 102, 107, 112, 117, 122) //[a,..,z]
-    val searchResult = ranges.search(id)
-    val entry        = ranges.applyOrElse(searchResult.insertionPoint, { _: Int ⇒ -1 })
-   */
-
-
+  // shards: [a,...,z]
   val extractShardId: ExtractShardId = {
     case x: WordsQuery =>
-      x.keyword.toLowerCase(Locale.ROOT).take(1) // shards: [a,...,z]
+      x.keyword.toLowerCase(Locale.ROOT).take(1)
     case x: AddOneWord ⇒
       x.w.toLowerCase(Locale.ROOT).take(1)
     case ShardRegion.StartEntity(id) =>
       id
   }
 
+  // entity: [a,...,z]
   val extractEntityId: ExtractEntityId = {
     case x: AddOneWord ⇒
       (x.w.toLowerCase(Locale.ROOT).take(1), x)
     case x: WordsQuery =>
-      //(x.keyword.toLowerCase(Locale.ROOT).take(2), x) // entities [ab, ac, ad, .. az]
-      (x.keyword.toLowerCase(Locale.ROOT).take(1), x) // entities [ab, ac, ad, .. az]
+      (x.keyword.toLowerCase(Locale.ROOT).take(1), x)
   }
 
   def props(): Props =
@@ -105,7 +97,7 @@ class RadixTreeShardEntity extends PersistentActor with ActorLogging with Indexi
         context become passivate(searchable(m.index))
       }
 
-    case WordsQuery(prefix, _) =>
+    case WordsQuery(prefix, _, _) =>
       log.info("ShardEntity [{}] is indexing right now. Stashing request for key [{}]", key, prefix)
       stash()
   }
@@ -142,7 +134,7 @@ class RadixTreeShardEntity extends PersistentActor with ActorLogging with Indexi
         context.become(searchable(updatedIndex))
       }
 
-    case WordsQuery(prefix, maxResults) =>
+    case WordsQuery(prefix, maxResults, replyTo) =>
       val decodedPrefix = URLDecoder.decode(prefix, StandardCharsets.UTF_8.name)
       val start         = System.nanoTime
       val results       = index.filterPrefix(decodedPrefix).keys.take(maxResults).to[collection.immutable.Seq]
@@ -152,6 +144,6 @@ class RadixTreeShardEntity extends PersistentActor with ActorLogging with Indexi
         results.size,
         TimeUnit.NANOSECONDS.toMillis(System.nanoTime - start)
       )
-      sender() ! SearchResults(results)
+      replyTo.tell(SearchResults(results))
   }
 }

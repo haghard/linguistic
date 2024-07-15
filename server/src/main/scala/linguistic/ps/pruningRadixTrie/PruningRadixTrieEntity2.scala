@@ -100,7 +100,7 @@ class PruningRadixTrieEntity2 extends PersistentActor with ActorLogging with Ind
         context.become(active(index))
       }
 
-    case WordsQuery(prefix, maxResults) ⇒
+    case WordsQuery(prefix, maxResults, replyTo) ⇒
       val decodedPrefix = URLDecoder.decode(prefix, StandardCharsets.UTF_8.name)
       val startTs       = System.nanoTime
 
@@ -121,7 +121,7 @@ class PruningRadixTrieEntity2 extends PersistentActor with ActorLogging with Ind
         results.size,
         TimeUnit.NANOSECONDS.toMillis(endTs - startTs)
       )
-      sender() ! SearchResults(results)
+      replyTo.tell(SearchResults(results))
   }
 
   override def onPersistFailure(cause: Throwable, event: Any, seqNr: Long): Unit = {

@@ -1,6 +1,7 @@
 package linguistic
 
 import akka.NotUsed
+import akka.actor.typed.ActorRef
 import akka.stream.scaladsl.Source
 
 import scala.collection.{immutable, mutable}
@@ -10,17 +11,18 @@ package object protocol {
 
   trait SearchQuery {
     def keyword: String
+    def maxResults: Int
+    def replyTo: ActorRef[SearchResults]
   }
 
   object SearchQuery {
-    final case class WordsQuery(keyword: String, maxResults: Int) extends SearchQuery
+    final case class WordsQuery(keyword: String, maxResults: Int, replyTo: ActorRef[SearchResults]) extends SearchQuery
 
-    final case class HomophonesQuery(keyword: String, maxResults: Int) extends SearchQuery
+    final case class HomophonesQuery(keyword: String, maxResults: Int, replyTo: ActorRef[SearchResults]) extends SearchQuery
   }
 
-  abstract class Results {
+  sealed trait Results {
     def strict: immutable.Seq[String]
-
     def source: Source[String, NotUsed] = Source.fromIterator(() => strict.iterator)
   }
 

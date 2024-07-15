@@ -1,14 +1,15 @@
 package linguistic
 
-import akka.actor.{ActorRef, ActorSystem}
-import linguistic.ps.{HomophonesSubTreeShardEntity, PruningRadixTrieEntity2, RadixTreeShardEntity, SuffixTreeEntity, SuffixTreeEntity22}
+import akka.actor.typed.scaladsl.adapter.ClassicActorRefOps
+import akka.actor.ActorSystem
+import linguistic.ps._
 import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings}
+import linguistic.protocol.SearchQuery
 import linguistic.ps.pruningRadixTrie.PruningRadixTrieEntity
-
 
 trait ShardingSupport {
 
-  def startSharding(system: ActorSystem): (ActorRef, ActorRef) = {
+  def startSharding(system: ActorSystem) = {
 
     val sharding = ClusterSharding(system)
     val settings = ClusterShardingSettings(system) //.withRememberEntities(true)
@@ -28,7 +29,6 @@ trait ShardingSupport {
       extractShardId = SuffixTreeEntity22.extractShardId,
       extractEntityId = SuffixTreeEntity22.extractEntityId
     )*/
-
 
     /*val words = sharding.start(
       typeName = RadixTreeShardEntity.Name,
@@ -55,6 +55,6 @@ trait ShardingSupport {
       extractEntityId = HomophonesSubTreeShardEntity.extractEntityId
     )
 
-    (words, homophones)
+    (words.toTyped[SearchQuery], homophones)
   }
 }
