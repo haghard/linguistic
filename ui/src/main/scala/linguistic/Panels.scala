@@ -32,9 +32,7 @@ object Panels {
           ^.cls := "navbar-collapse",
           <.ul(
             ^.cls := "nav navbar-nav navbar-right",
-            for (kv <- providers) yield {
-              <.li(<.a(kv._1, ^.href := kv._2))
-            }
+            for (kv <- providers) yield <.li(<.a(kv._1, ^.href := kv._2))
           )
         )
       ) { auth =>

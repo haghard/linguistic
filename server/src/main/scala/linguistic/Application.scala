@@ -5,6 +5,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import linguistic.dao.Guardian
 
 import scala.collection._
+import scala.concurrent.Await
 import scala.concurrent.duration.{FiniteDuration, NANOSECONDS}
 
 object Application extends App with AppSupport {
@@ -14,13 +15,12 @@ object Application extends App with AppSupport {
 
   val tcpPort  = System.getProperty("akka.remote.artery.canonical.port")
   val httpPort = System.getProperty("akka.http.port")
-  val hostName = System.getProperty("HOSTNAME")
+  val hostName = System.getProperty("akka.remote.artery.canonical.hostname")
   val confPath = System.getProperty("CONFIG")
   val dbHosts  = System.getProperty("cassandra.hosts")
   val username = System.getProperty("cassandra.username")
   val password = System.getProperty("cassandra.password")
-
-  val env = Option(System.getProperty("ENV")).getOrElse(throw new Exception("ENV is expected"))
+  val env      = Option(System.getProperty("ENV")).getOrElse(throw new Exception("ENV is expected"))
 
   val httpConf =
     s"""
@@ -38,7 +38,7 @@ object Application extends App with AppSupport {
        |
     """.stripMargin
 
-  val contactPoints = dbHosts.split(",").map(h ⇒ s""" "$h" """).mkString(",").dropRight(1)
+  val contactPoints = dbHosts.split(",").map(h => s""" "$h" """).mkString(",").dropRight(1)
 
   val dbConf =
     s"""
@@ -63,7 +63,6 @@ object Application extends App with AppSupport {
     .replaceAll("%interface%", hostName)
 
   val configFile = new File(s"${new File(confPath).getAbsolutePath}/" + env + ".conf")
-
   val config: Config =
     ConfigFactory
       .parseString(effectedHttpConf)
@@ -71,28 +70,28 @@ object Application extends App with AppSupport {
       .withFallback(ConfigFactory.parseFile(configFile).resolve())
       .withFallback(ConfigFactory.load()) //for read seeds from env vars
 
+  val keypass   = config.getString("akka.http.ssl.keypass")
+  val storepass = config.getString("akka.http.ssl.storepass")
+
   implicit val system = akka.actor.typed.ActorSystem(
-    Guardian(
-      httpPort.toInt,
-      hostName,
-      config.getString("akka.http.ssl.keypass"),
-      config.getString("akka.http.ssl.storepass")
-    ),
+    Guardian(httpPort.toInt, hostName, keypass, storepass),
     "linguistics",
     config
   )
-  
-  /*
+
+  akka.management.scaladsl.AkkaManagement(system).start()
+  akka.management.cluster.bootstrap.ClusterBootstrap(system).start()
+  //akka.discovery.Discovery(system).loadServiceDiscovery("config") // kubernetes-api
+
   val _ = scala.io.StdIn.readLine()
-  system.log.warn("★ ★ ★ ★ ★ ★  Shutting down ... ★ ★ ★ ★ ★ ★")
   system.terminate()
-  scala
-    .concurrent
-    .Await
-    .result(
-      system.whenTerminated,
-      FiniteDuration(
-        system.settings.config.getDuration("akka.coordinated-shutdown.default-phase-timeout").toNanos,
-        NANOSECONDS)
-    )*/
+  system.log.warn("★ ★ ★ ★ ★ ★  Shutting down ... ★ ★ ★ ★ ★ ★")
+  Await.result(
+    system.whenTerminated,
+    FiniteDuration(
+      system.settings.config.getDuration("akka.coordinated-shutdown.default-phase-timeout").toNanos,
+      NANOSECONDS
+    )
+  )
+  sys.exit(0)
 }

@@ -33,7 +33,7 @@ object GraphHopperDistanceEntity {
   }
 
   def find(from: Coordinates, to: Coordinates)(implicit gh: GraphHopper): Option[Distance] = {
-    val req        = new GHRequest(from.lat, from.lon, to.lat, to.lon).setProfile("car").setLocale(Locale.ENGLISH)
+    val req      = new GHRequest(from.lat, from.lon, to.lat, to.lon).setProfile("car").setLocale(Locale.ENGLISH)
     val response = gh.route(req)
     if (response.hasErrors()) {
       println(response.getErrors.toString)

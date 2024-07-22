@@ -5,11 +5,10 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-
 /*
 https://github.com/mauricio/scala-sandbox/blob/master/src/main/scala/trie/Trie.scala
 https://github.com/mauricio/scala-sandbox/blob/master/src/test/scala/trie/TrieSpec.scala
-*/
+ */
 package object trie {
 
   object Trie {
@@ -103,7 +102,7 @@ package object trie {
         }
 
       pathTo(word) match {
-        case Some(path) => {
+        case Some(path) =>
           var index    = path.length - 1
           var continue = true
 
@@ -123,22 +122,21 @@ package object trie {
           }
 
           true
-        }
         case None => false
       }
 
     }
 
-    /*private[trie] */def pathTo(word: String): Option[ListBuffer[TrieNode]] = {
+    /*private[trie] */
+    def pathTo(word: String): Option[ListBuffer[TrieNode]] = {
       def go(buffer: ListBuffer[TrieNode], currentIndex: Int, node: TrieNode): Option[ListBuffer[TrieNode]] =
         if (currentIndex == word.length) {
           node.word.map(word => buffer += node)
         } else {
           node.children.get(word.charAt(currentIndex).toLower) match {
-            case Some(found) => {
+            case Some(found) =>
               buffer += node
               go(buffer, currentIndex + 1, found)
-            }
             case None => None
           }
         }

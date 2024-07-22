@@ -5,32 +5,31 @@ import japgolly.scalajs.react.vdom.prefix_<^._
 
 object SignIn {
 
-  val SignInFormArea = ReactComponentB[((ReactEventI) => CallbackTo[Unit])]("SignFormComp").stateless.render_P {
-    onSignIn =>
-      <.div(
-        ^.cls := "container-fluid",
-        <.form(
-          ^.cls := "signin",
-          ^.role := "form",
-          <.input(
-            ^.id := "login",
-            ^.cls := "form-control",
-            ^.`type` := "text",
-            ^.placeholder := "Login"
-          ),
-          <.input(
-            ^.id := "password",
-            ^.cls := "form-control",
-            ^.`type` := "password",
-            ^.placeholder := "Password"
-          ),
-          <.button(
-            "Sign in",
-            ^.cls := "btn btn-lg btn-primary btn-block",
-            ^.onClick ==> onSignIn
-          )
+  val SignInFormArea = ReactComponentB[((ReactEventI) => CallbackTo[Unit])]("SignFormComp").stateless.render_P { onSignIn =>
+    <.div(
+      ^.cls := "container-fluid",
+      <.form(
+        ^.cls := "signin",
+        ^.role := "form",
+        <.input(
+          ^.id := "login",
+          ^.cls := "form-control",
+          ^.`type` := "text",
+          ^.placeholder := "Login"
+        ),
+        <.input(
+          ^.id := "password",
+          ^.cls := "form-control",
+          ^.`type` := "password",
+          ^.placeholder := "Password"
+        ),
+        <.button(
+          "Sign in",
+          ^.cls := "btn btn-lg btn-primary btn-block",
+          ^.onClick ==> onSignIn
         )
       )
+    )
   }.build
 
   val ErrorSignInFormArea = ReactComponentB[Option[String]]("SignInErrorComp").stateless.render_P { error =>

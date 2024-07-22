@@ -27,13 +27,14 @@ object CassandraSessionExtension extends ExtensionId[CassandraSessionExtension] 
 
 class CassandraSessionExtension(system: ActorSystem) extends Extension {
   val keyspace = system.settings.config.getString("akka.persistence.cassandra.journal.keyspace")
-  val conf = system.settings.config
-  
+  val conf     = system.settings.config
+
   val cassandraHosts =
     conf
       .getStringList("datastax-java-driver.basic.contact-points")
       //.asScala.map(new InetSocketAddress(_)).head
-      .asScala.map(new InetSocketAddress(_, 9042))
+      .asScala
+      .map(new InetSocketAddress(_, 9042))
 
   /*
       val cluster = Cluster
@@ -55,9 +56,8 @@ class CassandraSessionExtension(system: ActorSystem) extends Extension {
           s"CREATE TABLE IF NOT EXISTS ${keySpace}.users(login text, created_at timestamp, password text, photo text, PRIMARY KEY (login))"
         )
         .one()
-     */
+   */
   //new DefaultEndPoint(???)
-
 
   ////CREATE KEYSPACE IF NOT EXISTS linguistics WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3 };
   //select * from linguistics.linguistics_journal where persistence_id='/sharding/wordsShard/z' and partition_nr=0;
@@ -76,7 +76,7 @@ class CassandraSessionExtension(system: ActorSystem) extends Extension {
 
     s.execute(
       s"CREATE TABLE IF NOT EXISTS ${keyspace}.users(login text, created_at timestamp, password text, photo text, PRIMARY KEY (login))"
-      )
+    )
 
     s
 

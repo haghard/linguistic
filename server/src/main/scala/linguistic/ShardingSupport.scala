@@ -5,6 +5,7 @@ import akka.actor.ActorSystem
 import linguistic.ps._
 import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings}
 import linguistic.protocol.SearchQuery
+import linguistic.ps.btree.{BPlusTreeEntity, BPlusTreeFileEntity}
 import linguistic.ps.pruningRadixTrie.PruningRadixTrieEntity
 
 trait ShardingSupport {
@@ -39,12 +40,28 @@ trait ShardingSupport {
       extractEntityId = RadixTreeShardEntity.extractEntityId
     )*/
 
-    val words = sharding.start(
+    /*val words = sharding.start(
       typeName = PruningRadixTrieEntity.Name,
       entityProps = PruningRadixTrieEntity.props(),
       settings = settings,
       extractShardId = PruningRadixTrieEntity.extractShardId,
       extractEntityId = PruningRadixTrieEntity.extractEntityId
+    )*/
+
+    /*val words = sharding.start(
+      typeName = BPlusTreeFileEntity.Name,
+      entityProps = BPlusTreeFileEntity.props(),
+      settings = settings,
+      extractShardId = BPlusTreeFileEntity.extractShardId,
+      extractEntityId = BPlusTreeFileEntity.extractEntityId
+    )*/
+
+    val words = sharding.start(
+      typeName = BPlusTreeEntity.Name,
+      entityProps = BPlusTreeEntity.props(),
+      settings = settings,
+      extractShardId = BPlusTreeEntity.extractShardId,
+      extractEntityId = BPlusTreeEntity.extractEntityId
     )
 
     val homophones = sharding.start(

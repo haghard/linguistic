@@ -26,18 +26,18 @@ object PruningRadixTrieEntity2 {
   final case class RestoredIndex(index: JPruningRadixTrie)
 
   val extractShardId: ExtractShardId = {
-    case x: SearchQuery.WordsQuery ⇒
+    case x: SearchQuery.WordsQuery =>
       x.keyword.toLowerCase(Locale.ROOT).take(1) // shards: [a,...,z]
-    case x: AddOneWord ⇒
+    case x: AddOneWord =>
       x.w.toLowerCase(Locale.ROOT).take(1)
-    case ShardRegion.StartEntity(id) ⇒
+    case ShardRegion.StartEntity(id) =>
       id
   }
 
   val extractEntityId: ExtractEntityId = {
-    case x: SearchQuery.WordsQuery ⇒
+    case x: SearchQuery.WordsQuery =>
       (x.keyword.toLowerCase(Locale.ROOT).take(1), x)
-    case x: AddOneWord ⇒
+    case x: AddOneWord =>
       (x.w.toLowerCase(Locale.ROOT).take(1), x)
   }
 
@@ -66,11 +66,11 @@ class PruningRadixTrieEntity2 extends PersistentActor with ActorLogging with Ind
     indexing(new JPruningRadixTrie())
 
   def indexing(index: JPruningRadixTrie): Receive = {
-    case term: String ⇒
+    case term: String =>
       index.addTerm(term, 1)
       context.become(indexing(index))
 
-    case IndexingCompleted ⇒
+    case IndexingCompleted =>
       if (index.termCount > 0) {
         log.info("IndexingCompleted for key [{}] (entries: {}), create snapshot now...", key, index.termCount)
         //saveSnapshot(UniqueTermsByShard(words))
@@ -79,7 +79,7 @@ class PruningRadixTrieEntity2 extends PersistentActor with ActorLogging with Ind
       unstashAll()
       context become passivate(active(index))
 
-    case m: PruningRadixTrieEntity2.RestoredIndex ⇒
+    case m: PruningRadixTrieEntity2.RestoredIndex =>
       val cnt = m.index.termCount
       if (cnt == 0) buildIndex(???, key, path)
       else {
@@ -88,27 +88,26 @@ class PruningRadixTrieEntity2 extends PersistentActor with ActorLogging with Ind
         context become passivate(active(m.index))
       }
 
-    case _ ⇒
+    case _ =>
       log.info("{} is indexing right now. stashing requests ", key)
       stash()
   }
 
   def active(index: JPruningRadixTrie): Receive = {
-    case AddOneWord(word) ⇒
-      persist(OneWordAdded(word)) { ev ⇒
+    case AddOneWord(word) =>
+      persist(OneWordAdded(word)) { ev =>
         index.addTerm(word, 1)
         context.become(active(index))
       }
 
-    case WordsQuery(prefix, maxResults, replyTo) ⇒
+    case WordsQuery(prefix, maxResults, replyTo) =>
       val decodedPrefix = URLDecoder.decode(prefix, StandardCharsets.UTF_8.name)
       val startTs       = System.nanoTime
 
+      val iter  = index.getTopkTermsForPrefix(decodedPrefix, maxResults).iterator()
+      val endTs = System.nanoTime
 
-      val iter          = index.getTopkTermsForPrefix(decodedPrefix, maxResults).iterator()
-      val endTs         = System.nanoTime
-
-      var buf           = Vector.newBuilder[String]
+      var buf = Vector.newBuilder[String]
       while (iter.hasNext) {
         val term = iter.next()
         buf.+=(term.getTerm)
@@ -133,16 +132,16 @@ class PruningRadixTrieEntity2 extends PersistentActor with ActorLogging with Ind
     var recoveredIndex = new JPruningRadixTrie()
 
     {
-      case SnapshotOffer(meta, snapshot: UniqueTermsByShard) ⇒
+      case SnapshotOffer(meta, snapshot: UniqueTermsByShard) =>
 
-      case OneWordAdded(w) ⇒
+      case OneWordAdded(w) =>
         recoveredIndex.addTerm(w, 1)
 
-      case RecoveryCompleted ⇒
+      case RecoveryCompleted =>
         val index = new JPruningRadixTrie()
         index.readTermsFromFile(snapshotFilePath)
         recoveredIndex = index
-        val mb   = GraphLayout.parseInstance(recoveredIndex).totalSize.toFloat / mbDivider
+        val mb = GraphLayout.parseInstance(recoveredIndex).totalSize.toFloat / mbDivider
         log.info("Recovered index by key: {} count:{} {}mb", key, recoveredIndex.termCount, mb)
         self ! PruningRadixTrieEntity2.RestoredIndex(recoveredIndex)
     }

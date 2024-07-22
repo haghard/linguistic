@@ -22,7 +22,6 @@ object SuffixTreeEntity {
   val Name      = "words"
   val mbDivider = (1024 * 1024).toFloat //1_048_576
 
-
   final case class UniqueWords(entry: Seq[String]) extends AnyVal
   final case class RestoredIndex(
     index: GeneralizedSuffixTree,
@@ -30,18 +29,18 @@ object SuffixTreeEntity {
   )
 
   val extractShardId: ExtractShardId = {
-    case x: SearchQuery.WordsQuery ⇒
+    case x: SearchQuery.WordsQuery =>
       x.keyword.toLowerCase(Locale.ROOT).take(1) // shards: [a,...,z]
-    case x: AddOneWord ⇒
+    case x: AddOneWord =>
       x.w.toLowerCase(Locale.ROOT).take(1)
-    case ShardRegion.StartEntity(id) ⇒
+    case ShardRegion.StartEntity(id) =>
       id
   }
 
   val extractEntityId: ExtractEntityId = {
-    case x: SearchQuery.WordsQuery ⇒
+    case x: SearchQuery.WordsQuery =>
       (x.keyword.toLowerCase(Locale.ROOT).take(1), x)
-    case x: AddOneWord ⇒
+    case x: AddOneWord =>
       (x.w.toLowerCase(Locale.ROOT).take(1), x)
   }
 
@@ -74,7 +73,7 @@ class SuffixTreeEntity(isPrefixBasedSearch: Boolean)
     log.info("{} has been stopped", key)
 
   override def receiveCommand: Receive = {
-    case m: SuffixTreeEntity.RestoredIndex ⇒
+    case m: SuffixTreeEntity.RestoredIndex =>
       val size = m.uniqueWords.size
       if (size == 0) {
         buildIndex(self.toTyped[Indexing.IndexingProtocol], key, path)
@@ -86,40 +85,40 @@ class SuffixTreeEntity(isPrefixBasedSearch: Boolean)
         )
         context.become(active(m.index, m.uniqueWords))
       }
-    case c ⇒
+    case c =>
       log.info(s"Stash: $c")
       stash()
   }
 
   def indexing(unqWdsSet: mutable.HashSet[String]): Receive = {
-    case cmd: Indexing.IndexingProtocol ⇒
+    case cmd: Indexing.IndexingProtocol =>
       cmd match {
-        case Indexing.IndexingProtocol.Init(replyTo) ⇒
+        case Indexing.IndexingProtocol.Init(replyTo) =>
           replyTo.tell(Indexing.Confirm)
 
-        case Indexing.IndexingProtocol.Next(replyTo, words) ⇒
+        case Indexing.IndexingProtocol.Next(replyTo, words) =>
           //val u = words.foldLeft(unqWdsSet) { (acc, w) ⇒ acc + w.trim }
           words.foreach(unqWdsSet.add(_))
           replyTo.tell(Indexing.Confirm)
           context.become(indexing(unqWdsSet))
 
-        case Indexing.IndexingProtocol.OnCompleted ⇒
+        case Indexing.IndexingProtocol.OnCompleted =>
           if (unqWdsSet.nonEmpty) {
             log.info("IndexingCompleted for key [{}] (entries: {}), create snapshot now...", key, unqWdsSet.size)
             saveSnapshot(UniqueTermsByShard2(unqWdsSet))
           }
           unstashAll()
 
-          var i = 0
+          var i     = 0
           val index = new GeneralizedSuffixTree()
-          val buf = Vector.newBuilder[String]
+          val buf   = Vector.newBuilder[String]
           unqWdsSet.foreach { term =>
             try {
               index.put(term, i)
               buf.+=(term)
               i = i + 1
             } catch {
-              case NonFatal(ex) ⇒
+              case NonFatal(ex) =>
                 log.warning(s"Failed to add $term at $i " + ex.getMessage)
             }
           }
@@ -127,32 +126,32 @@ class SuffixTreeEntity(isPrefixBasedSearch: Boolean)
           log.info("Becomes active for search {}: {}/{}", key, unqWdsSet.size, index.computeCount())
           context.become(active(index, buf.result()))
 
-        case Indexing.IndexingProtocol.Failure(ex) ⇒
+        case Indexing.IndexingProtocol.Failure(ex) =>
           throw ex
       }
 
     //case SearchQuery.WordsQuery(prefix, _) case cmd: AddOneWord ⇒
-    case c ⇒
+    case c =>
       log.info("{} is indexing right now. stashing {} ", key, c)
       stash()
   }
 
   def active(index: GeneralizedSuffixTree, uniqueWords: Vector[String]): Receive = {
-    case AddOneWord(w) ⇒
-      persist(OneWordAdded(w)) { ev ⇒
+    case AddOneWord(w) =>
+      persist(OneWordAdded(w)) { ev =>
         val updatedShardUniqueWords = uniqueWords.:+(w)
         index.put(w, updatedShardUniqueWords.size - 1)
         context.become(active(index, updatedShardUniqueWords))
       }
 
-    case SearchQuery.WordsQuery(prefix, maxResultSize, replyTo) ⇒
+    case SearchQuery.WordsQuery(prefix, maxResultSize, replyTo) =>
       val decodedPrefix = URLDecoder.decode(prefix, StandardCharsets.UTF_8.name)
 
       val buf = Vector.newBuilder[String]
 
       var i       = 0
       val startTs = System.nanoTime
-      val it  = index.search(decodedPrefix).iterator()
+      val it      = index.search(decodedPrefix).iterator()
       while (it.hasNext() && i < maxResultSize) {
         val ind       = it.next()
         val candidate = uniqueWords(ind)
@@ -187,16 +186,16 @@ class SuffixTreeEntity(isPrefixBasedSearch: Boolean)
     var recoveredWords: Vector[String] = Vector.empty
 
     {
-      case SnapshotOffer(meta, snapshot: UniqueTermsByShard2) ⇒
+      case SnapshotOffer(meta, snapshot: UniqueTermsByShard2) =>
         val startTs = System.currentTimeMillis()
-        var i = 0
+        var i       = 0
         snapshot.terms.foreach { term =>
           try {
             //if (ThreadLocalRandom.current().nextDouble() > .99995) println(s"$term: $term")
             recoveredIndex.put(term, i)
             i = i + 1
           } catch {
-            case NonFatal(ex) ⇒
+            case NonFatal(ex) =>
               log.warning(s"Failed to recover $term in pos:$i " + ex.getMessage)
           }
         }
@@ -205,11 +204,11 @@ class SuffixTreeEntity(isPrefixBasedSearch: Boolean)
         val lat = (System.currentTimeMillis() - startTs) / 1000
         log.info(s"SnapshotOffer $meta: ${snapshot.terms.size} terms. Latency:${lat}sec")
 
-      case OneWordAdded(w) ⇒
+      case OneWordAdded(w) =>
         recoveredWords = recoveredWords.:+(w)
         recoveredIndex.put(w, recoveredWords.size - 1)
 
-      case RecoveryCompleted ⇒
+      case RecoveryCompleted =>
         log.info(s"Recovered index by key: ${key} count:${recoveredIndex.computeCount()}")
         self ! SuffixTreeEntity.RestoredIndex(recoveredIndex, recoveredWords)
     }

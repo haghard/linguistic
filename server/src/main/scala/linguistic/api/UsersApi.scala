@@ -25,14 +25,14 @@ class UsersApi(users: ActorRef[Accounts.Protocol])(implicit
   def respondWithUserError(error: String) =
     complete(HttpResponse(InternalServerError, entity = s"""{ "error": "${error}" }"""))
 
-  val route = extractMaterializer { implicit mat ⇒
-    extractExecutionContext { implicit ec ⇒
-      extractLog { log ⇒
+  val route = extractMaterializer { implicit mat =>
+    extractExecutionContext { implicit ec =>
+      extractLog { log =>
         pathPrefix(apiPrefix) {
           post {
             path(shared.Routes.signUp) {
-              headerValueByName(shared.Headers.SignUpHeader) { credentials ⇒
-                extractHost { host ⇒
+              headerValueByName(shared.Headers.SignUpHeader) { credentials =>
+                extractHost { host =>
                   val decoded =
                     new String(
                       Base64.getDecoder.decode(credentials.stripPrefix(shared.HttpSettings.salt)),
@@ -47,12 +47,12 @@ class UsersApi(users: ActorRef[Accounts.Protocol])(implicit
 
                     val f = users.ask[Either[String, Boolean]](Accounts.Protocol.SignUp(login, pas, photo, _))
                     onSuccess(f) {
-                      case Right(true) ⇒
+                      case Right(true) =>
                         setSession(oneOff, usingHeaders, ServerSession(login)) {
                           complete(HttpResponse(StatusCodes.OK))
                         }
-                      case Right(false)   ⇒ respondWithUserError(s"Login ${login} isn't unique")
-                      case Left(errorMsg) ⇒ respondWithUserError(errorMsg)
+                      case Right(false)   => respondWithUserError(s"Login ${login} isn't unique")
+                      case Left(errorMsg) => respondWithUserError(errorMsg)
                     }
                   } else respondWithUserError("Invalid credentials. Expected login, password and photo")
                 }
@@ -60,8 +60,8 @@ class UsersApi(users: ActorRef[Accounts.Protocol])(implicit
             }
           } ~ get {
             path(shared.Routes.signIn) {
-              headerValueByName(shared.Headers.SignInHeader) { credentials ⇒
-                extractHost { host ⇒
+              headerValueByName(shared.Headers.SignInHeader) { credentials =>
+                extractHost { host =>
                   val decoded =
                     new String(
                       Base64.getDecoder.decode(credentials.stripPrefix(shared.HttpSettings.salt)),
@@ -74,12 +74,12 @@ class UsersApi(users: ActorRef[Accounts.Protocol])(implicit
                       Accounts.Protocol.SignIn(loginPassword(0), loginPassword(1), _)
                     )
                     onSuccess(f) {
-                      case Right(response) ⇒
+                      case Right(response) =>
                         setSession(oneOff, usingHeaders, ServerSession(response.login)) {
                           import upickle.default._
                           complete(write[SignInResponse](response))
                         }
-                      case Left(loginError) ⇒ respondWithUserError(loginError)
+                      case Left(loginError) => respondWithUserError(loginError)
                     }
                   } else respondWithUserError(s"${shared.Routes.signIn} request has wrong headed")
                 }

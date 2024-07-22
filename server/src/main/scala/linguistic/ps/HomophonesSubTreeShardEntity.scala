@@ -24,19 +24,15 @@ object HomophonesSubTreeShardEntity {
       id
   }
 
-  val extractEntityId: ExtractEntityId = {
-    case x: HomophonesQuery =>
-      (x.keyword.toLowerCase(Locale.ROOT).take(1), x)
+  val extractEntityId: ExtractEntityId = { case x: HomophonesQuery =>
+    (x.keyword.toLowerCase(Locale.ROOT).take(1), x)
   }
 
   def props(): Props =
     Props(new HomophonesSubTreeShardEntity()).withDispatcher("shard-dispatcher")
 }
 
-class HomophonesSubTreeShardEntity extends PersistentActor with ActorLogging
-    with Indexing[Seq[String]]
-    with Stash
-    with Passivation {
+class HomophonesSubTreeShardEntity extends PersistentActor with ActorLogging with Indexing[Seq[String]] with Stash with Passivation {
 
   val path = "./homophones.txt"
 
@@ -108,26 +104,25 @@ class HomophonesSubTreeShardEntity extends PersistentActor with ActorLogging
     super.onPersistFailure(cause, event, seqNr)
   }
 
-  def availableForSearch(index: SubTree): Receive = {
-    case HomophonesQuery(prefix, maxResults, replyTo) =>
-      val decodedPrefix = URLDecoder.decode(prefix, StandardCharsets.UTF_8.name)
-      val start = System.nanoTime
+  def availableForSearch(index: SubTree): Receive = { case HomophonesQuery(prefix, maxResults, replyTo) =>
+    val decodedPrefix = URLDecoder.decode(prefix, StandardCharsets.UTF_8.name)
+    val start         = System.nanoTime
 
-      val results =
-        index
-          .filterPrefix(decodedPrefix)
-          .entries
-          .take(maxResults)
-          .map { case (key, hs) => s"$key\t${hs.mkString("\t")}" }
-          .to[collection.immutable.Seq]
+    val results =
+      index
+        .filterPrefix(decodedPrefix)
+        .entries
+        .take(maxResults)
+        .map { case (key, hs) => s"$key\t${hs.mkString("\t")}" }
+        .to[collection.immutable.Seq]
 
-      log.info(
-        "Search for homophones: [{}] resulted in [{}] results. Latency: {} millis",
-        prefix,
-        results.size,
-        TimeUnit.NANOSECONDS.toMillis(System.nanoTime - start)
-      )
-      replyTo.tell(SearchResults(results))
+    log.info(
+      "Search for homophones: [{}] resulted in [{}] results. Latency: {} millis",
+      prefix,
+      results.size,
+      TimeUnit.NANOSECONDS.toMillis(System.nanoTime - start)
+    )
+    replyTo.tell(SearchResults(results))
   }
 }
 /*

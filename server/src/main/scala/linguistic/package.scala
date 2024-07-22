@@ -23,10 +23,14 @@ package object linguistic {
   implicit class FutureOpts[T](lf: ListenableFuture[T]) {
     def asScala: Future[T] = {
       val p = Promise[T]()
-      Futures.addCallback(lf, new FutureCallback[T] {
-        def onFailure(th: Throwable) = p failure th
-        def onSuccess(result: T)     = p success result
-      }, MoreExecutors.directExecutor())
+      Futures.addCallback(
+        lf,
+        new FutureCallback[T] {
+          def onFailure(th: Throwable) = p failure th
+          def onSuccess(result: T)     = p success result
+        },
+        MoreExecutors.directExecutor()
+      )
       p.future
     }
   }

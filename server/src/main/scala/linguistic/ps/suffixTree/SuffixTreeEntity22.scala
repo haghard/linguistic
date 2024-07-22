@@ -59,18 +59,18 @@ object SuffixTreeEntity22 {
   )
 
   val extractShardId: ExtractShardId = {
-    case x: SearchQuery.WordsQuery ⇒
+    case x: SearchQuery.WordsQuery =>
       x.keyword.toLowerCase(Locale.ROOT).take(1) // shards: [a,...,z]
-    case x: AddOneWord ⇒
+    case x: AddOneWord =>
       x.w.toLowerCase(Locale.ROOT).take(1)
-    case ShardRegion.StartEntity(id) ⇒
+    case ShardRegion.StartEntity(id) =>
       id
   }
 
   val extractEntityId: ExtractEntityId = {
-    case x: SearchQuery.WordsQuery ⇒
+    case x: SearchQuery.WordsQuery =>
       (x.keyword.toLowerCase(Locale.ROOT).take(1), x)
-    case x: AddOneWord ⇒
+    case x: AddOneWord =>
       (x.w.toLowerCase(Locale.ROOT).take(1), x)
   }
 
@@ -102,10 +102,10 @@ class SuffixTreeEntity22(isPrefixBasedSearch: Boolean)
     log.info("ShardEntity:{} has been stopped", key)
 
   override def receiveCommand: Receive =
-    indexing(new GeneralizedSuffixTree(), 0, new one.nio.mem.LongObjectHashMap[Array[Byte]](1000000/2))
+    indexing(new GeneralizedSuffixTree(), 0, new one.nio.mem.LongObjectHashMap[Array[Byte]](1000000 / 2))
 
   def indexing(index: GeneralizedSuffixTree, i: Int, vb: one.nio.mem.LongObjectHashMap[Array[Byte]]): Receive = {
-    case word: String ⇒
+    case word: String =>
       if (ThreadLocalRandom.current().nextDouble() > .99995)
         println(s"$i: $word")
 
@@ -114,16 +114,16 @@ class SuffixTreeEntity22(isPrefixBasedSearch: Boolean)
         vb.put(i.toLong, word.getBytes)
         context.become(indexing(index, i + 1, vb))
       } catch {
-        case NonFatal(ex) ⇒
+        case NonFatal(ex) =>
           println(s"Failed to add $word in pos: ${i + 1}")
           context.become(indexing(index, i, vb))
       }
 
-    case IndexingCompleted ⇒
+    case IndexingCompleted =>
       unstashAll()
       context become active(index, vb)
 
-    case m: SuffixTreeEntity22.RestoredIndex ⇒
+    case m: SuffixTreeEntity22.RestoredIndex =>
       val cnt = m.uniqueWords.size
       if (cnt == 0) buildIndex(???, key, path)
       else {
@@ -141,28 +141,31 @@ class SuffixTreeEntity22(isPrefixBasedSearch: Boolean)
         val map = new one.nio.mem.LongObjectHashMap[Array[Byte]](5) //5 kv only possible
         map.put(0L, Hex.parseBytes("1111aaaa"))
         map.put(1L, Hex.parseBytes("11111bbb"))
-        */
+         */
 
         context become active(m.index, m.uniqueWords)
       }
 
     //case SearchQuery.WordsQuery(prefix, _) | case cmd: AddOneWord ⇒
-    case _ ⇒
+    case _ =>
       log.info("{} is indexing right now. stashing requests ", key)
       stash()
   }
 
-  def active(index: GeneralizedSuffixTree, shardUniqueWords: one.nio.mem.LongObjectHashMap[Array[Byte]] /*Vector[String]*/): Receive = {
-    case AddOneWord(w) ⇒
-      persist(OneWordAdded(w)) { ev ⇒
+  def active(
+    index: GeneralizedSuffixTree,
+    shardUniqueWords: one.nio.mem.LongObjectHashMap[Array[Byte]] /*Vector[String]*/
+  ): Receive = {
+    case AddOneWord(w) =>
+      persist(OneWordAdded(w)) { ev =>
         /*
         val updatedShardUniqueWords = shardUniqueWords.:+(w)
         index.put(w, updatedShardUniqueWords.size - 1)
         context.become(active(index, updatedShardUniqueWords))
-        */
+         */
       }
 
-    case SearchQuery.WordsQuery(prefix, maxResultSize, replyTo) ⇒
+    case SearchQuery.WordsQuery(prefix, maxResultSize, replyTo) =>
       val decodedPrefix = URLDecoder.decode(prefix, StandardCharsets.UTF_8.name)
       val startTs       = System.nanoTime
 
@@ -201,27 +204,25 @@ class SuffixTreeEntity22(isPrefixBasedSearch: Boolean)
     super.onPersistFailure(cause, event, seqNr)
   }
 
-
   override def receiveRecover: Receive = {
-    val recoveredIndex                 = new GeneralizedSuffixTree()
+    val recoveredIndex = new GeneralizedSuffixTree()
     //var recoveredWords: Vector[String] = Vector.empty
-    var map: one.nio.mem.LongObjectHashMap[Array[Byte]] = new one.nio.mem.LongObjectHashMap[Array[Byte]](1000000/2)
+    var map: one.nio.mem.LongObjectHashMap[Array[Byte]] = new one.nio.mem.LongObjectHashMap[Array[Byte]](1000000 / 2)
 
     {
-      case SnapshotOffer(meta, snapshot: UniqueTermsByShard) ⇒
+      case SnapshotOffer(meta, snapshot: UniqueTermsByShard) =>
         val startTs = System.currentTimeMillis()
         map = new one.nio.mem.LongObjectHashMap[Array[Byte]](snapshot.terms.size)
 
-        snapshot.terms.zipWithIndex.foreach {
-          case (w, i) ⇒
-            try {
-              recoveredIndex.put(w, i)
-              map.put(i, w.getBytes)
-            } catch {
-              case NonFatal(ex) ⇒
-                //ex.printStackTrace()
-                println(s"Failed to recover $w in pos: ${i + 1}")
-            }
+        snapshot.terms.zipWithIndex.foreach { case (w, i) =>
+          try {
+            recoveredIndex.put(w, i)
+            map.put(i, w.getBytes)
+          } catch {
+            case NonFatal(ex) =>
+              //ex.printStackTrace()
+              println(s"Failed to recover $w in pos: ${i + 1}")
+          }
         }
         //recoveredWords = snapshot.terms.toVector
 
@@ -229,15 +230,15 @@ class SuffixTreeEntity22(isPrefixBasedSearch: Boolean)
         // SnapshotOffer SnapshotMetadata(a, 0, 1720457214156, None): count:466263 Latency:32 sec
         log.info(s"SnapshotOffer $meta: ${snapshot.terms.length} terms. Latency:${lat}sec")
 
-      case OneWordAdded(w) ⇒
-        //recoveredWords = recoveredWords.:+(w)
-        //recoveredIndex.put(w, recoveredWords.length - 1)
-        /*
+      case OneWordAdded(w) =>
+      //recoveredWords = recoveredWords.:+(w)
+      //recoveredIndex.put(w, recoveredWords.length - 1)
+      /*
         map.put(map.size() -1, w.getBytes())
         recoveredIndex.put(w, map.size() - 1)
-        */
+       */
 
-      case RecoveryCompleted ⇒
+      case RecoveryCompleted =>
         log.info("Recovered index by key: {} count:{}", key, recoveredIndex.computeCount)
         self ! SuffixTreeEntity22.RestoredIndex(recoveredIndex, map)
 

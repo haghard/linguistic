@@ -11,21 +11,20 @@ import java.io.File
 import linguistic.protocol.{AddOneWord, OneWordAdded, SearchQuery, SearchResults, UniqueTermsByShard2}
 import linguistic.pruningRadixTrie.JPruningRadixTrie
 import linguistic.ps.Indexing
+import linguistic.ps.pruningRadixTrie.PruningRadixTrieEntity.mbDivider
+import org.openjdk.jol.info.GraphLayout
 
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 import java.util.Locale
 import scala.util.control.NonFatal
 
-
 /**
- *
- * Each PruningRadixTrieEntity uses [[JPruningRadixTrie]] to store his state.
- * Filtering by prefix is extremely fast with a radix tree (worst case O(log(N)),
- * whereas it is worse than O(N) with SortedMap and HashMap.
- * Filtering by prefix will also benefit a lot from structural sharing.
- *
- */
+  * Each PruningRadixTrieEntity uses [[JPruningRadixTrie]] to store his state.
+  * Filtering by prefix is extremely fast with a radix tree (worst case O(log(N)),
+  * whereas it is worse than O(N) with SortedMap and HashMap.
+  * Filtering by prefix will also benefit a lot from structural sharing.
+  */
 object PruningRadixTrieEntity {
 
   val Name      = "words"
@@ -35,18 +34,18 @@ object PruningRadixTrieEntity {
   final case class RestoredIndex(index: JPruningRadixTrie)
 
   val extractShardId: ExtractShardId = {
-    case x: SearchQuery.WordsQuery ⇒
+    case x: SearchQuery.WordsQuery =>
       x.keyword.toLowerCase(Locale.ROOT).take(1) // shards: [a,...,z]
-    case x: AddOneWord ⇒
+    case x: AddOneWord =>
       x.w.toLowerCase(Locale.ROOT).take(1)
-    case ShardRegion.StartEntity(id) ⇒
+    case ShardRegion.StartEntity(id) =>
       id
   }
 
   val extractEntityId: ExtractEntityId = {
-    case x: SearchQuery.WordsQuery ⇒
+    case x: SearchQuery.WordsQuery =>
       (x.keyword.toLowerCase(Locale.ROOT).take(1), x)
-    case x: AddOneWord ⇒
+    case x: AddOneWord =>
       (x.w.toLowerCase(Locale.ROOT).take(1), x)
   }
 
@@ -57,7 +56,8 @@ object PruningRadixTrieEntity {
 class PruningRadixTrieEntity extends PersistentActor with ActorLogging with Indexing[Unit] with Stash {
 
   //val path             = "./words.txt"
-  val path             = "./terms.txt"
+  val path = "./terms.txt"
+  //val path           = "./list_of_english_words.txt"
   //val snapshotFilePath = s"./PruningRadixTrie/$key.txt"
 
   override def key           = self.path.name
@@ -72,7 +72,7 @@ class PruningRadixTrieEntity extends PersistentActor with ActorLogging with Inde
     log.info("PruningRadixTrieEntity({}) has been stopped", key)
 
   override def receiveCommand: Receive = {
-    case m: PruningRadixTrieEntity.RestoredIndex ⇒
+    case m: PruningRadixTrieEntity.RestoredIndex =>
       val size = m.index.termCount
       if (size == 0) {
         buildIndex(self.toTyped[Indexing.IndexingProtocol], key, path)
@@ -84,28 +84,28 @@ class PruningRadixTrieEntity extends PersistentActor with ActorLogging with Inde
         )
         context.become(active(m.index))
       }
-    case c ⇒
+    case c =>
       log.info(s"Stash: $c")
       stash()
   }
 
   def indexing(unqWdsSet: scala.collection.mutable.HashSet[String]): Receive = {
-    case cmd: Indexing.IndexingProtocol ⇒
+    case cmd: Indexing.IndexingProtocol =>
       cmd match {
-        case Indexing.IndexingProtocol.Init(replyTo) ⇒
+        case Indexing.IndexingProtocol.Init(replyTo) =>
           replyTo.tell(Indexing.Confirm)
 
-        case Indexing.IndexingProtocol.Next(replyTo, words) ⇒
+        case Indexing.IndexingProtocol.Next(replyTo, words) =>
           words.foreach(unqWdsSet.add(_))
           replyTo.tell(Indexing.Confirm)
           context.become(indexing(unqWdsSet))
 
-        case Indexing.IndexingProtocol.OnCompleted ⇒
+        case Indexing.IndexingProtocol.OnCompleted =>
           val index = new JPruningRadixTrie()
           unqWdsSet.foreach { term =>
             try index.addTerm(term, 1)
             catch {
-              case NonFatal(ex) ⇒
+              case NonFatal(ex) =>
                 log.warning(s"Failed to add $term. " + ex.getMessage)
             }
           }
@@ -120,37 +120,37 @@ class PruningRadixTrieEntity extends PersistentActor with ActorLogging with Inde
           log.info("Becomes active for search {}: {}/{}", key, unqWdsSet.size, index.termCount)
           context.become(active(index))
 
-        case Indexing.IndexingProtocol.Failure(ex) ⇒
+        case Indexing.IndexingProtocol.Failure(ex) =>
           throw ex
       }
 
-    case c ⇒
+    case c =>
       log.info("{} is indexing right now. stashing {} ", key, c)
       stash()
   }
 
   def active(index: JPruningRadixTrie): Receive = {
-    case AddOneWord(word) ⇒
-      persist(OneWordAdded(word)) { ev ⇒
+    case AddOneWord(word) =>
+      persist(OneWordAdded(word)) { ev =>
         index.addTerm(word, 1)
         context.become(active(index))
       }
 
-    case WordsQuery(prefix, maxResults, replyTo) ⇒
+    case WordsQuery(prefix, maxResults, replyTo) =>
       val decodedPrefix = URLDecoder.decode(prefix, StandardCharsets.UTF_8.name)
 
-      val startTs       = System.currentTimeMillis()
-      val iter          = index.getTopkTermsForPrefix(decodedPrefix, maxResults).iterator()
+      val startTs = System.currentTimeMillis()
+      val iter    = index.getTopkTermsForPrefix(decodedPrefix, maxResults).iterator()
       //Thread.sleep(java.util.concurrent.ThreadLocalRandom.current().nextInt(200, 600))
-      val latency       = System.currentTimeMillis() - startTs
-      val buf           = Vector.newBuilder[String]
+      val latency = System.currentTimeMillis() - startTs
+      val buf     = Vector.newBuilder[String]
       while (iter.hasNext) {
         val elem = iter.next()
         buf += elem.getTerm()
       }
       val results = buf.result()
 
-      log.info(s"Search(${prefix}) over ${index.termCount}term resulted in [${results.size}]. $latency millis")
+      log.info(s"Search($prefix) over ${index.termCount}term resulted in [${results.size}]. $latency millis")
       replyTo.tell(SearchResults(results))
   }
 
@@ -163,15 +163,20 @@ class PruningRadixTrieEntity extends PersistentActor with ActorLogging with Inde
     val recoveredIndex = new JPruningRadixTrie()
 
     {
-      case SnapshotOffer(meta, snapshot: UniqueTermsByShard2) ⇒
+      case SnapshotOffer(meta, snapshot: UniqueTermsByShard2) =>
         snapshot.terms.foreach(recoveredIndex.addTerm(_, 1))
 
-      case OneWordAdded(w) ⇒
+      case OneWordAdded(w) =>
         recoveredIndex.addTerm(w, 1)
 
-      case RecoveryCompleted ⇒
-        log.info("Recovered index by key: {} count:{}", key, recoveredIndex.termCount)
+      case RecoveryCompleted =>
+        val mb1 = GraphLayout.parseInstance(recoveredIndex).totalSize.toFloat / mbDivider
+        log.info(s"************* Recovered index by key: ${key} count:${recoveredIndex.termCount} - Size:$mb1 mb")
         self ! PruningRadixTrieEntity.RestoredIndex(recoveredIndex)
     }
   }
 }
+
+/*
+ l.p.p.PruningRadixTrieEntity - ************* Recovered index by key: r count:21285 - Size:3.23246 mb
+ */

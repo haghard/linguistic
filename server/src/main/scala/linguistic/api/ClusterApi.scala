@@ -1,6 +1,6 @@
 package linguistic.api
 
-import akka.actor.{ActorSystem, ActorRef}
+import akka.actor.{ActorRef, ActorSystem}
 import akka.cluster.sharding.ShardRegion
 import akka.cluster.sharding.ShardRegion.{ClusterShardingStats, CurrentRegions, CurrentShardRegionState}
 import akka.http.scaladsl.model.HttpResponse
@@ -9,8 +9,8 @@ import akka.pattern._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
-class ClusterApi(searchMaster: ActorRef, regions: Set[ActorRef])(
-  implicit ex: ExecutionContext,
+class ClusterApi(searchMaster: ActorRef, regions: Set[ActorRef])(implicit
+  ex: ExecutionContext,
   sys: ActorSystem
 ) extends BaseApi {
   implicit val timeout = akka.util.Timeout(5.seconds)

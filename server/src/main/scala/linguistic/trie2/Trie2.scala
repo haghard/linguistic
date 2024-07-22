@@ -20,29 +20,27 @@ package object trie2 {
         case Seq() =>
           this.value = Some(v)
           this
-        case Seq(h, t @ _*) => {
+        case Seq(h, t @ _*) =>
           val node = this.nodes.get(h) match {
-            case None => {
+            case None =>
               val n = new Trie[V](Some(h))
               this.nodes = this.nodes.insert(h, n)
               n
-            }
             case Some(n) => n
           }
           node.put(t, v)
-        }
       }
 
     private def normalise(s: String): WrappedString =
       new WrappedString(s.toLowerCase.replaceAll("""\W+""", ""))
 
     def get(k: String): Option[V] =
-      nodeFor(k).flatMap { (n) =>
+      nodeFor(k).flatMap { n =>
         n.value
       }
 
     def getAllWithPrefix(k: String): Seq[V] =
-      nodeFor(k).toList.flatMap { (n) =>
+      nodeFor(k).toList.flatMap { n =>
         n.getAll
       }
 
@@ -79,7 +77,7 @@ package object trie2 {
       s.mkString
 
     implicit def catOptions[A](xs: Seq[Option[A]]): Seq[A] =
-      xs.flatMap { (x) =>
+      xs.flatMap { x =>
         x.toList
       }
   }

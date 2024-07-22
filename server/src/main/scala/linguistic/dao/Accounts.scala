@@ -16,14 +16,12 @@ object Accounts {
 
   sealed trait Protocol
   object Protocol {
-    final case class SignIn(login: String, password: String, replyTo: ActorRef[String Either SignInResponse])
-        extends Protocol
-    final case class SignUp(login: String, password: String, photo: String, replyTo: ActorRef[String Either Boolean])
-        extends Protocol
+    final case class SignIn(login: String, password: String, replyTo: ActorRef[String Either SignInResponse])         extends Protocol
+    final case class SignUp(login: String, password: String, photo: String, replyTo: ActorRef[String Either Boolean]) extends Protocol
   }
 
   def apply(): Behavior[Protocol] =
-    Behaviors.setup { implicit ctx ⇒
+    Behaviors.setup { implicit ctx =>
       val session =
         CassandraSessionExtension(ctx.system).session
 
@@ -57,10 +55,10 @@ object Accounts {
     insertStmt: PreparedStatement
   )(implicit ctx: ActorContext[Protocol]): Behavior[Protocol] =
     Behaviors.receiveMessagePartial {
-      case Protocol.SignIn(login, password, replyTo) ⇒
+      case Protocol.SignIn(login, password, replyTo) =>
         import ctx.executionContext
         new CompletionStageOps(session.executeAsync(selectStmt.bind(login))).toScala
-          .map { res ⇒
+          .map { res =>
             val row = res.one()
             if (row ne null)
               if (BCrypt.checkpw(password, row.getString("password")))
@@ -70,22 +68,21 @@ object Accounts {
             else
               replyTo.tell(Left(s"Couldn't find user $login"))
           }
-          .recover {
-            case NonFatal(ex) ⇒
-              replyTo.tell(Left(ex.getMessage))
+          .recover { case NonFatal(ex) =>
+            replyTo.tell(Left(ex.getMessage))
           }
         Behaviors.same
 
-      case Protocol.SignUp(login, password, photo, replyTo) ⇒
+      case Protocol.SignUp(login, password, photo, replyTo) =>
         import ctx.executionContext
         val createdAt = Instant.now()
         val logger    = ctx.log
         new CompletionStageOps(
           session.executeAsync(insertStmt.bind(login, BCrypt.hashpw(password, BCrypt.gensalt), photo, createdAt))
         ).toScala
-          .map(r ⇒ replyTo.tell(Right(r.wasApplied)))
+          .map(r => replyTo.tell(Right(r.wasApplied)))
           .recover {
-            case e: WriteTimeoutException ⇒
+            case e: WriteTimeoutException =>
               logger.error("Cassandra write error.", e)
               if (e.getWriteType eq WriteType.CAS)
                 //UnknownException
@@ -95,7 +92,7 @@ object Accounts {
                 Left(s"Commit stage has failed: ${e.getMessage}")
               else
                 Left(s"Unexpected write type: ${e.getMessage}")
-            case ex: Exception ⇒
+            case ex: Exception =>
               logger.error("Cassandra error.", ex)
               Left(s"Db access error: ${ex.getMessage}")
           }

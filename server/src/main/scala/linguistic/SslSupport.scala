@@ -1,7 +1,7 @@
 package linguistic
 
 import java.security._
-import java.io.{InputStream, FileInputStream, File}
+import java.io.{File, FileInputStream, InputStream}
 import javax.net.ssl.{KeyManagerFactory, SSLContext, TrustManagerFactory}
 
 import akka.http.scaladsl.{ConnectionContext, HttpsConnectionContext}
@@ -23,7 +23,7 @@ trait SslSupport {
     val sslContext = SSLContext.getInstance("TLS")
     sslContext.init(keyManagerFactory.getKeyManagers, tmf.getTrustManagers, new SecureRandom)
 
-    ConnectionContext.https(sslContext)
+    ConnectionContext.httpsServer(sslContext)
   }
 
   def https(keyPass: String, storePass: String): HttpsConnectionContext = {

@@ -14,9 +14,12 @@ trait AuthTokenSupport {
   implicit val sessionManager = new SessionManager[ServerSession](sessionConfig)
 
   implicit def serializer: SessionSerializer[ServerSession, String] =
-    new SingleValueSessionSerializer({ _.login }, { line: String =>
-      Success(ServerSession(line))
-    })
+    new SingleValueSessionSerializer(
+      _.login,
+      { line: String =>
+        Success(ServerSession(line))
+      }
+    )
 
   //oneOff vs refreshable; specifies what should happen when the session expires.
   //If refreshable and a refresh token is present, the session will be re-created

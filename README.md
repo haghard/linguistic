@@ -253,3 +253,11 @@ cqlsh> drop KEYSPACE linguistics ;
 cqlsh> CREATE KEYSPACE IF NOT EXISTS linguistics WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1 };
 
 select * from linguistics.linguistics_journal where persistence_id='/sharding/wordsShard/a' and partition_nr=0;
+
+
+https://github.com/dwyl/english-words
+
+
+jcmd 98518 VM.native_memory
+
+

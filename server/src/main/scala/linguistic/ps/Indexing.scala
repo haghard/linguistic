@@ -41,7 +41,7 @@ trait Indexing[T] {
 
   def keywordsSource(path: String): Source[ByteString, Future[IOResult]] =
     fromInputStream(() => new FileInputStream(new File(path)))
-      .via(Framing.delimiter(ByteString("\n"), Int.MaxValue))
+      .via(Framing.delimiter(ByteString(System.lineSeparator()), Int.MaxValue, true))
 
   def buildIndex(sink: ActorRef[Indexing.IndexingProtocol], key: String, path: String): Unit = {
 
@@ -61,7 +61,9 @@ trait Indexing[T] {
       .filter { strLine =>
         val w = strLine.trim
         w.nonEmpty && w.toLowerCase(Locale.ROOT).startsWith(key) && java.lang.Character.isLetter(w.head)
-      }.map(_.takeWhile(!_.isDigit).trim)
+      }
+      //.map { line =>line.trim}
+      .map(_.takeWhile(!_.isDigit).trim)
       .groupedWithin(1 << 10, 350.millis)
       .throttle(1, 300.millis)
       .to(actorSink)

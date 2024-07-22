@@ -26,7 +26,7 @@ object RadixTreeShardEntity {
   val extractShardId: ExtractShardId = {
     case x: WordsQuery =>
       x.keyword.toLowerCase(Locale.ROOT).take(1)
-    case x: AddOneWord ⇒
+    case x: AddOneWord =>
       x.w.toLowerCase(Locale.ROOT).take(1)
     case ShardRegion.StartEntity(id) =>
       id
@@ -34,7 +34,7 @@ object RadixTreeShardEntity {
 
   // entity: [a,...,z]
   val extractEntityId: ExtractEntityId = {
-    case x: AddOneWord ⇒
+    case x: AddOneWord =>
       (x.w.toLowerCase(Locale.ROOT).take(1), x)
     case x: WordsQuery =>
       (x.keyword.toLowerCase(Locale.ROOT).take(1), x)
@@ -45,15 +45,12 @@ object RadixTreeShardEntity {
 }
 
 /**
-  *
   * Each ShardEntity actor uses RadixTree to store his state.
   * Filtering by prefix is extremely fast with a radix tree (worst case O(log(N)),
   * whereas it is worse than O(N) with SortedMap and HashMap.
   * Filtering by prefix will also benefit a lot from structural sharing.
-  *
   */
-class RadixTreeShardEntity extends PersistentActor with ActorLogging with Indexing[Unit]
-    with Stash with Passivation {
+class RadixTreeShardEntity extends PersistentActor with ActorLogging with Indexing[Unit] with Stash with Passivation {
 
   val path = "./words.txt"
 
@@ -76,7 +73,7 @@ class RadixTreeShardEntity extends PersistentActor with ActorLogging with Indexi
 
   def indexing(index: SubTree): Receive = {
     case word: String =>
-      context.become(indexing(index merge RadixTree[String, Unit](word -> ())))
+      context.become(indexing(index merge RadixTree[String, Unit]((word, ()))))
 
     case IndexingCompleted =>
       val words = index.keys.to[collection.immutable.Seq]
@@ -112,13 +109,13 @@ class RadixTreeShardEntity extends PersistentActor with ActorLogging with Indexi
 
     {
       case SnapshotOffer(meta, w: UniqueTermsByShard) =>
-        recoveredIndex = RadixTree(w.terms.map(name => name -> ()): _*)
+        recoveredIndex = RadixTree(w.terms.map(name => (name, ())): _*)
         //log.info("SnapshotOffer {}: count: {}", meta.sequenceNr, recoveredIndex.count)
         val mb = GraphLayout.parseInstance(recoveredIndex).totalSize.toFloat / mbDivider
         log.info("SnapshotOffer {}: count:{}", meta, recoveredIndex.count)
 
       case OneWordAdded(word) =>
-        recoveredIndex = recoveredIndex.merge(RadixTree[String, Unit](word -> ()))
+        recoveredIndex = recoveredIndex.merge(RadixTree[String, Unit]((word, ())))
 
       case RecoveryCompleted =>
         log.info("Recovered index by key: {} count:{}", key, recoveredIndex.count)
@@ -130,7 +127,7 @@ class RadixTreeShardEntity extends PersistentActor with ActorLogging with Indexi
   def searchable(index: SubTree): Receive = {
     case AddOneWord(word) =>
       persist(OneWordAdded(word)) { ev =>
-        val updatedIndex = index.merge(RadixTree[String, Unit](word -> ()))
+        val updatedIndex = index.merge(RadixTree[String, Unit]((word, ())))
         context.become(searchable(updatedIndex))
       }
 
