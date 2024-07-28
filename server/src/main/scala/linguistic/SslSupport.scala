@@ -8,9 +8,9 @@ import akka.http.scaladsl.{ConnectionContext, HttpsConnectionContext}
 
 trait SslSupport {
 
-  val algorithm = "SunX509"
+  private val algorithm = "SunX509"
 
-  private def create(in: InputStream, keyPass: String, storePass: String) = {
+  private def create(in: InputStream, keyPass: String, storePass: String): HttpsConnectionContext = {
     val keyStore = KeyStore.getInstance("JKS")
     keyStore.load(in, storePass.toCharArray)
 
@@ -21,20 +21,21 @@ trait SslSupport {
     tmf.init(keyStore)
 
     val sslContext = SSLContext.getInstance("TLS")
-    sslContext.init(keyManagerFactory.getKeyManagers, tmf.getTrustManagers, new SecureRandom)
+    sslContext.init(keyManagerFactory.getKeyManagers(), tmf.getTrustManagers(), new SecureRandom())
 
     ConnectionContext.httpsServer(sslContext)
   }
 
   def https(keyPass: String, storePass: String): HttpsConnectionContext = {
     val file = new File("./linguistic.jks")
-    if (file.exists)
+    if (file.exists) {
       create(new FileInputStream(file), keyPass, storePass)
-    else
+    } else {
       resource
         .managed(getClass.getResourceAsStream("/linguistic.jks"))
         .map(in => create(in, keyPass, storePass))
         .opt
         .fold(throw new Exception("jks hasn't been found"))(identity)
+    }
   }
 }

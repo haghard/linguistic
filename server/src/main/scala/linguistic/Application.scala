@@ -66,9 +66,9 @@ object Application extends App with AppSupport {
   val config: Config =
     ConfigFactory
       .parseString(effectedHttpConf)
-      //.withFallback(ConfigFactory.parseString(dbConf))
+      // .withFallback(ConfigFactory.parseString(dbConf))
       .withFallback(ConfigFactory.parseFile(configFile).resolve())
-      .withFallback(ConfigFactory.load()) //for read seeds from env vars
+      .withFallback(ConfigFactory.load()) // for read seeds from env vars
 
   val keypass   = config.getString("akka.http.ssl.keypass")
   val storepass = config.getString("akka.http.ssl.storepass")
@@ -81,7 +81,7 @@ object Application extends App with AppSupport {
 
   akka.management.scaladsl.AkkaManagement(system).start()
   akka.management.cluster.bootstrap.ClusterBootstrap(system).start()
-  //akka.discovery.Discovery(system).loadServiceDiscovery("config") // kubernetes-api
+  // akka.discovery.Discovery(system).loadServiceDiscovery("config") // kubernetes-api
 
   val _ = scala.io.StdIn.readLine()
   system.terminate()

@@ -52,10 +52,10 @@ object Guardian {
             val jvmInfo = {
               val rntm = sys.runtime
               s"Cores:${rntm.availableProcessors()} Memory:[Total=${rntm.totalMemory() / 1000000}Mb, Max=${rntm
-                .maxMemory() / 1000000}Mb, Free=${rntm.freeMemory() / 1000000}Mb]"
+                  .maxMemory() / 1000000}Mb, Free=${rntm.freeMemory() / 1000000}Mb]"
             }
 
-            //CREATE KEYSPACE IF NOT EXISTS linguistics WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1 };
+            // CREATE KEYSPACE IF NOT EXISTS linguistics WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1 };
             CassandraSessionExtension(ctx.system).session
 
             import one.nio.os._
@@ -68,7 +68,8 @@ object Guardian {
                 )
                 .append('\n')
                 .append(
-                  s"★ ★ ★ PID:${ProcessHandle.current().pid()}. Env: TimeZone: ${TimeZone.getDefault.getID} Started at ${LocalDateTime.now}  ★ ★ ★"
+                  s"★ ★ ★ PID:${ProcessHandle.current().pid()}. Env: TimeZone: ${TimeZone.getDefault
+                      .getID()} Started at ${LocalDateTime.now()}  ★ ★ ★"
                 )
                 .append('\n')
                 .append(s"------------- Started: ${cluster.selfMember.details()}  ------------------")
@@ -78,8 +79,6 @@ object Guardian {
                 )
                 .append("\n")
                 .append(s"★ ★ ★  Akka cluster: ${config.getInt("akka.remote.artery.canonical.port")}  ★ ★ ★")
-                .append('\n')
-                .append(s"★ ★ ★  Akka seeds: ${config.getStringList("akka.cluster.seed-nodes")}  ★ ★ ★")
                 .append('\n')
                 .append(
                   s"★ ★ ★  Cassandra domain points: ${config.getStringList("datastax-java-driver.basic.contact-points")}  ★ ★ ★"
@@ -104,6 +103,8 @@ object Guardian {
                   "================================================================================================="
                 )
 
+            import embroidery._
+            ctx.log.info("search-as-you-type".toAsciiArt)
             ctx.log.info(greeting.toString)
 
             Bootstrap(httpPort, hostName, keypass, storepass)(system, ctx)

@@ -13,7 +13,7 @@ trait ShardingSupport {
   def startSharding(system: ActorSystem) = {
 
     val sharding = ClusterSharding(system)
-    val settings = ClusterShardingSettings(system) //.withRememberEntities(true)
+    val settings = ClusterShardingSettings(system) // .withRememberEntities(true)
 
     /*val words = sharding.start(
       typeName = SuffixTreeEntity.Name,

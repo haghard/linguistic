@@ -20,7 +20,7 @@ import scala.collection.mutable
 object SuffixTreeEntity {
 
   val Name      = "words"
-  val mbDivider = (1024 * 1024).toFloat //1_048_576
+  val mbDivider = (1024 * 1024).toFloat // 1_048_576
 
   final case class UniqueWords(entry: Seq[String]) extends AnyVal
   final case class RestoredIndex(
@@ -58,8 +58,8 @@ class SuffixTreeEntity(isPrefixBasedSearch: Boolean)
 
   override val key = self.path.name
 
-  //val path = "./words.txt"
-  //val path = "./terms.txt"
+  // val path = "./words.txt"
+  // val path = "./terms.txt"
   private def path = s"./PruningRadixTrie/$key.txt"
 
   override def persistenceId: String = key
@@ -97,7 +97,7 @@ class SuffixTreeEntity(isPrefixBasedSearch: Boolean)
           replyTo.tell(Indexing.Confirm)
 
         case Indexing.IndexingProtocol.Next(replyTo, words) =>
-          //val u = words.foldLeft(unqWdsSet) { (acc, w) ⇒ acc + w.trim }
+          // val u = words.foldLeft(unqWdsSet) { (acc, w) ⇒ acc + w.trim }
           words.foreach(unqWdsSet.add(_))
           replyTo.tell(Indexing.Confirm)
           context.become(indexing(unqWdsSet))
@@ -130,7 +130,7 @@ class SuffixTreeEntity(isPrefixBasedSearch: Boolean)
           throw ex
       }
 
-    //case SearchQuery.WordsQuery(prefix, _) case cmd: AddOneWord ⇒
+    // case SearchQuery.WordsQuery(prefix, _) case cmd: AddOneWord ⇒
     case c =>
       log.info("{} is indexing right now. stashing {} ", key, c)
       stash()
@@ -171,7 +171,7 @@ class SuffixTreeEntity(isPrefixBasedSearch: Boolean)
       val searchRes = buf.result()
       log.info(
         s"Search($prefix) = [${searchRes.size}]. ${TimeUnit.NANOSECONDS
-          .toMillis(System.nanoTime - startTs)} millis. ${uniqueWords.size}/${index.computeCount()}"
+            .toMillis(System.nanoTime - startTs)} millis. ${uniqueWords.size}/${index.computeCount()}"
       )
       replyTo.tell(SearchResults(searchRes))
   }
@@ -191,7 +191,7 @@ class SuffixTreeEntity(isPrefixBasedSearch: Boolean)
         var i       = 0
         snapshot.terms.foreach { term =>
           try {
-            //if (ThreadLocalRandom.current().nextDouble() > .99995) println(s"$term: $term")
+            // if (ThreadLocalRandom.current().nextDouble() > .99995) println(s"$term: $term")
             recoveredIndex.put(term, i)
             i = i + 1
           } catch {

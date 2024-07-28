@@ -16,7 +16,7 @@ object Panels {
             "Sign up",
             ^.cls := "navbar-brand",
             ^.onClick ==> signUp
-            //^.href := "/signup"
+            // ^.href := "/signup"
           )
         )
       ) { _ =>
@@ -28,7 +28,7 @@ object Panels {
     ReactComponentB[Option[SignInResponse]]("RightSidePanel").stateless.render_P { props =>
       props.fold(
         <.div(
-          ^.id := "auth-providers",
+          ^.id  := "auth-providers",
           ^.cls := "navbar-collapse",
           <.ul(
             ^.cls := "nav navbar-nav navbar-right",
@@ -37,7 +37,7 @@ object Panels {
         )
       ) { auth =>
         <.div(
-          ^.id := "user-info",
+          ^.id  := "user-info",
           ^.cls := "navbar-collapse",
           <.ul(
             ^.cls := "nav navbar-nav navbar-right",

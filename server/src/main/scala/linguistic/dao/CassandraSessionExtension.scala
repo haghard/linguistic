@@ -32,7 +32,7 @@ class CassandraSessionExtension(system: ActorSystem) extends Extension {
   val cassandraHosts =
     conf
       .getStringList("datastax-java-driver.basic.contact-points")
-      //.asScala.map(new InetSocketAddress(_)).head
+      // .asScala.map(new InetSocketAddress(_)).head
       .asScala
       .map(new InetSocketAddress(_, 9042))
 
@@ -57,16 +57,16 @@ class CassandraSessionExtension(system: ActorSystem) extends Extension {
         )
         .one()
    */
-  //new DefaultEndPoint(???)
+  // new DefaultEndPoint(???)
 
-  ////CREATE KEYSPACE IF NOT EXISTS linguistics WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3 };
-  //select * from linguistics.linguistics_journal where persistence_id='/sharding/wordsShard/z' and partition_nr=0;
+  //// CREATE KEYSPACE IF NOT EXISTS linguistics WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3 };
+  // select * from linguistics.linguistics_journal where persistence_id='/sharding/wordsShard/z' and partition_nr=0;
   val session: CqlSession = {
     val s =
       CqlSession
         .builder()
-        //.addContactEndPoints(cassandraHost)
-        //.addContactPoint(cassandraHost)
+        // .addContactEndPoints(cassandraHost)
+        // .addContactPoint(cassandraHost)
         /*.withCredentials(
           conf.getString("cassandra-journal.authentication.username"),
           conf.getString("cassandra-journal.authentication.password")

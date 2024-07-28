@@ -37,7 +37,7 @@ final class SearchApi(
     extends BaseApi
     with AuthTokenSupport {
 
-  //withRequestTimeout(usersTimeout) {
+  // withRequestTimeout(usersTimeout) {
   /*
     import akka.http.scaladsl.model.headers.CacheDirectives.`no-cache`
     import akka.http.scaladsl.model.headers.`Cache-Control`
@@ -95,11 +95,9 @@ final class SearchApi(
     queue.offer((SearchQuery.WordsQuery(letterA.toString, 1, null), Promise[Option[SearchResults]]()))
   }
 
-  /**
-    * http --verify=no https://120.0.0.1:9443/api/v1.0/words/search"?q=aa"
+  /** http --verify=no https://120.0.0.1:9443/api/v1.0/words/search"?q=aa"
     *
-    * disable [[requiredHttpSession]] and
-    * http 127.0.0.1:9443/api/v1.0/words/search"?q=amazi"
+    * disable [[requiredHttpSession]] and http 127.0.0.1:9443/api/v1.0/words/search"?q=amazi"
     */
 
   val route =
@@ -123,7 +121,7 @@ final class SearchApi(
                       val sq: SearchQuery =
                         seq match {
                           case shared.Routes.searchWordsPath =>
-                            SearchQuery.WordsQuery(q, limit, null) //TODO: improve that
+                            SearchQuery.WordsQuery(q, limit, null) // TODO: improve that
                           case shared.Routes.searchHomophonesPath =>
                             SearchQuery.HomophonesQuery(q, limit, null)
                         }
@@ -134,15 +132,16 @@ final class SearchApi(
                         case QueueOfferResult.Enqueued =>
                           log.info("[{}: {}] qSize: {}", sq.keyword, requestId, queue.size())
                           p.future.flatMap(
-                            _.fold[Future[HttpResponse]](Future.failed(SearchTimeout(sq.keyword, timeout.duration))) { sr =>
-                              Future.successful {
-                                HttpResponse(entity =
-                                  Chunked.fromData(
-                                    `text/plain(UTF-8)`,
-                                    chunks = sr.source.map(word => ByteString(s"$word,"))
+                            _.fold[Future[HttpResponse]](Future.failed(SearchTimeout(sq.keyword, timeout.duration))) {
+                              sr =>
+                                Future.successful {
+                                  HttpResponse(entity =
+                                    Chunked.fromData(
+                                      `text/plain(UTF-8)`,
+                                      chunks = sr.source.map(word => ByteString(s"$word,"))
+                                    )
                                   )
-                                )
-                              }
+                                }
                             }
                           )
                         case QueueOfferResult.Dropped =>

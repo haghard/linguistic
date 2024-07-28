@@ -24,55 +24,55 @@ object SignUpModule {
       val photo    = dom.document.querySelector(photoSelector).asInstanceOf[dom.html.Input].value
       import scala.scalajs.concurrent.JSExecutionContext.Implicits.queue
       e.preventDefaultCB >>
-      Callback {
-        val (h, v) = linguistic.gateaway.signUpHeader(login, password, photo)
-        linguistic.gateaway
-          .signUp(shared.Routes.clientSignUp, Map((h, v)))
-          .map { response =>
-            val token = response.getResponseHeader(shared.Headers.fromServer)
-            scope.modState(_.copy(token = Option(token))).runNow()
-          }
-          .recover {
-            case e: org.scalajs.dom.ext.AjaxException =>
-              //org.scalajs.dom.console.log(msg)
-              val msg = s"Error: Login $login isn't unique !!! Try another one."
-              scope.modState(_.copy(error = Option(msg))).runNow()
-            case NonFatal(e) =>
-              val msg = s"Unexpected error at sign up stage"
-              scope.modState(_.copy(error = Option(msg))).runNow()
-          }
-      }
-      //Callback.log(s"$login $password $photo")  >> CallbackTo { scope.modState(s =>s.copy(login=Option(login))).runNow() }
+        Callback {
+          val (h, v) = linguistic.gateaway.signUpHeader(login, password, photo)
+          linguistic.gateaway
+            .signUp(shared.Routes.clientSignUp, Map((h, v)))
+            .map { response =>
+              val token = response.getResponseHeader(shared.Headers.fromServer)
+              scope.modState(_.copy(token = Option(token))).runNow()
+            }
+            .recover {
+              case e: org.scalajs.dom.ext.AjaxException =>
+                // org.scalajs.dom.console.log(msg)
+                val msg = s"Error: Login $login isn't unique !!! Try another one."
+                scope.modState(_.copy(error = Option(msg))).runNow()
+              case NonFatal(e) =>
+                val msg = s"Unexpected error at sign up stage"
+                scope.modState(_.copy(error = Option(msg))).runNow()
+            }
+        }
+      // Callback.log(s"$login $password $photo")  >> CallbackTo { scope.modState(s =>s.copy(login=Option(login))).runNow() }
     }
 
     val SignUpFormArea = ReactComponentB[Unit]("SignInForm").stateless.render { _ =>
       <.div(
         ^.cls := "container-fluid",
         <.form(
-          ^.cls := "signin",
+          ^.cls  := "signin",
           ^.role := "form",
           <.div(
             "New user",
             ^.fontSize := "16px",
             ^.color.black
-            //, ^.cls := "container-fluid"
+            // , ^.cls := "container-fluid"
           ),
           <.input(
-            ^.id := "login",
-            ^.cls := "form-control",
-            ^.`type` := "text",
+            ^.id          := "login",
+            ^.cls         := "form-control",
+            ^.`type`      := "text",
             ^.placeholder := "Login"
           ),
           <.input(
-            ^.id := "photo",
-            ^.cls := "form-control",
-            ^.`type` := "text",
+            ^.id          := "photo",
+            ^.cls         := "form-control",
+            ^.`type`      := "text",
             ^.placeholder := "Proto url"
           ),
           <.input(
-            ^.id := "password",
-            ^.cls := "form-control",
-            ^.`type` := "password",
+            ^.id          := "password",
+            ^.cls         := "form-control",
+            ^.`type`      := "password",
             ^.placeholder := "Password"
           ),
           <.button(
@@ -88,9 +88,9 @@ object SignUpModule {
       val ariaHidden = "aria-hidden".reactAttr
       <.div(
         errorMessage,
-        ^.id := "sign-error",
+        ^.id  := "sign-error",
         ^.cls := "alert alert-danger role=alert",
-        <.span(^.cls := "glyphicon glyphicon-exclamation-sign", ariaHidden := "true"),
+        <.span(^.cls           := "glyphicon glyphicon-exclamation-sign", ariaHidden := "true"),
         <.span("Error:", ^.cls := "sr-only")
       )
     }.build
@@ -131,7 +131,7 @@ object SignUpModule {
       }
       .build
 
-  //https://192.168.0.62:9443/signup
+  // https://192.168.0.62:9443/signup
   def apply() = {
     val content = dom.document.getElementById("content")
     val signUpComp = ReactComponentB[Unit]("SignUpComponent2")
@@ -141,7 +141,7 @@ object SignUpModule {
         scope.backend.render2(state)
       }
       .build
-    //import chandu0101.scalajs.react.components.Implicits._
+    // import chandu0101.scalajs.react.components.Implicits._
     ReactDOM.render(signUpComp(), content)
   }
 

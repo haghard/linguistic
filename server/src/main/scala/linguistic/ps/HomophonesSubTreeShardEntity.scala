@@ -32,7 +32,12 @@ object HomophonesSubTreeShardEntity {
     Props(new HomophonesSubTreeShardEntity()).withDispatcher("shard-dispatcher")
 }
 
-class HomophonesSubTreeShardEntity extends PersistentActor with ActorLogging with Indexing[Seq[String]] with Stash with Passivation {
+class HomophonesSubTreeShardEntity
+    extends PersistentActor
+    with ActorLogging
+    with Indexing[Seq[String]]
+    with Stash
+    with Passivation {
 
   val path = "./homophones.txt"
 

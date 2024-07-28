@@ -16,8 +16,10 @@ object Accounts {
 
   sealed trait Protocol
   object Protocol {
-    final case class SignIn(login: String, password: String, replyTo: ActorRef[String Either SignInResponse])         extends Protocol
-    final case class SignUp(login: String, password: String, photo: String, replyTo: ActorRef[String Either Boolean]) extends Protocol
+    final case class SignIn(login: String, password: String, replyTo: ActorRef[String Either SignInResponse])
+        extends Protocol
+    final case class SignUp(login: String, password: String, photo: String, replyTo: ActorRef[String Either Boolean])
+        extends Protocol
   }
 
   def apply(): Behavior[Protocol] =
@@ -33,14 +35,14 @@ object Accounts {
         .setConsistencyLevel(ConsistencyLevel.ONE)
         .build()
 
-      //for 1 dc
+      // for 1 dc
       val insertStmt = session.prepare(insert)
-      //insertStmt.setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL)
-      //insertStmt.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
+      // insertStmt.setSerialConsistencyLevel(ConsistencyLevel.LOCAL_SERIAL)
+      // insertStmt.setConsistencyLevel(ConsistencyLevel.LOCAL_QUORUM)
 
       val select = SimpleStatement
         .builder(selectUser)
-        //.setExecutionProfileName(profileName)
+        // .setExecutionProfileName(profileName)
         .setConsistencyLevel(ConsistencyLevel.ONE)
         .build()
 
@@ -85,10 +87,10 @@ object Accounts {
             case e: WriteTimeoutException =>
               logger.error("Cassandra write error.", e)
               if (e.getWriteType eq WriteType.CAS)
-                //UnknownException
+                // UnknownException
                 Left(s"Unknown result: ${e.getMessage}")
               else if (e.getWriteType eq WriteType.SIMPLE)
-                //commit stage has failed
+                // commit stage has failed
                 Left(s"Commit stage has failed: ${e.getMessage}")
               else
                 Left(s"Unexpected write type: ${e.getMessage}")

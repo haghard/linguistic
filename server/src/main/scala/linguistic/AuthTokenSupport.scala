@@ -21,8 +21,8 @@ trait AuthTokenSupport {
       }
     )
 
-  //oneOff vs refreshable; specifies what should happen when the session expires.
-  //If refreshable and a refresh token is present, the session will be re-created
+  // oneOff vs refreshable; specifies what should happen when the session expires.
+  // If refreshable and a refresh token is present, the session will be re-created
   def requiredHttpSession(implicit ec: ExecutionContext) =
     requiredSession(oneOff, usingHeaders)
 }

@@ -45,9 +45,14 @@ object PruningRadixTrieEntity2 {
     Props(new PruningRadixTrieEntity2()).withDispatcher("shard-dispatcher")
 }
 
-class PruningRadixTrieEntity2 extends PersistentActor with ActorLogging with Indexing[Unit] with Stash with Passivation {
+class PruningRadixTrieEntity2
+    extends PersistentActor
+    with ActorLogging
+    with Indexing[Unit]
+    with Stash
+    with Passivation {
 
-  //val path             = "./words.txt"
+  // val path             = "./words.txt"
   val path             = "./terms.txt"
   val snapshotFilePath = s"./PruningRadixTrie/$key.txt"
 
@@ -73,7 +78,7 @@ class PruningRadixTrieEntity2 extends PersistentActor with ActorLogging with Ind
     case IndexingCompleted =>
       if (index.termCount > 0) {
         log.info("IndexingCompleted for key [{}] (entries: {}), create snapshot now...", key, index.termCount)
-        //saveSnapshot(UniqueTermsByShard(words))
+        // saveSnapshot(UniqueTermsByShard(words))
         index.writeTermsToFile(snapshotFilePath)
       }
       unstashAll()

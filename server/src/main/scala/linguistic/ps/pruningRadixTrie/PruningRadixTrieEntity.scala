@@ -19,11 +19,9 @@ import java.nio.charset.StandardCharsets
 import java.util.Locale
 import scala.util.control.NonFatal
 
-/**
-  * Each PruningRadixTrieEntity uses [[JPruningRadixTrie]] to store his state.
-  * Filtering by prefix is extremely fast with a radix tree (worst case O(log(N)),
-  * whereas it is worse than O(N) with SortedMap and HashMap.
-  * Filtering by prefix will also benefit a lot from structural sharing.
+/** Each PruningRadixTrieEntity uses [[JPruningRadixTrie]] to store his state. Filtering by prefix is extremely fast
+  * with a radix tree (worst case O(log(N)), whereas it is worse than O(N) with SortedMap and HashMap. Filtering by
+  * prefix will also benefit a lot from structural sharing.
   */
 object PruningRadixTrieEntity {
 
@@ -55,10 +53,10 @@ object PruningRadixTrieEntity {
 
 class PruningRadixTrieEntity extends PersistentActor with ActorLogging with Indexing[Unit] with Stash {
 
-  //val path             = "./words.txt"
+  // val path             = "./words.txt"
   val path = "./terms.txt"
-  //val path           = "./list_of_english_words.txt"
-  //val snapshotFilePath = s"./PruningRadixTrie/$key.txt"
+  // val path           = "./list_of_english_words.txt"
+  // val snapshotFilePath = s"./PruningRadixTrie/$key.txt"
 
   override def key           = self.path.name
   override def persistenceId = key
@@ -113,7 +111,7 @@ class PruningRadixTrieEntity extends PersistentActor with ActorLogging with Inde
           if (unqWdsSet.nonEmpty) {
             log.info("IndexingCompleted for key [{}] (entries: {}), create snapshot now...", key, unqWdsSet.size)
             saveSnapshot(UniqueTermsByShard2(unqWdsSet))
-            //index.writeTermsToFile(snapshotFilePath)
+            // index.writeTermsToFile(snapshotFilePath)
           }
 
           unstashAll()
@@ -141,7 +139,7 @@ class PruningRadixTrieEntity extends PersistentActor with ActorLogging with Inde
 
       val startTs = System.currentTimeMillis()
       val iter    = index.getTopkTermsForPrefix(decodedPrefix, maxResults).iterator()
-      //Thread.sleep(java.util.concurrent.ThreadLocalRandom.current().nextInt(200, 600))
+      // Thread.sleep(java.util.concurrent.ThreadLocalRandom.current().nextInt(200, 600))
       val latency = System.currentTimeMillis() - startTs
       val buf     = Vector.newBuilder[String]
       while (iter.hasNext) {

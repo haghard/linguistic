@@ -1,3 +1,4 @@
+/*
 package linguistic.ps
 
 import java.nio.file.Paths
@@ -19,8 +20,8 @@ object GraphHopperDistanceEntity {
   }
 
   /**
-    * https://github.com/softwaremill/vehicle-routing-problem-java.git
-    */
+ * https://github.com/softwaremill/vehicle-routing-problem-java.git
+ */
   def create(): GraphHopper = {
     val hopper = new GraphHopper()
     hopper.setOSMFile(Paths.get(DATA_DIR, PBF_FILE_NAME).toString())
@@ -47,3 +48,4 @@ object GraphHopperDistanceEntity {
     }
   }
 }
+ */

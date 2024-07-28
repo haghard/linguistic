@@ -120,8 +120,6 @@ lazy val server = project
         //"com.datastax.cassandra" % "cassandra-driver-extras" % "3.11.5",
         "com.jsuereth"          %% "scala-arm"               % "2.0",
 
-        //https://github.com/Odomontois/ScalaSuffixArray/blob/master/src/test/scala/odo/sufixarr/Test.scala
-
         "org.openjdk.jol"  %  "jol-core"        % "0.17",
         //https://www.garretwilson.com/blog/2011/12/15/suffix-trees-java
 
@@ -129,7 +127,14 @@ lazy val server = project
         "org.isarnproject" %% "isarn-sketches" % "0.3.0",
 
         "com.rklaehn"   %% "radixtree" % "0.5.1",
-      
+
+        //https://github.com/jbellis/coherepedia-jvector/blob/master/pom.xml
+        /*
+        "org.apache.arrow" % "arrow-vector" % "16.1.0",
+        "org.apache.arrow" % "arrow-memory-netty" % "16.1.0",
+        "net.openhft" % "chronicle-map" % "3.25ea6",
+        */
+
         //https://github.com/edadma/b-tree
         //https://github.com/edadma/b-tree/blob/master/src/test/scala/FileSpecificTests.scala
         "xyz.hyperreal" %% "b-tree" % "0.5", //local build
@@ -137,12 +142,12 @@ lazy val server = project
         "org.wvlet.airframe" %% "airframe-ulid" % "24.7.1",
         "ru.odnoklassniki" % "one-nio" % "1.7.3",
 
-        "com.graphhopper" % "graphhopper-core" % "8.0", //"7.0", 9.1
-
-        //"net.openhft" % "chronicle-map" % "3.25ea6", //.8
+        //"com.graphhopper" % "graphhopper-core" % "8.0", //"7.0", 9.1
 
         //https://github.com/rohansuri/adaptive-radix-tree
         "com.github.rohansuri" % "adaptive-radix-tree" % "1.0.0-beta",
+
+        "com.github.wi101" %% "embroidery" % "0.1.1",
 
         "org.scalatest" %% "scalatest" % "3.0.4" % "test"
       ) ++ Seq(

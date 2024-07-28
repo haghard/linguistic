@@ -21,7 +21,7 @@ class Searches(terms: ActorRef, homophones: ActorRef) extends Actor with ActorLo
     case add: AddOneWord =>
       terms forward add
 
-    //works only for local
+    // works only for local
     case (name: String, m @ ShardRegion.GetShardRegionState) =>
       name match {
         case RadixTreeShardEntity.Name =>

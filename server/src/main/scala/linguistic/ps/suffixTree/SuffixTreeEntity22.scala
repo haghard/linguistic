@@ -50,7 +50,7 @@ info] 17:19:55.383UTC |INFO | [linguistics-shard-dispatcher-34, linguistics, akk
 object SuffixTreeEntity22 {
 
   val Name      = "words"
-  val mbDivider = (1024 * 1024).toFloat //1_048_576
+  val mbDivider = (1024 * 1024).toFloat // 1_048_576
 
   final case class UniqueWords(entry: Seq[String]) extends AnyVal
   final case class RestoredIndex(
@@ -86,7 +86,7 @@ class SuffixTreeEntity22(isPrefixBasedSearch: Boolean)
     with Stash
     with Passivation {
 
-  //val path = "./words.txt"
+  // val path = "./words.txt"
   val path = "./terms.txt"
 
   override val key = self.path.name
@@ -135,7 +135,7 @@ class SuffixTreeEntity22(isPrefixBasedSearch: Boolean)
          */
         log.info(s"Index has been recovered from snapshot with $cnt terms for key=$key")
 
-        //off-heap lock-free hash tables with 64-bit keys.
+        // off-heap lock-free hash tables with 64-bit keys.
         /*
         import one.nio.util.Hex
         val map = new one.nio.mem.LongObjectHashMap[Array[Byte]](5) //5 kv only possible
@@ -146,7 +146,7 @@ class SuffixTreeEntity22(isPrefixBasedSearch: Boolean)
         context become active(m.index, m.uniqueWords)
       }
 
-    //case SearchQuery.WordsQuery(prefix, _) | case cmd: AddOneWord ⇒
+    // case SearchQuery.WordsQuery(prefix, _) | case cmd: AddOneWord ⇒
     case _ =>
       log.info("{} is indexing right now. stashing requests ", key)
       stash()
@@ -206,7 +206,7 @@ class SuffixTreeEntity22(isPrefixBasedSearch: Boolean)
 
   override def receiveRecover: Receive = {
     val recoveredIndex = new GeneralizedSuffixTree()
-    //var recoveredWords: Vector[String] = Vector.empty
+    // var recoveredWords: Vector[String] = Vector.empty
     var map: one.nio.mem.LongObjectHashMap[Array[Byte]] = new one.nio.mem.LongObjectHashMap[Array[Byte]](1000000 / 2)
 
     {
@@ -220,19 +220,19 @@ class SuffixTreeEntity22(isPrefixBasedSearch: Boolean)
             map.put(i, w.getBytes)
           } catch {
             case NonFatal(ex) =>
-              //ex.printStackTrace()
+              // ex.printStackTrace()
               println(s"Failed to recover $w in pos: ${i + 1}")
           }
         }
-        //recoveredWords = snapshot.terms.toVector
+        // recoveredWords = snapshot.terms.toVector
 
         val lat = (System.currentTimeMillis() - startTs) / 1000
         // SnapshotOffer SnapshotMetadata(a, 0, 1720457214156, None): count:466263 Latency:32 sec
         log.info(s"SnapshotOffer $meta: ${snapshot.terms.length} terms. Latency:${lat}sec")
 
       case OneWordAdded(w) =>
-      //recoveredWords = recoveredWords.:+(w)
-      //recoveredIndex.put(w, recoveredWords.length - 1)
+      // recoveredWords = recoveredWords.:+(w)
+      // recoveredIndex.put(w, recoveredWords.length - 1)
       /*
         map.put(map.size() -1, w.getBytes())
         recoveredIndex.put(w, map.size() - 1)

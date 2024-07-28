@@ -62,7 +62,7 @@ trait Indexing[T] {
         val w = strLine.trim
         w.nonEmpty && w.toLowerCase(Locale.ROOT).startsWith(key) && java.lang.Character.isLetter(w.head)
       }
-      //.map { line =>line.trim}
+      // .map { line =>line.trim}
       .map(_.takeWhile(!_.isDigit).trim)
       .groupedWithin(1 << 10, 350.millis)
       .throttle(1, 300.millis)

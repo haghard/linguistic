@@ -18,7 +18,8 @@ package object protocol {
   object SearchQuery {
     final case class WordsQuery(keyword: String, maxResults: Int, replyTo: ActorRef[SearchResults]) extends SearchQuery
 
-    final case class HomophonesQuery(keyword: String, maxResults: Int, replyTo: ActorRef[SearchResults]) extends SearchQuery
+    final case class HomophonesQuery(keyword: String, maxResults: Int, replyTo: ActorRef[SearchResults])
+        extends SearchQuery
   }
 
   sealed trait Results {

@@ -43,11 +43,11 @@ class LinguisticsSerializer(val system: ExtendedActorSystem) extends SerializerW
         system.log.info("-- Snapshot:Save({}) {}mb", shardName, mb)
         pb.toByteArray
 
-      //cmd
+      // cmd
       case AddOneWord(w) =>
         AddOneWordPB(w).toByteArray
 
-      //ev
+      // ev
       case OneWordAdded(w) =>
         OneWordAddedPB(w).toByteArray
       case _ =>
@@ -75,14 +75,14 @@ class LinguisticsSerializer(val system: ExtendedActorSystem) extends SerializerW
     } else if (manifest == classOf[UniqueTermsByShard].getName) {
       val pb        = WordsPB.parseFrom(bytes)
       val shardName = pb.entry.headOption.map(_.head.toString).getOrElse("")
-      //val mb    = GraphLayout.parseInstance(snapshot.words).totalSize.toFloat / mbDivider
+      // val mb    = GraphLayout.parseInstance(snapshot.words).totalSize.toFloat / mbDivider
       val mb = pb.serializedSize.toFloat / mbDivider
       system.log.info("-- Snapshot:Read({}) {}mb", shardName, mb)
       UniqueTermsByShard(pb.entry)
     } else if (manifest == classOf[UniqueTermsByShard2].getName) {
       val pb        = WordsPB.parseFrom(bytes)
       val shardName = pb.entry.headOption.map(_.head.toString).getOrElse("")
-      //val mb    = GraphLayout.parseInstance(snapshot.words).totalSize.toFloat / mbDivider
+      // val mb    = GraphLayout.parseInstance(snapshot.words).totalSize.toFloat / mbDivider
       val mb = pb.serializedSize.toFloat / mbDivider
       system.log.info("-- Snapshot:Read({}) {}mb", shardName, mb)
       UniqueTermsByShard2(scala.collection.mutable.HashSet(pb.entry: _*))

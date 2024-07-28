@@ -25,7 +25,7 @@ object BPlusTreeEntity {
   val Name      = "words"
   val mbDivider = (1024 * 1024).toFloat
 
-  //(maximum number of branches in an internal node)
+  // (maximum number of branches in an internal node)
   val branchingFactor = 16
 
   final case class UniqueWords(entry: Seq[String]) extends AnyVal
@@ -47,15 +47,17 @@ object BPlusTreeEntity {
       (x.w.toLowerCase(Locale.ROOT).take(1), x)
   }
 
+  case class RowData(url: String, title: String, text: String)
+
   def props(): Props =
     Props(new BPlusTreeEntity()).withDispatcher("shard-dispatcher")
 }
 
 class BPlusTreeEntity extends PersistentActor with ActorLogging with Indexing[Unit] with Stash {
 
-  //val path = "./words.txt"
+  // val path = "./words.txt"
   val path = "./terms.txt"
-  //val path  = "./list_of_english_words.txt"
+  // val path  = "./list_of_english_words.txt"
 
   override def key           = self.path.name
   override def persistenceId = key
@@ -99,7 +101,6 @@ class BPlusTreeEntity extends PersistentActor with ActorLogging with Indexing[Un
 
         case Indexing.IndexingProtocol.Next(replyTo, words) =>
           words.foreach(unqWdsSet.add(_))
-          ()
           replyTo.tell(Indexing.Confirm)
           context.become(indexing(unqWdsSet))
 
@@ -129,7 +130,7 @@ class BPlusTreeEntity extends PersistentActor with ActorLogging with Indexing[Un
       stash()
   }
 
-  //TODO: Add durable data ???
+  // TODO: Add durable data ???
   def active(btree: MemoryBPlusTree[String, Null]): Receive = {
     case AddOneWord(word) =>
       persist(OneWordAdded(word)) { ev =>
@@ -177,7 +178,7 @@ class BPlusTreeEntity extends PersistentActor with ActorLogging with Indexing[Un
       case RecoveryCompleted =>
         val mb = GraphLayout.parseInstance(recoveredIndex).totalSize.toFloat / mbDivider
         log.info(s"✅ Recovered $key. [${recoveredIndex.keys.size} terms, b-plus-tree size:$mb mb]")
-        //👍✅🚀🧪❌😄📣🔥
+        // 👍✅🚀🧪❌😄📣🔥🚨😱🥳
         self ! BPlusTreeEntity.RestoredIndex(recoveredIndex)
     }
   }

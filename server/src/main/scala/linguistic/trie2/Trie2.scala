@@ -8,9 +8,8 @@ package object trie2 {
 
   class Trie[V](key: Option[Char]) {
 
-    def this() {
+    def this() =
       this(None)
-    }
 
     private var value: Option[V] = None
     private var nodes            = new TreeMap[Char, Trie[V]]

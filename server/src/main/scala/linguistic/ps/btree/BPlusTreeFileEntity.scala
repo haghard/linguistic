@@ -49,11 +49,11 @@ object BPlusTreeFileEntity {
 
 class BPlusTreeFileEntity extends PersistentActor with ActorLogging with Indexing[Unit] with Stash {
 
-  //val path             = "./words.txt"
+  // val path             = "./words.txt"
   val path    = "./terms.txt"
   val ramFile = s"./btree/$key"
 
-  //val path           = "./list_of_english_words.txt"
+  // val path           = "./list_of_english_words.txt"
 
   override def key           = self.path.name
   override def persistenceId = key

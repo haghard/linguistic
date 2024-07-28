@@ -37,9 +37,9 @@ case class Bootstrap(port: Int, hostName: String, keypass: String, storepass: St
 
   val (wordRegion, homophonesRegion) = startSharding(classicSystem)
 
-  //val targetActor = ctx.actorOf(PropsAdapter[StreamToActorMessage[FlowMessage]](TargetActor()))
-  //ctx.system.systemActorOf(Accounts(), "accounts")
-  //ctx.actorOf(PropsAdapter[Accounts.Protocol](Accounts()))
+  // val targetActor = ctx.actorOf(PropsAdapter[StreamToActorMessage[FlowMessage]](TargetActor()))
+  // ctx.system.systemActorOf(Accounts(), "accounts")
+  // ctx.actorOf(PropsAdapter[Accounts.Protocol](Accounts()))
 
   val users: ActorRef[Accounts.Protocol] = ctx.spawn(Accounts(), "accounts")
 
@@ -47,10 +47,11 @@ case class Bootstrap(port: Int, hostName: String, keypass: String, storepass: St
     new api.SearchApi(wordRegion).route ~ new api.UsersApi(users).route
 
   Http()
-    //.bindAndHandle(routes, hostName, port, connectionContext = https(keypass, storepass))
+    // .bindAndHandle(routes, hostName, port, connectionContext = https(keypass, storepass))
     .newServerAt(hostName, port)
+    // .enableHttps(https(keypass, storepass))
     .bind(routes)
-    //.bindAndHandle(routes, hostName, port)
+    // .bindAndHandle(routes, hostName, port)
     .onComplete {
       case Failure(ex) =>
         classicSystem.log.error(s"Shutting down because can't bind on $hostName:$port", ex)
@@ -66,7 +67,7 @@ case class Bootstrap(port: Int, hostName: String, keypass: String, storepass: St
         }
 
         CoordinatedShutdown(classicSystem).addTask(PhaseServiceUnbind, "http-api.unbind") { () =>
-          //No new connections are accepted. Existing connections are still allowed to perform request/response cycles
+          // No new connections are accepted. Existing connections are still allowed to perform request/response cycles
           binding.unbind().map { done =>
             classicSystem.log.info("★ ★ ★ CoordinatedShutdown [http-api.unbind] ★ ★ ★")
             done
@@ -80,12 +81,10 @@ case class Bootstrap(port: Int, hostName: String, keypass: String, storepass: St
           }
         }*/
 
-        //graceful termination request being handled on this connection
+        // graceful termination request being handled on this connection
         CoordinatedShutdown(classicSystem).addTask(PhaseServiceRequestsDone, "http-api.terminate") { () =>
-          /**
-            * It doesn't accept new connection but it drains the existing connections
-            * Until the `terminationDeadline` all the req that had been accepted will be completed
-            * and only than the shutdown will continue
+          /** It doesn't accept new connection but it drains the existing connections Until the `terminationDeadline`
+            * all the req that had been accepted will be completed and only than the shutdown will continue
             */
           binding.terminate(terminationDeadline).map { _ =>
             classicSystem.log.info("★ ★ ★ CoordinatedShutdown [http-api.terminate]  ★ ★ ★")
@@ -93,7 +92,7 @@ case class Bootstrap(port: Int, hostName: String, keypass: String, storepass: St
           }
         }
 
-        //forcefully kills connections that are still open
+        // forcefully kills connections that are still open
         CoordinatedShutdown(classicSystem).addTask(PhaseServiceStop, "close.connections") { () =>
           Http().shutdownAllConnectionPools().map { _ =>
             classicSystem.log.info("CoordinatedShutdown [close.connections]")

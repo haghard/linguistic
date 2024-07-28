@@ -20,7 +20,7 @@ object Search {
 
     def onChange(searchType: String, token: String)(e: ReactEventI) =
       Callback {
-        //Callback(e.target.value = "")
+        // Callback(e.target.value = "")
 
         val q = e.target.value
         Ajax
@@ -43,69 +43,71 @@ object Search {
   }
 
   val SearchComponent =
-    ReactComponentB[(SearchWordsState, SearchWordsBackend, String)]("SearchBoxComp").stateless.render_P { case (state, backend, token) =>
-      <.div(
-        <.form(
-          ^.cls := "heading-container",
-          alignContent := "center",
-          ^.role := "form",
-          <.div(
-            ^.cls := "row",
+    ReactComponentB[(SearchWordsState, SearchWordsBackend, String)]("SearchBoxComp").stateless.render_P {
+      case (state, backend, token) =>
+        <.div(
+          <.form(
+            ^.cls        := "heading-container",
+            alignContent := "center",
+            ^.role       := "form",
             <.div(
-              ^.cls := "form-group col-sm-7 col-md-8",
+              ^.cls := "row",
               <.div(
-                ^.cls := "input-group",
-                <.span(
-                  ^.id := "search-addon",
-                  ^.cls := "input-group-addon",
-                  <.div(
-                    "Words list",
-                    ^.fontSize := "9px",
-                    ^.color.black
-                    //^.cls := "container-fluid"
-                  ),
-                  <.span(^.cls := "glyphicon glyphicon-search")
-                ),
+                ^.cls := "form-group col-sm-7 col-md-8",
                 <.div(
-                  <.input(
-                    ^.id := "search-by-pref",
-                    ^.`type` := "text",
-                    ^.cls := "form-control",
-                    ^.onChange ==> backend.onChange(shared.Routes.searchWordsPath, token)
+                  ^.cls := "input-group",
+                  <.span(
+                    ^.id  := "search-addon",
+                    ^.cls := "input-group-addon",
+                    <.div(
+                      "Words list",
+                      ^.fontSize := "9px",
+                      ^.color.black
+                      // ^.cls := "container-fluid"
+                    ),
+                    <.span(^.cls := "glyphicon glyphicon-search")
+                  ),
+                  <.div(
+                    <.input(
+                      ^.id     := "search-by-pref",
+                      ^.`type` := "text",
+                      ^.cls    := "form-control",
+                      ^.onChange ==> backend.onChange(shared.Routes.searchWordsPath, token)
+                    )
                   )
                 )
-              )
-            ),
-            <.div(
-              ^.cls := "col-sm-5 col-md-4",
+              ),
               <.div(
-                ^.cls := "row",
+                ^.cls := "col-sm-5 col-md-4",
                 <.div(
-                  ^.cls := "col-sm-9 col-xs-9",
+                  ^.cls := "row",
                   <.div(
-                    ^.cls := "form-group",
+                    ^.cls := "col-sm-9 col-xs-9",
                     <.div(
-                      ^.cls := "input-group",
-                      <.span(
-                        ^.id := "location-addon",
-                        ^.cls := "input-group-addon",
-                        <.div(
-                          "Homophones",
-                          ^.fontSize := "9px",
-                          ^.color.black
-                          //^.cls := "container-fluid"
-                        ),
-                        <.span(
-                          ^.cls := "glyphicon glyphicon-search"
-                        )
-                        //glyphicon-map-marker
-                      ),
+                      ^.cls := "form-group",
                       <.div(
-                        <.input(
-                          ^.id := "search-by-location",
-                          ^.`type` := "text",
-                          ^.cls := "form-control",
-                          ^.onChange ==> backend.onChange(shared.Routes.searchHomophonesPath, token)
+                        ^.cls := "input-group",
+                        <.span(
+                          ^.id  := "location-addon",
+                          ^.cls := "input-group-addon",
+                          <.div(
+                            "Homophones",
+                            ^.fontSize := "9px",
+                            ^.color.black
+                            // ^.cls := "container-fluid"
+                          ),
+                          <.span(
+                            ^.cls := "glyphicon glyphicon-search"
+                          )
+                          // glyphicon-map-marker
+                        ),
+                        <.div(
+                          <.input(
+                            ^.id     := "search-by-location",
+                            ^.`type` := "text",
+                            ^.cls    := "form-control",
+                            ^.onChange ==> backend.onChange(shared.Routes.searchHomophonesPath, token)
+                          )
                         )
                       )
                     )
@@ -115,15 +117,14 @@ object Search {
             )
           )
         )
-      )
     }.build
 
-  //<.div(^.id := "outs", ^.cls := "container-fluid", <.div(^.id := "outA"), <.div(^.id := "outB"))
+  // <.div(^.id := "outs", ^.cls := "container-fluid", <.div(^.id := "outA"), <.div(^.id := "outB"))
 
   class SearchOutBackend($ : BackendScope[_, SearchWordsState]) {
     def render(state: SearchWordsState) =
       <.div(
-        ^.id := "outs",
+        ^.id       := "outs",
         ^.fontSize := "10px",
         ^.color.black,
         ^.cls := "container-fluid",

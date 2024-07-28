@@ -258,6 +258,34 @@ select * from linguistics.linguistics_journal where persistence_id='/sharding/wo
 https://github.com/dwyl/english-words
 
 
-jcmd 98518 VM.native_memory
+jcmd 39719 VM.native_memory
 
 
+ Internal (reserved=847KB, committed=847KB)
+        (malloc=815KB #14548) 
+        (mmap: reserved=32KB, committed=32KB) 
+                                           
+
+jcmd 39719 VM.stringtable
+39719:
+StringTable statistics:
+Number of buckets       :     65536 =    524288 bytes, each 8
+Number of entries       :     25911 =    414576 bytes, each 16
+Number of literals      :     25911 =   2007056 bytes, avg  77.000
+Total footprint         :           =   2 945 920 bytes
+Average bucket size     :     0.395
+Variance of bucket size :     0.396
+Std. dev. of bucket size:     0.630
+Maximum bucket size     :         5
+
+jcmd 39719 VM.symboltable
+39719:
+SymbolTable statistics:
+Number of buckets       :     32768 =    262144 bytes, each 8
+Number of entries       :    179624 =   2873984 bytes, each 16
+Number of literals      :    179624 =  13860920 bytes, avg  77.000
+Total footprint         :           =  16 997 048 bytes
+Average bucket size     :     5.482
+Variance of bucket size :     5.470
+Std. dev. of bucket size:     2.339
+Maximum bucket size     :        17

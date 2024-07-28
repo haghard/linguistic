@@ -18,7 +18,7 @@ import org.openjdk.jol.info.GraphLayout
 object RadixTreeShardEntity {
 
   val Name      = "words"
-  val mbDivider = (1024 * 1024).toFloat //1_048_576
+  val mbDivider = (1024 * 1024).toFloat // 1_048_576
 
   final case class RestoredIndex[T](index: RadixTree[String, T]) extends AnyVal
 
@@ -44,11 +44,9 @@ object RadixTreeShardEntity {
     Props(new RadixTreeShardEntity()).withDispatcher("shard-dispatcher")
 }
 
-/**
-  * Each ShardEntity actor uses RadixTree to store his state.
-  * Filtering by prefix is extremely fast with a radix tree (worst case O(log(N)),
-  * whereas it is worse than O(N) with SortedMap and HashMap.
-  * Filtering by prefix will also benefit a lot from structural sharing.
+/** Each ShardEntity actor uses RadixTree to store his state. Filtering by prefix is extremely fast with a radix tree
+  * (worst case O(log(N)), whereas it is worse than O(N) with SortedMap and HashMap. Filtering by prefix will also
+  * benefit a lot from structural sharing.
   */
 class RadixTreeShardEntity extends PersistentActor with ActorLogging with Indexing[Unit] with Stash with Passivation {
 
@@ -56,7 +54,7 @@ class RadixTreeShardEntity extends PersistentActor with ActorLogging with Indexi
 
   override val key = self.path.name
 
-  //context.setReceiveTimeout(passivationTimeout)
+  // context.setReceiveTimeout(passivationTimeout)
 
   override def persistenceId = key
 
@@ -110,7 +108,7 @@ class RadixTreeShardEntity extends PersistentActor with ActorLogging with Indexi
     {
       case SnapshotOffer(meta, w: UniqueTermsByShard) =>
         recoveredIndex = RadixTree(w.terms.map(name => (name, ())): _*)
-        //log.info("SnapshotOffer {}: count: {}", meta.sequenceNr, recoveredIndex.count)
+        // log.info("SnapshotOffer {}: count: {}", meta.sequenceNr, recoveredIndex.count)
         val mb = GraphLayout.parseInstance(recoveredIndex).totalSize.toFloat / mbDivider
         log.info("SnapshotOffer {}: count:{}", meta, recoveredIndex.count)
 
