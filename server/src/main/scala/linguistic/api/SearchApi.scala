@@ -26,7 +26,7 @@ object SearchApi {
       with NoStackTrace
 
   def resume(cause: Throwable)(logger: Logger): Supervision.Directive = {
-    logger.warn(s"SearchApifailed and resumes {}", cause)
+    logger.warn(s"SearchApi failed and resumed {}", cause)
     Supervision.Resume
   }
 }
@@ -85,7 +85,7 @@ final class SearchApi(
 
   CoordinatedShutdown(system)
     .addTask(CoordinatedShutdown.PhaseServiceRequestsDone, "shutdown-searchApi") { () =>
-      logger.info(s"★ ★ ★ CoordinatedShutdown [SearchApi.shutdown]  ★ ★ ★")
+      logger.info(s"★ ★ ★ CoordinatedShutdown [search-api.shutdown]  ★ ★ ★")
       queue.complete()
       done
     }

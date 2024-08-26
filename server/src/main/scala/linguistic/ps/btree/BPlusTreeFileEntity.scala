@@ -52,6 +52,8 @@ class BPlusTreeFileEntity extends PersistentActor with ActorLogging with Indexin
   // val path             = "./words.txt"
   val path    = "./terms.txt"
   val ramFile = s"./btree/$key"
+  // (maximum number of branches in an internal node)
+  val branchingFactor = 16
 
   // val path           = "./list_of_english_words.txt"
 
@@ -70,7 +72,7 @@ class BPlusTreeFileEntity extends PersistentActor with ActorLogging with Indexin
     case m: BPlusTreeFileEntity.RestoredIndex =>
       if (m.index.isEmpty) {
         buildIndex(self.toTyped[Indexing.IndexingProtocol], key, path)
-        context.become(indexing(new scala.collection.mutable.HashSet[String]))
+        context.become(indexing(new scala.collection.mutable.TreeSet[String], m.index))
       } else {
         unstashAll()
         log.info(
@@ -83,7 +85,7 @@ class BPlusTreeFileEntity extends PersistentActor with ActorLogging with Indexin
       stash()
   }
 
-  def indexing(unqWdsSet: scala.collection.mutable.HashSet[String]): Receive = {
+  def indexing(unqWdsSet: scala.collection.mutable.TreeSet[String], index: FileBPlusTree[String, Null]): Receive = {
     case cmd: Indexing.IndexingProtocol =>
       cmd match {
         case Indexing.IndexingProtocol.Init(replyTo) =>
@@ -92,22 +94,15 @@ class BPlusTreeFileEntity extends PersistentActor with ActorLogging with Indexin
         case Indexing.IndexingProtocol.Next(replyTo, words) =>
           words.foreach(w => if (w.nonEmpty) unqWdsSet.add(w))
           replyTo.tell(Indexing.Confirm)
-          context.become(indexing(unqWdsSet))
+          context.become(indexing(unqWdsSet, index))
 
         case Indexing.IndexingProtocol.OnCompleted =>
-          val index = new FileBPlusTree[String, Null](ramFile, 7)
-
           try index.insertKeys(unqWdsSet.toVector: _*)
           catch {
             case NonFatal(ex) =>
               log.warning(s"Failed to add " + ex.getMessage)
               Thread.sleep(1000)
           }
-
-          /*try unqWdsSet.foreach(k ⇒ index.insertKeys(k)) catch {
-            case NonFatal(ex) ⇒
-              log.warning(s"Failed to add " + ex.getMessage)
-          }*/
 
           if (!unqWdsSet.isEmpty) {
             log.info("IndexingCompleted for key [{}] (entries: {}), create snapshot now...", key, unqWdsSet.size)
@@ -162,7 +157,7 @@ class BPlusTreeFileEntity extends PersistentActor with ActorLogging with Indexin
   }
 
   override def receiveRecover: Receive = {
-    val recoveredIndex = new FileBPlusTree[String, Null](ramFile, 7)
+    val recoveredIndex = new FileBPlusTree[String, Null](ramFile, branchingFactor, true)
 
     {
       case SnapshotOffer(meta, snapshot: UniqueTermsByShard2) =>
@@ -172,8 +167,8 @@ class BPlusTreeFileEntity extends PersistentActor with ActorLogging with Indexin
         recoveredIndex.insertKeys(w)
 
       case RecoveryCompleted =>
-        val mb1 = GraphLayout.parseInstance(recoveredIndex).totalSize.toFloat / mbDivider
-        log.info(s"************* Recovered index by key: ${key} count:${recoveredIndex.keys.size} - Size:$mb1 mb")
+        // val mb1 = GraphLayout.parseInstance(recoveredIndex).totalSize.toFloat / mbDivider
+        // log.info(s"************* Recovered index by key: ${key} count:${recoveredIndex.keys.size} - Size:$mb1 mb")
         self ! BPlusTreeFileEntity.RestoredIndex(recoveredIndex)
     }
   }

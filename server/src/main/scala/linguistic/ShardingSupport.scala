@@ -1,12 +1,11 @@
 package linguistic
 
 import akka.actor.typed.scaladsl.adapter.ClassicActorRefOps
-import akka.actor.ActorSystem
+import akka.actor.{ActorRef, ActorSystem}
 import linguistic.ps._
 import akka.cluster.sharding.{ClusterSharding, ClusterShardingSettings}
 import linguistic.protocol.SearchQuery
-import linguistic.ps.btree.{BPlusTreeEntity, BPlusTreeFileEntity}
-import linguistic.ps.pruningRadixTrie.PruningRadixTrieEntity
+import linguistic.ps.cassandraBPlusTree.BPlusEntity
 
 trait ShardingSupport {
 
@@ -56,21 +55,32 @@ trait ShardingSupport {
       extractEntityId = BPlusTreeFileEntity.extractEntityId
     )*/
 
-    val words = sharding.start(
+    // this
+    /*val words = sharding.start(
       typeName = BPlusTreeEntity.Name,
       entityProps = BPlusTreeEntity.props(),
       settings = settings,
       extractShardId = BPlusTreeEntity.extractShardId,
       extractEntityId = BPlusTreeEntity.extractEntityId
+    )*/
+
+    val words = sharding.start(
+      typeName = BPlusEntity.Name,
+      entityProps = BPlusEntity.props(),
+      settings = settings,
+      extractShardId = BPlusEntity.extractShardId,
+      extractEntityId = BPlusEntity.extractEntityId
     )
 
-    val homophones = sharding.start(
+    val homophones = ActorRef.noSender
+
+    /*val homophones = sharding.start(
       typeName = HomophonesSubTreeShardEntity.Name,
       entityProps = HomophonesSubTreeShardEntity.props(),
       settings = settings,
       extractShardId = HomophonesSubTreeShardEntity.extractShardId,
       extractEntityId = HomophonesSubTreeShardEntity.extractEntityId
-    )
+    )*/
 
     (words.toTyped[SearchQuery], homophones)
   }

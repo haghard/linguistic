@@ -13,13 +13,48 @@ val version         = "0.3"
 
 name := "linguistic"
 
-lazy val java17Settings = Seq(
-  // https://www.baeldung.com/jvm-zgc-garbage-collector
+def java17Settings = Seq(
   "--add-opens",
   "java.base/java.nio=ALL-UNNAMED",
   "--add-opens",
-  "java.base/sun.nio.ch=ALL-UNNAMED"
+  "java.base/sun.nio.ch=ALL-UNNAMED",
 )
+
+def gcJavaOptions: Seq[String] = {
+  val javaVersion = System.getProperty("java.version")
+  if (javaVersion.startsWith("1.8")) jdk8GcJavaOptions
+  else jdk11GcJavaOptions
+}
+
+//https://github.com/twitter/finagle/blob/be778a356e003b4ef49a55ba83be0521e9741015/build.sbt#L116
+def jdk8GcJavaOptions: Seq[String] = {
+  Seq(
+    "-XX:+UseParNewGC",
+    "-XX:+UseConcMarkSweepGC",
+    "-XX:+CMSParallelRemarkEnabled",
+    "-XX:+CMSClassUnloadingEnabled",
+    "-XX:ReservedCodeCacheSize=128m",
+    "-XX:SurvivorRatio=128",
+    "-XX:MaxTenuringThreshold=0",
+    "-Xss8M",
+    "-Xms512M",
+    "-Xmx3G"
+  )
+}
+
+def jdk11GcJavaOptions: Seq[String] = {
+  Seq(
+    "-XX:+UseConcMarkSweepGC",
+    "-XX:+CMSParallelRemarkEnabled",
+    "-XX:+CMSClassUnloadingEnabled",
+    "-XX:ReservedCodeCacheSize=128m",
+    "-XX:SurvivorRatio=128",
+    "-XX:MaxTenuringThreshold=0",
+    "-Xss8M",
+    "-Xms512M",
+    "-Xmx3G"
+  )
+}
 
 val scalacSettings = Seq(
   scalacOptions ++= Seq(
@@ -27,24 +62,86 @@ val scalacSettings = Seq(
     "-feature",
     "-Xfatal-warnings",                  // Fail the compilation if there are any warnings.
     "-deprecation",
+    "-unchecked",                        // Enable additional warnings where generated code depends on assumptions.
     "-language:implicitConversions",
 
-    /*
-    "-unchecked",                        // Enable additional warnings where generated code depends on assumptions.
     "-encoding", "UTF-8",                // Specify character encoding used by source files.
-    "-Ywarn-dead-code",                  // Warn when dead code is identified.
-    "-Ywarn-extra-implicit",             // Warn when more than one implicit parameter section is defined.
-    "-Ywarn-numeric-widen",              // Warn when numerics are widened.
-    "-Ywarn-unused:implicits",           // Warn if an implicit parameter is unused.
-    "-Ywarn-unused:imports",             // Warn if an import selector is not referenced.
-    "-Ywarn-unused:locals",              // Warn if a local definition is unused.
-    "-Ywarn-unused:params",              // Warn if a value parameter is unused.
-    "-Ywarn-unused:patvars",             // Warn if a variable bound in a pattern is unused.
-    "-Ywarn-unused:privates",            // Warn if a private member is unused.
-    "-Ywarn-value-discard",              // Warn when non-Unit expression results are unused.
-    */
+    //"-Ywarn-dead-code",                  // Warn when dead code is identified.
+    //"-Ywarn-extra-implicit",             // Warn when more than one implicit parameter section is defined.
+    //"-Ywarn-numeric-widen",              // Warn when numerics are widened.
+    //"-Ywarn-unused:implicits",           // Warn if an implicit parameter is unused.
+    //"-Ywarn-unused:imports",             // Warn if an import selector is not referenced.
+    //"-Ywarn-unused:locals",              // Warn if a local definition is unused.
+    //"-Ywarn-unused:params",              // Warn if a value parameter is unused.
+    //"-Ywarn-unused:patvars",             // Warn if a variable bound in a pattern is unused.
+    //"-Ywarn-unused:privates",            // Warn if a private member is unused.
+    //"-Ywarn-value-discard",              // Warn when non-Unit expression results are unused.
+    
   )
 )
+
+
+//https://backstage.forgerock.com/knowledge/kb/article/a75965340
+//https://www.linkedin.com/pulse/jdk-17-g1gc-vs-zgc-usage-core-exchange-application-performance-raza
+// https://www.baeldung.com/jvm-zgc-garbage-collector
+val ops0 =
+  Seq(
+    "-XX:+UseG1GC", //with heaps >4GB
+    "-XX:InitialHeapSize=1g",
+    "-XX:MaxHeapSize=1g",
+    "-XX:MaxMetaspaceSize=256m",
+    "-XX:MaxGCPauseMillis=500",
+    "-XX:NativeMemoryTracking=summary", //detail|summary
+    "-XX:+DisableExplicitGC",
+    "-XX:+UseStringDeduplication",
+    "-XX:+ParallelRefProcEnabled",
+    "-XX:MaxTenuringThreshold=1",
+    "-XX:-UseAdaptiveSizePolicy",  //heap never resizes
+    "-XX:ActiveProcessorCount=4",
+    "-Xlog:gc=debug:file=./gc.log:time,uptime,level,tags:filecount=5,filesize=100m"
+  )
+
+val ops1 =
+  Seq(
+    "-XX:+PrintCommandLineFlags",
+    "-XshowSettings:system",
+    "-XX:+UseStringDeduplication",
+    //"-XX:+UseCompressedOops", //32bit ref
+    "-XX:NativeMemoryTracking=summary", //detail|summary
+    /*"-Xlog:gc* -version",*/
+    "-Xlog:gc=debug:file=./gc.log:time,uptime,level,tags:filecount=5,filesize=100m",
+    "-XX:ObjectAlignmentInBytes=8",
+    "-Xmx756m",
+    "-Xms756m",
+    "-XX:-UseAdaptiveSizePolicy",   //heap never resizes
+    "-XX:MaxDirectMemorySize=128m", //Will get a error if allocate more mem for direct byte buffers
+    "-XX:+UseParallelGC",  //with heaps < 4GB
+    //"-XX:+UseG1GC",      //with heaps >4GB
+    //"-XX:+UseZGC",       //apps that require sub-millisecond GC pauses, with gigantic (terabyte range) heaps
+
+    //https://softwaremill.com/reactive-event-sourcing-benchmarks-part-2-postgresql/
+    "-XX:ActiveProcessorCount=4",
+  ) ++ java17Settings
+
+
+val ops2 =
+  Seq(
+    "-XX:+PrintCommandLineFlags",
+    "-XshowSettings:system",
+    "-XX:+UseStringDeduplication",
+    //"-XX:+UseCompressedOops", //32bit ref
+    "-XX:NativeMemoryTracking=summary", //detail|summary
+    "-Xlog:gc=debug:file=./gc.log:time,uptime,level,tags:filecount=5,filesize=100m",
+    "-XX:ObjectAlignmentInBytes=8",
+    "-Xmx1024m",
+    "-Xms1024m",
+    "-XX:-UseAdaptiveSizePolicy",   //heap never resizes
+    "-XX:MaxDirectMemorySize=128m", //Will get a error if allocate more mem for direct byte buffers
+    "-XX:+UseDynamicNumberOfGCThreads",
+    "-XX:+UseZGC",       //apps that require sub-millisecond GC pauses, with gigantic (terabyte range) heaps
+    "-XX:ActiveProcessorCount=4",
+  ) ++ java17Settings
+
 
 lazy val server = project
   .in(file("server"))
@@ -58,7 +155,6 @@ lazy val server = project
       "Sonatype Public" at "https://oss.sonatype.org/content/groups/public/",
     ) ++ Resolver.sonatypeOssRepos("snapshots"),
 
-    //scalacOptions in (Compile, console) := Seq("-release:17","-feature", "-Xfatal-warnings", "-deprecation", "-unchecked"),
     scalaVersion := scalaV,
     scalaJSProjects := Seq(ui),
     //pipelineStages in Assets := Seq(scalaJSPipeline),
@@ -66,53 +162,25 @@ lazy val server = project
     Compile / compile := (Compile / compile).dependsOn(scalaJSPipeline, cpCss()).value,
 
     name := "server",
-
-    //run / fork := false,
+    
     run / fork := true,
     run / connectInput := true,
 
-    //https://backstage.forgerock.com/knowledge/kb/article/a75965340
-    /*
-    -XX:+UseG1GC
-    -XX:InitialHeapSize=2g
-    -XX:MaxHeapSize=2g
-    -XX:MaxMetaspaceSize=256m
-    -XX:MaxGCPauseMillis=500
-    -XX:+DisableExplicitGC
-    -XX:+UseStringDeduplication
-    -XX:+ParallelRefProcEnabled
-    -XX:MaxTenuringThreshold=1
-    -Xlog:gc=debug:file=/tmp/gc.log:time,uptime,level,tags:filecount=5,filesize=100m
-    */
+    //test:run
+    Test / sourceGenerators += Def.task {
+      val file = (Test / sourceManaged).value / "amm.scala"
+      IO.write(file, """object amm extends App { ammonite.Main().run() }""")
+      Seq(file)
+    }.taskValue,
 
-    //https://www.linkedin.com/pulse/jdk-17-g1gc-vs-zgc-usage-core-exchange-application-performance-raza
-    javaOptions ++= Seq(
-      "-XX:+PrintCommandLineFlags",
-      "-XshowSettings:system",
-      "-XX:+UseStringDeduplication",
-      "-XX:+UseCompressedOops", //32bit ref
-      "-XX:NativeMemoryTracking=detail", //summary
-      /*"-Xlog:gc* -version",*/
-      "-Xlog:gc=debug:file=./gc.log:time,uptime,level,tags:filecount=5,filesize=100m",
-      /*"-XX:ObjectAlignmentInBytes=8",*/
-      "-Xmx1000m",
-      "-Xms1000m",
-      "-XX:-UseAdaptiveSizePolicy",   //heap never resizes
-      "-XX:MaxDirectMemorySize=128m", //Will get a error if allocate more mem for direct byte buffers
-      "-XX:+UseG1GC",
-
-      //https://softwaremill.com/reactive-event-sourcing-benchmarks-part-2-postgresql/
-      //"-XX:ActiveProcessorCount=4",
-
-      //"-XX:+UseZGC"
-    ) ++ java17Settings,
+    javaOptions ++= ops2,
 
     //scalafmtOnCompile := true,
 
     //javaOptions in runMain := Seq("-XX:+PrintFlagsFinal", "-Xms756m", "-Xmx1256m"),
     //javaOptions ++= java17Settings,
     libraryDependencies ++= Seq(
-        "ch.qos.logback"         % "logback-classic"         % "1.1.2",
+        "ch.qos.logback"         % "logback-classic"         % "1.5.6",
         "org.mindrot"            % "jbcrypt"                 % "0.4",
         "com.vmunier"           %% "scalajs-scripts"         % "1.1.0", //Twirl templates to link Scala.js output scripts into a HTML page.
         "com.lihaoyi"           %% "scalatags"               % "0.6.7",
@@ -173,9 +241,13 @@ lazy val server = project
         "com.typesafe.akka" %% "akka-http"                   % AkkaHttpVersion,
         "com.typesafe.akka" %% "akka-http-core"              % AkkaHttpVersion,
         "com.typesafe.akka" %% "akka-http-spray-json"        % AkkaHttpVersion,
-        "com.typesafe.akka"             %% "akka-discovery"                     % akkaVersion,
         "com.lightbend.akka.management" %% "akka-management-cluster-bootstrap"  % AkkaMngVersion,
         "com.lightbend.akka.management" %% "akka-management-cluster-http"       % AkkaMngVersion,
+
+        "org.fusesource.jansi" % "jansi" % "2.4.1",
+
+        "com.google.guava"   % "guava" % "33.3.0-jre",
+        "com.github.jbellis" % "jamm"  % "0.3.3",
 
         ("com.typesafe.akka"                  %% "akka-persistence-cassandra" % "1.1.1")
           .excludeAll(

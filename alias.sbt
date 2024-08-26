@@ -18,7 +18,7 @@ addCommandAlias(
   "-DENV=development\n" +
   "-DCONFIG=./conf\n" +
   "-Dakka.http.port=9443\n" +
-  "-akka.remote.artery.canonical.hostname=127.0.0.2\n" +
+  "-Dakka.remote.artery.canonical.hostname=127.0.0.2\n" +
   "-Dakka.remote.artery.canonical.port=2550\n" +
   "-Dcassandra.hosts=127.0.0.1"
 )

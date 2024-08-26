@@ -74,11 +74,7 @@ class BPlusTreeEntity extends PersistentActor with ActorLogging with Indexing[Un
     case m: BPlusTreeEntity.RestoredIndex =>
       if (m.index.isEmpty) {
         buildIndex(self.toTyped[Indexing.IndexingProtocol], key, path)
-        context.become(
-          indexing(
-            new scala.collection.mutable.HashSet[String]
-          )
-        )
+        context.become(indexing(new scala.collection.mutable.HashSet[String]))
       } else {
         unstashAll()
         log.info(
@@ -178,7 +174,6 @@ class BPlusTreeEntity extends PersistentActor with ActorLogging with Indexing[Un
       case RecoveryCompleted =>
         val mb = GraphLayout.parseInstance(recoveredIndex).totalSize.toFloat / mbDivider
         log.info(s"✅ Recovered $key. [${recoveredIndex.keys.size} terms, b-plus-tree size:$mb mb]")
-        // 👍✅🚀🧪❌😄📣🔥🚨😱🥳
         self ! BPlusTreeEntity.RestoredIndex(recoveredIndex)
     }
   }

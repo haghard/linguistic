@@ -37,3 +37,10 @@ bin/
 server/lib/
 server/src/test/
 server/linguistic.log
+/server/gc.log
+/server/gc.log.0
+/server/gc.log.1
+/server/gc.log.2
+/server/gc.log.3
+/server/gc.log.4
+/.bsp/sbt.json

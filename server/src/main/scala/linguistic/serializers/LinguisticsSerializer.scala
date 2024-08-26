@@ -30,19 +30,19 @@ class LinguisticsSerializer(val system: ExtendedActorSystem) extends SerializerW
         HomophonePB(h.key, h.homophones).toByteArray
       case h: Homophones =>
         HomophonesPB(h.homophones.map(h => HomophonePB(h.key, h.homophones))).toByteArray
-      case snapshot: UniqueTermsByShard2 =>
-        val pb        = WordsPB(snapshot.terms.toVector)
-        val shardName = snapshot.terms.headOption.map(_.head.toString).getOrElse("")
-        val mb        = pb.serializedSize.toFloat / mbDivider
-        system.log.info("-- Snapshot:Save({}) {}mb", shardName, mb)
-        pb.toByteArray
       case snapshot: UniqueTermsByShard =>
         val pb        = WordsPB(snapshot.terms)
         val shardName = snapshot.terms.headOption.map(_.head.toString).getOrElse("")
         val mb        = pb.serializedSize.toFloat / mbDivider
         system.log.info("-- Snapshot:Save({}) {}mb", shardName, mb)
         pb.toByteArray
-
+      case snapshot: UniqueTermsByShard2 =>
+        val pb        = WordsPB(snapshot.terms.toVector)
+        val shardName = snapshot.terms.headOption.map(_.head.toString).getOrElse("")
+        val mb        = pb.serializedSize.toFloat / mbDivider
+        // "👍✅🚀🧪❌😄📣🔥🚨😱🥳❤️,😄,😐,😞"
+        system.log.info("👍 Snapshot:Save({}) {}mb", shardName, mb)
+        pb.toByteArray
       // cmd
       case AddOneWord(w) =>
         AddOneWordPB(w).toByteArray
@@ -82,10 +82,9 @@ class LinguisticsSerializer(val system: ExtendedActorSystem) extends SerializerW
     } else if (manifest == classOf[UniqueTermsByShard2].getName) {
       val pb        = WordsPB.parseFrom(bytes)
       val shardName = pb.entry.headOption.map(_.head.toString).getOrElse("")
-      // val mb    = GraphLayout.parseInstance(snapshot.words).totalSize.toFloat / mbDivider
-      val mb = pb.serializedSize.toFloat / mbDivider
-      system.log.info("-- Snapshot:Read({}) {}mb", shardName, mb)
-      UniqueTermsByShard2(scala.collection.mutable.HashSet(pb.entry: _*))
+      val mb        = pb.serializedSize.toFloat / mbDivider
+      system.log.info("🚀 Snapshot:Read({}) {}mb", shardName, mb)
+      UniqueTermsByShard2(scala.collection.mutable.TreeSet(pb.entry: _*))
     } else if (manifest == classOf[AddOneWord].getName) {
       AddOneWord(AddOneWordPB.parseFrom(bytes).word)
     } else if (manifest == classOf[OneWordAdded].getName) {

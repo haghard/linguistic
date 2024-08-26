@@ -258,6 +258,8 @@ select * from linguistics.linguistics_journal where persistence_id='/sharding/wo
 https://github.com/dwyl/english-words
 
 
+
+```
 jcmd 39719 VM.native_memory
 
 
@@ -289,3 +291,13 @@ Average bucket size     :     5.482
 Variance of bucket size :     5.470
 Std. dev. of bucket size:     2.339
 Maximum bucket size     :        17
+   
+```
+
+```
+
+jcmd 39719 VM.native_memory summary
+
+```
+
+curl --no-buffer -k https://127.0.0.1:9443/jvm

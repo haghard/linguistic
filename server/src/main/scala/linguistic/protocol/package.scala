@@ -34,7 +34,7 @@ package object protocol {
   final case class Homophone(key: String, homophones: Seq[String])
 
   final case class UniqueTermsByShard(terms: Seq[String])
-  final case class UniqueTermsByShard2(terms: mutable.HashSet[String])
+  final case class UniqueTermsByShard2(terms: mutable.Set[String])
 
   final case class AddOneWord(w: String)
   final case class OneWordAdded(w: String)

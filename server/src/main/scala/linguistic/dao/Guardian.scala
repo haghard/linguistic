@@ -5,8 +5,10 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.cluster.Member
 import akka.cluster.ddata.SelfUniqueAddress
 import akka.cluster.typed.SelfUp
-
 import linguistic.Bootstrap
+import linguistic.ps.cassandraBPlusTree.HeapUtils
+import org.fusesource.jansi.Ansi.ansi
+import org.fusesource.jansi.AnsiConsole
 
 import java.lang.management.ManagementFactory
 import java.time.LocalDateTime
@@ -85,7 +87,7 @@ object Guardian {
                 )
                 .append('\n')
                 .append(
-                  s"★ ★ ★  Server online at http://${config.getString("akka.http.interface")}:$httpPort   ★ ★ ★"
+                  s"★ ★ ★  Server online at https://${config.getString("akka.http.interface")}:$httpPort   ★ ★ ★"
                 )
                 .append('\n')
                 .append(
@@ -105,6 +107,7 @@ object Guardian {
 
             import embroidery._
             ctx.log.info("search-as-you-type".toAsciiArt)
+            println(HeapUtils.logNativeMemory())
             ctx.log.info(greeting.toString)
 
             Bootstrap(httpPort, hostName, keypass, storepass)(system, ctx)

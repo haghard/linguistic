@@ -10,6 +10,7 @@ import akka.actor.typed.scaladsl.adapter.TypedActorSystemOps
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.RouteConcatenation._
 import akka.http.scaladsl.server.RouteResult._
+import akka.management.scaladsl.AkkaManagement
 import linguistic.api.WebAssets
 
 import scala.concurrent.Future
@@ -44,11 +45,13 @@ case class Bootstrap(port: Int, hostName: String, keypass: String, storepass: St
   val users: ActorRef[Accounts.Protocol] = ctx.spawn(Accounts(), "accounts")
 
   val routes = new WebAssets().route ~
-    new api.SearchApi(wordRegion).route ~ new api.UsersApi(users).route
+    new api.SearchApi(wordRegion).route ~ new api.UsersApi(users).route ~ new api.ClusterMetricsApi().route
 
   Http()
     // .bindAndHandle(routes, hostName, port, connectionContext = https(keypass, storepass))
     .newServerAt(hostName, port)
+    // .enableHttps(httpsFsa())
+    .enableHttps(httpsSelfSign())
     // .enableHttps(https(keypass, storepass))
     .bind(routes)
     // .bindAndHandle(routes, hostName, port)
@@ -57,6 +60,7 @@ case class Bootstrap(port: Int, hostName: String, keypass: String, storepass: St
         classicSystem.log.error(s"Shutting down because can't bind on $hostName:$port", ex)
         CoordinatedShutdown(classicSystem).run(Bootstrap.BindFailure)
       case Success(binding) =>
+        // 👍✅🚀🧪❌😄📣🔥🚨😱🥳❤️,😄,😐,😞
         classicSystem.log.info(s"★ ★ ★ Listening for HTTP connections on ${binding.localAddress} * * *")
 
         CoordinatedShutdown(classicSystem).addTask(PhaseBeforeServiceUnbind, "before-unbind") { () =>
@@ -74,12 +78,12 @@ case class Bootstrap(port: Int, hostName: String, keypass: String, storepass: St
           }
         }
 
-        /*CoordinatedShutdown(classicSystem).addTask(PhaseServiceUnbind, "akka-management.stop") { () =>
+        CoordinatedShutdown(classicSystem).addTask(PhaseServiceUnbind, "akka-management.stop") { () =>
           AkkaManagement(classicSystem).stop().map { done =>
             classicSystem.log.info("CoordinatedShutdown [akka-management.stop]")
             done
           }
-        }*/
+        }
 
         // graceful termination request being handled on this connection
         CoordinatedShutdown(classicSystem).addTask(PhaseServiceRequestsDone, "http-api.terminate") { () =>
