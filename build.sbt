@@ -113,6 +113,7 @@ val ops1 =
     "-XX:ObjectAlignmentInBytes=8",
     "-Xmx756m",
     "-Xms756m",
+    "-XX:+AlwaysPreTouch",
     "-XX:-UseAdaptiveSizePolicy",   //heap never resizes
     "-XX:MaxDirectMemorySize=128m", //Will get a error if allocate more mem for direct byte buffers
     "-XX:+UseParallelGC",  //with heaps < 4GB
@@ -133,12 +134,14 @@ val ops2 =
     "-XX:NativeMemoryTracking=summary", //detail|summary
     "-Xlog:gc=debug:file=./gc.log:time,uptime,level,tags:filecount=5,filesize=100m",
     "-XX:ObjectAlignmentInBytes=8",
-    "-Xmx1024m",
-    "-Xms1024m",
+    "-Xmx850m",
+    "-Xms850m",
+    "-XX:+AlwaysPreTouch",
     "-XX:-UseAdaptiveSizePolicy",   //heap never resizes
     "-XX:MaxDirectMemorySize=128m", //Will get a error if allocate more mem for direct byte buffers
     "-XX:+UseDynamicNumberOfGCThreads",
     "-XX:+UseZGC",       //apps that require sub-millisecond GC pauses, with gigantic (terabyte range) heaps
+    //"-XX:+ExplicitGCInvokesConcurrent",
     "-XX:ActiveProcessorCount=4",
   ) ++ java17Settings
 
@@ -162,7 +165,7 @@ lazy val server = project
     Compile / compile := (Compile / compile).dependsOn(scalaJSPipeline, cpCss()).value,
 
     name := "server",
-    
+
     run / fork := true,
     run / connectInput := true,
 

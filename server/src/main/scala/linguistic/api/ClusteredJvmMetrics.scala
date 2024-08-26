@@ -64,9 +64,9 @@ object ClusteredJvmMetrics {
               if (ThreadLocalRandom.current().nextDouble() > .75) {
                 println(
                   s"""
-                    |***********************$now******************************
+                    |★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★
                     |${HeapUtils.logNativeMemory()}
-                    |*****************************************************
+                    |★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★
                     |""".stripMargin
                 )
               }

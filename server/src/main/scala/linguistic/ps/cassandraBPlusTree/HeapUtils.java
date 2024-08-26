@@ -1,8 +1,14 @@
 package linguistic.ps.cassandraBPlusTree;
 
 import java.io.*;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class HeapUtils {
+  static ZoneId defaultTZ = ZoneId.of(java.util.TimeZone.getDefault().getID());
+  static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss Z");
 
   public static String logNativeMemory() {
     StringBuilder builder = new StringBuilder();
@@ -11,13 +17,19 @@ public class HeapUtils {
 
       String jcmdPath = getJcmdPath();
       String jcmdCommand = jcmdPath == null ? "jcmd" : jcmdPath;
-      String[] nmCommands = new String[]{jcmdCommand, processId.toString(), "VM.native_memory summary"};
+      String[] cmd = new String[]{jcmdCommand, processId.toString(), "VM.native_memory summary"};
 
-      //String[] histoCommands = new String[]{ jcmdCommand, processId.toString(), "GC.class_histogram" };
+      builder
+        .append(formatter.format(ZonedDateTime.ofInstant(Instant.ofEpochMilli(System.currentTimeMillis()), defaultTZ)))
+        .append(':')
+        .append('\n')
+        .append(cmd[0] + " " + cmd[1] + " " + cmd[2])
+        .append('\n')
+        .append("PID:");
+
+
       //logProcessOutput(Runtime.getRuntime().exec(histoCommands));
-
-      //logProcessOutput(Runtime.getRuntime().exec(nmCommands));
-      Process p = Runtime.getRuntime().exec(nmCommands);
+      Process p = Runtime.getRuntime().exec(cmd);
       try (BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
         String line;
         while ((line = input.readLine()) != null) {
@@ -53,3 +65,13 @@ public class HeapUtils {
     }
   }
 }
+
+/*
+Java Heap (reserved=50 331 648KB, committed=1 048 576 KB)
+          (mmap: reserved=50 331 648 KB, committed=1 048 576 KB)
+
+
+Java Heap (reserved=37158912KB, committed=774 144 KB)
+[info]    (mmap: reserved=37 158 912KB, committed=774 144KB)
+
+*/

@@ -147,7 +147,6 @@ class BPlusEntity extends PersistentActor with ActorLogging with Indexing[Unit] 
           try {
             val b: BTree.Builder[String] = BTree.builder(Comparator.naturalOrder[String]())
             sortedWords.foreach(b.add(_))
-            // b.addAll(sortedWords)
             btree = b.build()
           } catch {
             case NonFatal(ex) =>
